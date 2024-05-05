@@ -32,8 +32,9 @@ impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
         let base = BaseRenderState::create(window).await;
 
-        let camera = Camera::create(&base.device);
-
+        let mut camera = Camera::create(&base.device);
+        camera.set_aspect(base.surface_config.width as f32 / base.surface_config.height as f32, 1.0);
+        
         let shader = base
             .device
             .create_shader_module(include_wgsl!("shader.wgsl"));
@@ -45,9 +46,10 @@ impl<'window> RenderState<'window> {
                 bind_group_layouts: &[camera.bind_group_layout()],
                 push_constant_ranges: &[],
             });
-
+        
         let swapchain_capabilities = base.surface.get_capabilities(&base.adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
+
         let render_pipeline = base
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -127,6 +129,14 @@ impl<'window> RenderState<'window> {
     }
 
     pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
+        let old_width = self.base.surface_config.width as f32;
+        let old_height = self.base.surface_config.height as f32;
+
+        let new_width = new_size.width as f32;
+        let new_height = new_size.height as f32;
+
+        let scale = (new_width / old_width, new_height / old_height);
+        self.camera.scale(scale.into());
         self.base.resize(window, new_size);
     }
 
@@ -170,9 +180,11 @@ impl<'window> BaseRenderState<'window> {
             .await
             .expect("Failed to create device");
 
-        let surface_config = surface
+        let mut surface_config = surface
             .get_default_config(&adapter, size.width, size.height)
             .unwrap();
+
+        surface_config.present_mode = wgpu::PresentMode::AutoVsync;
 
         surface.configure(&device, &surface_config);
 
@@ -192,7 +204,5 @@ impl<'window> BaseRenderState<'window> {
         self.surface_config.height = new_size.height.max(1);
 
         self.surface.configure(&self.device, &self.surface_config);
-        // On macos the window needs to be redrawn manually after resizing
-        window.request_redraw();
     }
 }

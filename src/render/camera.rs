@@ -26,11 +26,19 @@ impl Camera {
     pub fn translate(&mut self, translation: Vec2) {
         self.uniform.center += translation * 0.1;
     }
+
+    pub fn scale(&mut self, scale: Vec2) {
+        self.uniform.size *= scale;
+    }
+
+    pub fn set_aspect(&mut self, ratio: f32, scale: f32) {
+        self.uniform.size = Vec2::new(scale, scale / ratio);
+    }
     
     pub fn create(device:&Device) -> Self {
         let uniform = CameraUniform {
-            center: glam::Vec2::new(-1.0, -1.0),
-            size: glam::Vec2::new(2.0, 1.0),
+            center: glam::Vec2::new(0.0, 0.0),
+            size: glam::Vec2::new(1.0, 1.0),
         };
 
         let bind_group_layout = device.create_bind_group_layout(

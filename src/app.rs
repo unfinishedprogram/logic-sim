@@ -1,3 +1,7 @@
+mod input;
+
+use std::time::Instant;
+
 use glam::Vec2;
 use winit::{
     application::ApplicationHandler, event::WindowEvent, event_loop::EventLoop, keyboard::{self, NamedKey}, window::Window
@@ -5,18 +9,25 @@ use winit::{
 
 use crate::render::RenderState;
 
+use self::input::Input;
+
 pub struct App<'a> {
     window: &'a Window,
     render_state: RenderState<'a>,
+    input: Input,
+    last_frame:Instant,
 }
 
 impl<'a> App<'a> {
     pub async fn create(window: &'a Window) -> Self {
         let render_state = RenderState::create(window).await;
+        let input = Input::default();
 
         Self {
             window,
             render_state,
+            input,
+            last_frame: Instant::now(),
         }
     }
 
@@ -24,13 +35,26 @@ impl<'a> App<'a> {
         event_loop.run_app(self).expect("Failure in event loop");
     }
 
-    pub fn update(&mut self) {
+    fn update(&mut self) {
+        // Use input.mouse_delta() to move the camera if drag is applied
+        if self.input.drag {
+            let delta = self.input.mouse_delta();
+            self.render_state.camera.translate(-delta / 100.0);
+        }
+        self.input.update();
+
         self.render_state.update_camera();
+    }
+
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        self.render_state.resize(self.window, new_size);
     }
 }
 
 impl ApplicationHandler for App<'_> {
-    fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {}
+    fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
+        event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll)
+    }
 
     fn window_event(
         &mut self,
@@ -39,13 +63,32 @@ impl ApplicationHandler for App<'_> {
         event: winit::event::WindowEvent,
     ) {
         match event {
-            WindowEvent::Resized(new_size) => self.render_state.resize(self.window, new_size),
+            WindowEvent::Resized(new_size) => self.resize(new_size),
             WindowEvent::RedrawRequested => {
-                println!("Redraw requested");
+                let now = Instant::now();
+                let delta = now - self.last_frame;
+                self.last_frame = now;
+                println!("Delta: {:?}", delta);
+
                 self.update();
                 self.render_state.render();
+
+                self.window.request_redraw();
+            }
+            WindowEvent::MouseInput { device_id, state, button } => {
+                self.input.handle_mouse_input(state, button)
             }
             WindowEvent::CloseRequested => event_loop.exit(),
+            WindowEvent::MouseWheel { device_id, delta, phase } => {
+                if let winit::event::MouseScrollDelta::LineDelta(_x, y) = delta {
+                    let sensitivity = 0.1;
+                    let scale_delta = 1.0 + y * sensitivity;
+                    self.render_state.camera.scale(Vec2::splat(scale_delta));
+                }
+            }
+            WindowEvent::CursorMoved { device_id, position } => {
+                self.input.handle_mouse_move(position);
+            }
             WindowEvent::KeyboardInput { device_id, event, is_synthetic } => {
                 if let keyboard::Key::Named(key) = event.logical_key {
                     match key {
@@ -56,7 +99,6 @@ impl ApplicationHandler for App<'_> {
                         NamedKey::ArrowDown => self.render_state.camera.translate(Vec2::new(0.0, -1.0)),
                         _ => {}
                     }
-                    self.window.request_redraw();
                 } 
             }
             _ => {}
