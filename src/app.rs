@@ -31,18 +31,27 @@ impl<'a> App<'a> {
         }
     }
 
+    fn screen_size(&self) -> Vec2 {
+        Vec2::new(self.window.inner_size().width as f32, self.window.inner_size().height as f32)
+    }
+
+    fn screen_to_clip_space(&self, pos:Vec2) -> Vec2 {
+        pos / self.screen_size() * 2.0 - 1.0
+    }
+
     pub async fn run(&mut self, event_loop: EventLoop<()>) {
         event_loop.run_app(self).expect("Failure in event loop");
     }
 
     fn update(&mut self) {
-        // Use input.mouse_delta() to move the camera if drag is applied
         if self.input.drag {
-            let delta = self.input.mouse_delta();
-            self.render_state.camera.translate(-delta / 100.0);
+            let screen_delta_pixels = self.input.mouse_delta() * Vec2::new(-1.0, 1.0);
+            let screen_delta = screen_delta_pixels / self.screen_size();
+            let clip_delta = screen_delta * 2.0 * self.render_state.camera.uniform.size;
+            self.render_state.camera.translate(clip_delta);
         }
-        self.input.update();
 
+        self.input.update();
         self.render_state.update_camera();
     }
 
@@ -68,7 +77,7 @@ impl ApplicationHandler for App<'_> {
                 let now = Instant::now();
                 let delta = now - self.last_frame;
                 self.last_frame = now;
-                println!("Delta: {:?}", delta);
+                // println!("Delta: {:?}", delta);
 
                 self.update();
                 self.render_state.render();

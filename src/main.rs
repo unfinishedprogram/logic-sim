@@ -1,3 +1,5 @@
+#![feature(slice_as_chunks)]
+
 mod app;
 mod render;
 

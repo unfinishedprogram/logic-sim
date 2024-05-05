@@ -11,7 +11,8 @@ fn vs_main(
     @builtin(vertex_index) in_vertex_index: u32,
     @location(0) vert_pos_2d: vec2f    
 ) -> @builtin(position) vec4f {
-    let real_pos = vert_pos_2d / camera.size - camera.center;
+
+    let real_pos = (vert_pos_2d - camera.center) / camera.size;
 
     return vec4f(real_pos, 0.0, 1.0);
 }

@@ -1,4 +1,3 @@
-mod basic_mesh;
 mod quad;
 mod scene;
 pub mod vertex;
@@ -9,13 +8,14 @@ use wgpu::{
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::{basic_mesh::BasicMesh, camera::Camera, quad::Quad, scene::Scene, vertex::Vertex};
+use self::{camera::Camera, quad::Quad, scene::Scene, vertex::Vertex};
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
 
+    scene: Scene,
     pub camera: Camera,
 }
 
@@ -33,7 +33,7 @@ impl<'window> RenderState<'window> {
         let base = BaseRenderState::create(window).await;
 
         let mut camera = Camera::create(&base.device);
-        camera.set_aspect(base.surface_config.width as f32 / base.surface_config.height as f32, 1.0);
+        camera.set_aspect(base.surface_config.width as f32 / base.surface_config.height as f32, 10.0);
         
         let shader = base
             .device
@@ -71,8 +71,8 @@ impl<'window> RenderState<'window> {
                 multiview: None,
             });
 
-        let meshes: Vec<BasicMesh<2>> = vec![Quad::default().into()];
-        let scene = Scene { meshes };
+
+        let scene = Scene::new();
         let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
             contents: scene.as_vertex_buffer(),
@@ -83,7 +83,7 @@ impl<'window> RenderState<'window> {
             base,
             render_pipeline,
             vertex_buf,
-            
+            scene,
             camera,
         }
     }
@@ -121,7 +121,7 @@ impl<'window> RenderState<'window> {
             rpass.set_bind_group(0, self.camera.bind_group(), &[]);
 
             rpass.set_pipeline(&self.render_pipeline);
-            rpass.draw(0..6, 0..1);
+            rpass.draw(0..self.scene.size(), 0..1);
         }
 
         self.base.queue.submit(Some(encoder.finish()));

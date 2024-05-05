@@ -16,7 +16,7 @@ impl CameraUniform {
 }
 
 pub struct Camera {
-    uniform: CameraUniform,
+    pub uniform: CameraUniform,
     bind_group: BindGroup,
     bind_group_layout: BindGroupLayout,
     buffer: Buffer,
@@ -24,7 +24,7 @@ pub struct Camera {
 
 impl Camera {
     pub fn translate(&mut self, translation: Vec2) {
-        self.uniform.center += translation * 0.1;
+        self.uniform.center += translation;
     }
 
     pub fn scale(&mut self, scale: Vec2) {
@@ -34,11 +34,15 @@ impl Camera {
     pub fn set_aspect(&mut self, ratio: f32, scale: f32) {
         self.uniform.size = Vec2::new(scale, scale / ratio);
     }
-    
+
+    pub fn screen_space_to_world_space(&self, screen_space: Vec2, screen_size: Vec2) -> Vec2 {
+        (screen_space / screen_size - self.uniform.center) / self.uniform.size
+    }
+
     pub fn create(device:&Device) -> Self {
         let uniform = CameraUniform {
             center: glam::Vec2::new(0.0, 0.0),
-            size: glam::Vec2::new(1.0, 1.0),
+            size: glam::Vec2::new(10.0, 10.0),
         };
 
         let bind_group_layout = device.create_bind_group_layout(
