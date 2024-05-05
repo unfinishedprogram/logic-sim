@@ -1,9 +1,5 @@
-use pollster::FutureExt;
 use winit::{
-    application::ApplicationHandler,
-    event::WindowEvent,
-    event_loop::EventLoop,
-    window::{Window, WindowAttributes},
+    application::ApplicationHandler, event::WindowEvent, event_loop::EventLoop, window::Window,
 };
 
 use crate::render::RenderState;
@@ -26,6 +22,8 @@ impl<'a> App<'a> {
     pub async fn run(&mut self, event_loop: EventLoop<()>) {
         event_loop.run_app(self).expect("Failure in event loop");
     }
+
+    pub fn update(&mut self) {}
 }
 
 impl ApplicationHandler for App<'_> {

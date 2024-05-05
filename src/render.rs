@@ -1,11 +1,23 @@
-use std::borrow::Cow;
+mod basic_mesh;
+mod quad;
+mod scene;
+pub mod vertex;
 
-use wgpu::{Adapter, Device, Instance, Queue, RenderPipeline, Surface, SurfaceConfiguration};
+use glam::Vec2;
+use wgpu::{
+    include_wgsl,
+    util::{BufferInitDescriptor, DeviceExt},
+    Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface,
+    SurfaceConfiguration, VertexAttribute, VertexBufferLayout, VertexStepMode,
+};
 use winit::{dpi::PhysicalSize, window::Window};
+
+use self::{basic_mesh::BasicMesh, quad::Quad, scene::Scene, vertex::Vertex};
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
+    vertex_buf: Buffer,
 }
 
 pub struct BaseRenderState<'window> {
@@ -21,13 +33,9 @@ impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
         let base = BaseRenderState::create(window).await;
 
-        // Load the shaders from disk
         let shader = base
             .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: None,
-                source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
-            });
+            .create_shader_module(include_wgsl!("shader.wgsl"));
 
         let pipeline_layout = base
             .device
@@ -39,7 +47,6 @@ impl<'window> RenderState<'window> {
 
         let swapchain_capabilities = base.surface.get_capabilities(&base.adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
-
         let render_pipeline = base
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -48,7 +55,7 @@ impl<'window> RenderState<'window> {
                 vertex: wgpu::VertexState {
                     module: &shader,
                     entry_point: "vs_main",
-                    buffers: &[],
+                    buffers: &[Vertex::buffer_layout_descriptor()],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
@@ -61,9 +68,19 @@ impl<'window> RenderState<'window> {
                 multiview: None,
             });
 
+        let meshes: Vec<BasicMesh<2>> = vec![Quad::default().into()];
+        let scene = Scene { meshes };
+        
+        let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: scene.as_vertex_buffer(),
+            usage: BufferUsages::VERTEX,
+        });
+
         Self {
             base,
             render_pipeline,
+            vertex_buf,
         }
     }
 
@@ -95,8 +112,9 @@ impl<'window> RenderState<'window> {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
+            rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
             rpass.set_pipeline(&self.render_pipeline);
-            rpass.draw(0..3, 0..1);
+            rpass.draw(0..6, 0..1);
         }
 
         self.base.queue.submit(Some(encoder.finish()));
@@ -168,45 +186,3 @@ impl<'window> BaseRenderState<'window> {
         window.request_redraw();
     }
 }
-
-// async fn run(event_loop: EventLoop<()>, window: Window) {
-
-//     // Load the shaders from disk
-//     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-//         label: None,
-//         source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
-//     });
-
-//     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-//         label: None,
-//         bind_group_layouts: &[],
-//         push_constant_ranges: &[],
-//     });
-
-//     let swapchain_capabilities = surface.get_capabilities(&adapter);
-//     let swapchain_format = swapchain_capabilities.formats[0];
-
-//     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-//         label: None,
-//         layout: Some(&pipeline_layout),
-//         vertex: wgpu::VertexState {
-//             module: &shader,
-//             entry_point: "vs_main",
-//             buffers: &[],
-//         },
-//         fragment: Some(wgpu::FragmentState {
-//             module: &shader,
-//             entry_point: "fs_main",
-//             targets: &[Some(swapchain_format.into())],
-//         }),
-//         primitive: wgpu::PrimitiveState::default(),
-//         depth_stencil: None,
-//         multisample: wgpu::MultisampleState::default(),
-//         multiview: None,
-//     });
-
-//     let mut config = surface
-//         .get_default_config(&adapter, size.width, size.height)
-//         .unwrap();
-//     surface.configure(&device, &config);
-// }
