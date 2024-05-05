@@ -2,22 +2,21 @@ mod basic_mesh;
 mod quad;
 mod scene;
 pub mod vertex;
+mod camera;
 
-use glam::Vec2;
 use wgpu::{
-    include_wgsl,
-    util::{BufferInitDescriptor, DeviceExt},
-    Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface,
-    SurfaceConfiguration, VertexAttribute, VertexBufferLayout, VertexStepMode,
+    include_wgsl, util::{BufferInitDescriptor, DeviceExt}, Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface, SurfaceConfiguration
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::{basic_mesh::BasicMesh, quad::Quad, scene::Scene, vertex::Vertex};
+use self::{basic_mesh::BasicMesh, camera::Camera, quad::Quad, scene::Scene, vertex::Vertex};
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
+
+    pub camera: Camera,
 }
 
 pub struct BaseRenderState<'window> {
@@ -33,6 +32,8 @@ impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
         let base = BaseRenderState::create(window).await;
 
+        let camera = Camera::create(&base.device);
+
         let shader = base
             .device
             .create_shader_module(include_wgsl!("shader.wgsl"));
@@ -41,7 +42,7 @@ impl<'window> RenderState<'window> {
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[],
+                bind_group_layouts: &[camera.bind_group_layout()],
                 push_constant_ranges: &[],
             });
 
@@ -70,7 +71,6 @@ impl<'window> RenderState<'window> {
 
         let meshes: Vec<BasicMesh<2>> = vec![Quad::default().into()];
         let scene = Scene { meshes };
-        
         let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
             contents: scene.as_vertex_buffer(),
@@ -81,6 +81,8 @@ impl<'window> RenderState<'window> {
             base,
             render_pipeline,
             vertex_buf,
+            
+            camera,
         }
     }
 
@@ -113,6 +115,9 @@ impl<'window> RenderState<'window> {
                 occlusion_query_set: None,
             });
             rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
+            
+            rpass.set_bind_group(0, self.camera.bind_group(), &[]);
+
             rpass.set_pipeline(&self.render_pipeline);
             rpass.draw(0..6, 0..1);
         }
@@ -124,6 +129,10 @@ impl<'window> RenderState<'window> {
     pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
         self.base.resize(window, new_size);
     }
+
+    pub fn update_camera(&self) {
+        self.camera.update(&self.base.queue);
+    }
 }
 
 impl<'window> BaseRenderState<'window> {
@@ -131,6 +140,7 @@ impl<'window> BaseRenderState<'window> {
         let mut size = window.inner_size();
         size.width = size.width.max(1);
         size.height = size.height.max(1);
+
         let instance = wgpu::Instance::default();
 
         let surface = instance.create_surface(window).unwrap();
