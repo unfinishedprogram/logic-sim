@@ -1,20 +1,25 @@
+mod camera;
+mod img_texture;
 mod quad;
 mod scene;
 pub mod vertex;
-mod camera;
 
 use wgpu::{
-    include_wgsl, util::{BufferInitDescriptor, DeviceExt}, Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface, SurfaceConfiguration
+    include_wgsl,
+    util::{BufferInitDescriptor, DeviceExt},
+    Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface,
+    SurfaceConfiguration, Texture,
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::{camera::Camera, quad::Quad, scene::Scene, vertex::Vertex};
+use self::{camera::Camera, img_texture::ImageTexture, quad::Quad, scene::Scene, vertex::Vertex};
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
 
+    msdf_texture: ImageTexture,
     scene: Scene,
     pub camera: Camera,
 }
@@ -33,8 +38,18 @@ impl<'window> RenderState<'window> {
         let base = BaseRenderState::create(window).await;
 
         let mut camera = Camera::create(&base.device);
-        camera.set_aspect(base.surface_config.width as f32 / base.surface_config.height as f32, 10.0);
-        
+        camera.set_aspect(
+            base.surface_config.width as f32 / base.surface_config.height as f32,
+            10.0,
+        );
+
+        let msdf_texture = ImageTexture::create(
+            &base.device,
+            &base.queue,
+            include_bytes!("../assets/custom.png"),
+            None,
+        );
+
         let shader = base
             .device
             .create_shader_module(include_wgsl!("shader.wgsl"));
@@ -43,10 +58,10 @@ impl<'window> RenderState<'window> {
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[camera.bind_group_layout()],
+                bind_group_layouts: &[camera.bind_group_layout(), &msdf_texture.bind_group_layout],
                 push_constant_ranges: &[],
             });
-        
+
         let swapchain_capabilities = base.surface.get_capabilities(&base.adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
 
@@ -71,7 +86,6 @@ impl<'window> RenderState<'window> {
                 multiview: None,
             });
 
-
         let scene = Scene::new();
         let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
@@ -85,6 +99,7 @@ impl<'window> RenderState<'window> {
             vertex_buf,
             scene,
             camera,
+            msdf_texture,
         }
     }
 
@@ -117,8 +132,9 @@ impl<'window> RenderState<'window> {
                 occlusion_query_set: None,
             });
             rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
-            
+
             rpass.set_bind_group(0, self.camera.bind_group(), &[]);
+            rpass.set_bind_group(1, &self.msdf_texture.bind_group, &[]);
 
             rpass.set_pipeline(&self.render_pipeline);
             rpass.draw(0..self.scene.size(), 0..1);

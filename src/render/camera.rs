@@ -35,10 +35,6 @@ impl Camera {
         self.uniform.size = Vec2::new(scale, scale / ratio);
     }
 
-    pub fn screen_space_to_world_space(&self, screen_space: Vec2, screen_size: Vec2) -> Vec2 {
-        (screen_space / screen_size - self.uniform.center) / self.uniform.size
-    }
-
     pub fn create(device:&Device) -> Self {
         let uniform = CameraUniform {
             center: glam::Vec2::new(0.0, 0.0),
