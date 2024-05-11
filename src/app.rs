@@ -4,7 +4,11 @@ use std::time::Instant;
 
 use glam::Vec2;
 use winit::{
-    application::ApplicationHandler, event::WindowEvent, event_loop::EventLoop, keyboard::{self, NamedKey}, window::Window
+    application::ApplicationHandler,
+    event::WindowEvent,
+    event_loop::EventLoop,
+    keyboard::{self, NamedKey},
+    window::Window,
 };
 
 use crate::render::RenderState;
@@ -15,7 +19,7 @@ pub struct App<'a> {
     window: &'a Window,
     render_state: RenderState<'a>,
     input: Input,
-    last_frame:Instant,
+    last_frame: Instant,
 }
 
 impl<'a> App<'a> {
@@ -32,10 +36,13 @@ impl<'a> App<'a> {
     }
 
     fn screen_size(&self) -> Vec2 {
-        Vec2::new(self.window.inner_size().width as f32, self.window.inner_size().height as f32)
+        Vec2::new(
+            self.window.inner_size().width as f32,
+            self.window.inner_size().height as f32,
+        )
     }
 
-    fn screen_to_clip_space(&self, pos:Vec2) -> Vec2 {
+    fn screen_to_clip_space(&self, pos: Vec2) -> Vec2 {
         pos / self.screen_size() * 2.0 - 1.0
     }
 
@@ -84,31 +91,52 @@ impl ApplicationHandler for App<'_> {
 
                 self.window.request_redraw();
             }
-            WindowEvent::MouseInput { device_id, state, button } => {
-                self.input.handle_mouse_input(state, button)
-            }
+            WindowEvent::MouseInput {
+                device_id,
+                state,
+                button,
+            } => self.input.handle_mouse_input(state, button),
             WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::MouseWheel { device_id, delta, phase } => {
+            WindowEvent::MouseWheel {
+                device_id,
+                delta,
+                phase,
+            } => {
                 if let winit::event::MouseScrollDelta::LineDelta(_x, y) = delta {
                     let sensitivity = 0.1;
                     let scale_delta = 1.0 + y * sensitivity;
                     self.render_state.camera.scale(Vec2::splat(scale_delta));
                 }
             }
-            WindowEvent::CursorMoved { device_id, position } => {
+            WindowEvent::CursorMoved {
+                device_id,
+                position,
+            } => {
                 self.input.handle_mouse_move(position);
             }
-            WindowEvent::KeyboardInput { device_id, event, is_synthetic } => {
+            WindowEvent::KeyboardInput {
+                device_id,
+                event,
+                is_synthetic,
+            } => {
                 if let keyboard::Key::Named(key) = event.logical_key {
                     match key {
                         NamedKey::Escape => event_loop.exit(),
-                        NamedKey::ArrowLeft => self.render_state.camera.translate(Vec2::new(-1.0, 0.0)),
-                        NamedKey::ArrowRight => self.render_state.camera.translate(Vec2::new(1.0, 0.0)),
-                        NamedKey::ArrowUp => self.render_state.camera.translate(Vec2::new(0.0, 1.0)),
-                        NamedKey::ArrowDown => self.render_state.camera.translate(Vec2::new(0.0, -1.0)),
+                        NamedKey::ArrowLeft => {
+                            self.render_state.camera.translate(Vec2::new(-1.0, 0.0))
+                        }
+                        NamedKey::ArrowRight => {
+                            self.render_state.camera.translate(Vec2::new(1.0, 0.0))
+                        }
+                        NamedKey::ArrowUp => {
+                            self.render_state.camera.translate(Vec2::new(0.0, 1.0))
+                        }
+                        NamedKey::ArrowDown => {
+                            self.render_state.camera.translate(Vec2::new(0.0, -1.0))
+                        }
                         _ => {}
                     }
-                } 
+                }
             }
             _ => {}
         };

@@ -1,4 +1,3 @@
-
 use super::vertex::Vertex;
 
 pub struct Quad {
@@ -23,7 +22,7 @@ impl Quad {
         }
     }
 
-    pub fn triangles(&self) -> Vec<[Vertex;3]> {
+    pub fn triangles(&self) -> Vec<[Vertex; 3]> {
         let top_left = self.p1;
         let bottom_right = self.p2;
         let top_right = Vertex::new(top_left.0.x, bottom_right.0.y); // Swap positions
