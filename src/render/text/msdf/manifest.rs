@@ -1,3 +1,4 @@
+use glam::Vec2;
 use serde::Deserialize;
 
 #[allow(unused)]
@@ -12,21 +13,44 @@ pub struct Manifest {
     kernings: Vec<Kerning>,
 }
 
+impl Manifest {
+    pub fn get_char(&self, c: char) -> &Char {
+        self.chars
+            .iter()
+            .find(|ch| ch.char == c)
+            .unwrap_or(self.chars.iter().find(|ch| ch.char == '?').unwrap())
+    }
+
+    pub fn uvs_of(&self, char_info: &Char) -> (Vec2, Vec2) {
+        let start = Vec2::new(
+            char_info.x as f32 / self.common.scale_w as f32,
+            char_info.y as f32 / self.common.scale_h as f32,
+        );
+
+        let end = Vec2::new(
+            (char_info.x + char_info.width) as f32 / self.common.scale_w as f32,
+            (char_info.y + char_info.height) as f32 / self.common.scale_h as f32,
+        );
+
+        (start, end)
+    }
+}
+
 #[allow(unused)]
 #[derive(Debug, Deserialize)]
-struct Char {
-    id: usize,
-    index: usize,
-    char: char,
-    width: usize,
-    height: usize,
-    xoffset: i32,
-    yoffset: i32,
-    xadvance: usize,
-    chnl: usize,
-    x: usize,
-    y: usize,
-    page: usize,
+pub struct Char {
+    pub id: usize,
+    pub index: usize,
+    pub char: char,
+    pub width: usize,
+    pub height: usize,
+    pub xoffset: i32,
+    pub yoffset: i32,
+    pub xadvance: usize,
+    pub chnl: usize,
+    pub x: usize,
+    pub y: usize,
+    pub page: usize,
 }
 
 #[allow(unused)]

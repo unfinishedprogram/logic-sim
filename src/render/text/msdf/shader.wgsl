@@ -16,24 +16,18 @@ struct VertexOutput {
     @location(0) tex_coords: vec2<f32>,
 }
 
-struct VertexInput {
-    @builtin(vertex_index) in_vertex_index: u32,
-    @location(0) vert_pos_2d: vec2<f32>,
-    @location(1) uv_pos_2d: vec2<f32>,
-}
-
 @vertex
 fn vs_main(
-    in: VertexInput,
+    @builtin(vertex_index) in_vertex_index: u32,
+    @location(0) vert_pos_2d: vec2f    
 ) -> VertexOutput {
     var out: VertexOutput;
-    
-    out.clip_pos = vec4f((in.vert_pos_2d * vec2f(1.0, -1.0) - camera.center) / camera.size, 0.0, 1.0);
-    out.tex_coords = in.uv_pos_2d;
+
+    out.clip_pos = vec4f((vert_pos_2d - camera.center) / camera.size, 0.0, 1.0);
+    out.tex_coords = vert_pos_2d * vec2f(1.0, -1.0) + vec2f(0.0, 1.0);
     
     return out;
 }
-
 
 fn sampleMsdf(texcoord: vec2f) -> f32 {
     let c = textureSample(t_diffuse, s_diffuse, texcoord);

@@ -1,12 +1,13 @@
 mod manifest;
-mod text_object;
-
+pub mod text_object;
 use bytemuck::{Pod, Zeroable};
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
 use crate::render::{bindable::Bindable, img_texture::ImageTexture};
+pub use manifest::Manifest;
 
 pub struct MsdfFont {
+    pub manifest: Manifest,
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: wgpu::BindGroup,
     pub texture: ImageTexture,
@@ -62,6 +63,7 @@ impl MsdfFont {
         let texture = ImageTexture::create(device, queue, image, None);
 
         Self {
+            manifest,
             bind_group_layout,
             bind_group,
             texture,

@@ -1,11 +1,12 @@
 mod bindable;
 mod camera;
+pub mod geometry;
 mod img_texture;
 mod quad;
 mod scene;
 pub mod text;
 pub mod vertex;
-
+use glam::Vec2;
 use wgpu::{
     include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
@@ -17,17 +18,16 @@ use self::{
     bindable::{BindList, BindTarget},
     camera::Camera,
     scene::Scene,
-    text::msdf::MsdfFont,
-    vertex::Vertex,
+    text::msdf::{text_object::TextObject, MsdfFont},
+    vertex::{Vertex, VertexUV},
 };
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
-
     scene: Scene,
-
+    pub text_object: TextObject,
     pub binding_state: BindingState,
 }
 
@@ -56,6 +56,12 @@ impl<'a> From<&'a BindingState> for BindList<'a> {
 
 impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
+        let text_object = TextObject {
+            content: "Hello, World!".to_string(),
+            position: Vec2::new(0.0, -1.0),
+            scale: 1.0 / 64.0,
+        };
+
         let base = BaseRenderState::create(window).await;
 
         let mut camera = Camera::create(&base.device);
@@ -102,7 +108,7 @@ impl<'window> RenderState<'window> {
                 vertex: wgpu::VertexState {
                     module: &shader,
                     entry_point: "vs_main",
-                    buffers: &[Vertex::buffer_layout_descriptor()],
+                    buffers: &[VertexUV::buffer_layout_descriptor()],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
@@ -114,11 +120,13 @@ impl<'window> RenderState<'window> {
                 multisample: wgpu::MultisampleState::default(),
                 multiview: None,
             });
-
         let scene = Scene::new();
+
+        let text_quads = text_object.into_textured_quads(&msdf_font.manifest);
+
         let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
-            contents: scene.as_vertex_buffer(),
+            contents: bytemuck::cast_slice(&text_quads),
             usage: BufferUsages::VERTEX,
         });
 
@@ -128,6 +136,7 @@ impl<'window> RenderState<'window> {
             base,
             render_pipeline,
             vertex_buf,
+            text_object,
             scene,
             binding_state,
         }
@@ -168,7 +177,8 @@ impl<'window> RenderState<'window> {
             rpass.set_bind_groups(&bind_list);
 
             rpass.set_pipeline(&self.render_pipeline);
-            rpass.draw(0..self.scene.size(), 0..1);
+
+            rpass.draw(0..self.text_object.content.len() as u32 * 6, 0..1);
         }
 
         self.base.queue.submit(Some(encoder.finish()));
