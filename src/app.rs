@@ -42,10 +42,6 @@ impl<'a> App<'a> {
         )
     }
 
-    fn screen_to_clip_space(&self, pos: Vec2) -> Vec2 {
-        pos / self.screen_size() * 2.0 - 1.0
-    }
-
     pub async fn run(&mut self, event_loop: EventLoop<()>) {
         event_loop.run_app(self).expect("Failure in event loop");
     }
@@ -54,8 +50,9 @@ impl<'a> App<'a> {
         if self.input.drag {
             let screen_delta_pixels = self.input.mouse_delta() * Vec2::new(-1.0, 1.0);
             let screen_delta = screen_delta_pixels / self.screen_size();
-            let clip_delta = screen_delta * 2.0 * self.render_state.camera.uniform.size;
-            self.render_state.camera.translate(clip_delta);
+            let clip_delta =
+                screen_delta * 2.0 * self.render_state.binding_state.camera.uniform.size;
+            self.render_state.binding_state.camera.translate(clip_delta);
         }
 
         self.input.update();
@@ -105,7 +102,10 @@ impl ApplicationHandler for App<'_> {
                 if let winit::event::MouseScrollDelta::LineDelta(_x, y) = delta {
                     let sensitivity = 0.1;
                     let scale_delta = 1.0 + y * sensitivity;
-                    self.render_state.camera.scale(Vec2::splat(scale_delta));
+                    self.render_state
+                        .binding_state
+                        .camera
+                        .scale(Vec2::splat(scale_delta));
                 }
             }
             WindowEvent::CursorMoved {
@@ -122,18 +122,26 @@ impl ApplicationHandler for App<'_> {
                 if let keyboard::Key::Named(key) = event.logical_key {
                     match key {
                         NamedKey::Escape => event_loop.exit(),
-                        NamedKey::ArrowLeft => {
-                            self.render_state.camera.translate(Vec2::new(-1.0, 0.0))
-                        }
-                        NamedKey::ArrowRight => {
-                            self.render_state.camera.translate(Vec2::new(1.0, 0.0))
-                        }
-                        NamedKey::ArrowUp => {
-                            self.render_state.camera.translate(Vec2::new(0.0, 1.0))
-                        }
-                        NamedKey::ArrowDown => {
-                            self.render_state.camera.translate(Vec2::new(0.0, -1.0))
-                        }
+                        NamedKey::ArrowLeft => self
+                            .render_state
+                            .binding_state
+                            .camera
+                            .translate(Vec2::new(-1.0, 0.0)),
+                        NamedKey::ArrowRight => self
+                            .render_state
+                            .binding_state
+                            .camera
+                            .translate(Vec2::new(1.0, 0.0)),
+                        NamedKey::ArrowUp => self
+                            .render_state
+                            .binding_state
+                            .camera
+                            .translate(Vec2::new(0.0, 1.0)),
+                        NamedKey::ArrowDown => self
+                            .render_state
+                            .binding_state
+                            .camera
+                            .translate(Vec2::new(0.0, -1.0)),
                         _ => {}
                     }
                 }

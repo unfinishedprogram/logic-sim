@@ -3,7 +3,7 @@ mod manifest;
 use bytemuck::{Pod, Zeroable};
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
-use crate::render::img_texture::ImageTexture;
+use crate::render::{bindable::Bindable, img_texture::ImageTexture};
 
 pub struct MsdfFont {
     pub bind_group_layout: wgpu::BindGroupLayout,
@@ -67,5 +67,15 @@ impl MsdfFont {
             texture,
             uniform,
         }
+    }
+}
+
+impl Bindable for MsdfFont {
+    fn bind_group_layout(&self) -> &wgpu::BindGroupLayout {
+        &self.bind_group_layout
+    }
+
+    fn bind_group(&self) -> &wgpu::BindGroup {
+        &self.bind_group
     }
 }

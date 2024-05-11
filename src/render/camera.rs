@@ -5,6 +5,8 @@ use wgpu::{
     BindGroup, BindGroupLayout, Buffer, BufferUsages, Device, Queue,
 };
 
+use super::bindable::Bindable;
+
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
 pub struct CameraUniform {
@@ -91,5 +93,15 @@ impl Camera {
 
     pub fn update(&self, queue: &Queue) {
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[self.uniform]));
+    }
+}
+
+impl Bindable for Camera {
+    fn bind_group_layout(&self) -> &BindGroupLayout {
+        &self.bind_group_layout
+    }
+
+    fn bind_group(&self) -> &BindGroup {
+        &self.bind_group
     }
 }

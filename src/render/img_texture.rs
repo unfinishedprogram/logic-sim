@@ -1,6 +1,8 @@
 use image::{DynamicImage, GenericImageView};
 use wgpu::{BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, Texture, TextureView};
 
+use super::bindable::Bindable;
+
 pub struct ImageTexture {
     pub texture: Texture,
     pub sampler: Sampler,
@@ -157,5 +159,15 @@ impl ImageTexture {
             bind_group_layout,
             bind_group,
         }
+    }
+}
+
+impl Bindable for ImageTexture {
+    fn bind_group_layout(&self) -> &BindGroupLayout {
+        &self.bind_group_layout
+    }
+
+    fn bind_group(&self) -> &BindGroup {
+        &self.bind_group
     }
 }

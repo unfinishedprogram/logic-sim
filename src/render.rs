@@ -1,3 +1,4 @@
+mod bindable;
 mod camera;
 mod img_texture;
 mod quad;
@@ -13,7 +14,13 @@ use wgpu::{
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::{camera::Camera, scene::Scene, text::msdf::MsdfFont, vertex::Vertex};
+use self::{
+    bindable::{BindList, BindTarget},
+    camera::Camera,
+    scene::Scene,
+    text::msdf::MsdfFont,
+    vertex::Vertex,
+};
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
@@ -21,8 +28,8 @@ pub struct RenderState<'window> {
     vertex_buf: Buffer,
 
     scene: Scene,
-    pub camera: Camera,
-    msdf_font: MsdfFont,
+
+    pub binding_state: BindingState,
 }
 
 pub struct BaseRenderState<'window> {
@@ -34,37 +41,55 @@ pub struct BaseRenderState<'window> {
     queue: Queue,
 }
 
+pub struct BindingState {
+    pub camera: Camera,
+    pub msdf_font: MsdfFont,
+}
+
+impl<'a> From<&'a BindingState> for BindList<'a> {
+    fn from(binding_state: &'a BindingState) -> Self {
+        let mut bind_list = BindList::new();
+        bind_list.push(&binding_state.camera);
+        bind_list.push(&binding_state.msdf_font);
+        bind_list.push(&binding_state.msdf_font.texture);
+        bind_list
+    }
+}
+
 impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
         let base = BaseRenderState::create(window).await;
 
         let mut camera = Camera::create(&base.device);
 
-        let mut msdf_font = MsdfFont::create(
+        camera.set_aspect(
+            base.surface_config.width as f32 / base.surface_config.height as f32,
+            10.0,
+        );
+
+        let msdf_font = MsdfFont::create(
             &base.device,
             &base.queue,
             include_str!("../assets/custom-msdf.json"),
             include_bytes!("../assets/custom.png"),
         );
 
-        camera.set_aspect(
-            base.surface_config.width as f32 / base.surface_config.height as f32,
-            10.0,
-        );
+        let mut bind_list = BindList::new();
+        bind_list.push(&camera);
+        bind_list.push(&msdf_font);
+        bind_list.push(&msdf_font.texture);
 
         let shader = base
             .device
             .create_shader_module(include_wgsl!("shader.wgsl"));
 
+        let bind_group_layouts = bind_list.bind_group_layouts();
+
         let pipeline_layout = base
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[
-                    camera.bind_group_layout(),
-                    &msdf_font.bind_group_layout,
-                    &msdf_font.texture.bind_group_layout,
-                ],
+                bind_group_layouts: &bind_group_layouts,
                 push_constant_ranges: &[],
             });
 
@@ -99,13 +124,14 @@ impl<'window> RenderState<'window> {
             usage: BufferUsages::VERTEX,
         });
 
+        let binding_state = BindingState { camera, msdf_font };
+
         Self {
             base,
             render_pipeline,
             vertex_buf,
             scene,
-            camera,
-            msdf_font,
+            binding_state,
         }
     }
 
@@ -122,6 +148,8 @@ impl<'window> RenderState<'window> {
             .base
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        let bind_list = BindList::from(&self.binding_state);
         {
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -139,9 +167,7 @@ impl<'window> RenderState<'window> {
             });
             rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
 
-            rpass.set_bind_group(0, self.camera.bind_group(), &[]);
-            rpass.set_bind_group(1, &self.msdf_font.bind_group, &[]);
-            rpass.set_bind_group(2, &self.msdf_font.texture.bind_group, &[]);
+            rpass.set_bind_groups(&bind_list);
 
             rpass.set_pipeline(&self.render_pipeline);
             rpass.draw(0..self.scene.size(), 0..1);
@@ -159,12 +185,12 @@ impl<'window> RenderState<'window> {
         let new_height = new_size.height as f32;
 
         let scale = (new_width / old_width, new_height / old_height);
-        self.camera.scale(scale.into());
+        self.binding_state.camera.scale(scale.into());
         self.base.resize(window, new_size);
     }
 
     pub fn update_camera(&self) {
-        self.camera.update(&self.base.queue);
+        self.binding_state.camera.update(&self.base.queue);
     }
 }
 
