@@ -1,4 +1,5 @@
 mod manifest;
+mod text_object;
 
 use bytemuck::{Pod, Zeroable};
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
