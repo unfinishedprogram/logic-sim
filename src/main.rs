@@ -28,6 +28,7 @@ pub fn main() {
         builder = builder.with_canvas(Some(canvas));
     }
 
+    #[allow(deprecated)]
     let window = event_loop.create_window(window_attributes).unwrap();
 
     #[cfg(not(target_arch = "wasm32"))]

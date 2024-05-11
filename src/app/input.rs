@@ -1,5 +1,8 @@
 use glam::Vec2;
-use winit::{dpi::PhysicalPosition, event::{ElementState, MouseButton}};
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton},
+};
 
 #[derive(Default)]
 pub struct Input {
@@ -13,23 +16,20 @@ impl Input {
         self.prev_mouse_position = self.mouse_position;
     }
 
-    pub fn handle_mouse_input(&mut self, state:ElementState, button:MouseButton) {
-        match button {
-            MouseButton::Left => {
-                match state {
-                    ElementState::Pressed => {
-                        self.drag = true;
-                    }
-                    ElementState::Released => {
-                        self.drag = false;
-                    }
+    pub fn handle_mouse_input(&mut self, state: ElementState, button: MouseButton) {
+        if button == MouseButton::Left {
+            match state {
+                ElementState::Pressed => {
+                    self.drag = true;
+                }
+                ElementState::Released => {
+                    self.drag = false;
                 }
             }
-            _ => {}
         }
     }
 
-    pub fn handle_mouse_move(&mut self, position:PhysicalPosition<f64>) {
+    pub fn handle_mouse_move(&mut self, position: PhysicalPosition<f64>) {
         self.mouse_position = Vec2::new(position.x as f32, position.y as f32);
     }
 

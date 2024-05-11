@@ -9,8 +9,7 @@ pub mod vertex;
 use wgpu::{
     include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
-    Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface,
-    SurfaceConfiguration,
+    Adapter, Buffer, BufferUsages, Device, Queue, RenderPipeline, Surface, SurfaceConfiguration,
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
@@ -33,7 +32,6 @@ pub struct RenderState<'window> {
 }
 
 pub struct BaseRenderState<'window> {
-    instance: Instance,
     surface: Surface<'window>,
     surface_config: SurfaceConfiguration,
     adapter: Adapter,
@@ -238,7 +236,6 @@ impl<'window> BaseRenderState<'window> {
         surface.configure(&device, &surface_config);
 
         Self {
-            instance,
             surface,
             surface_config,
             adapter,
@@ -247,7 +244,7 @@ impl<'window> BaseRenderState<'window> {
         }
     }
 
-    fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
+    fn resize(&mut self, _window: &Window, new_size: PhysicalSize<u32>) {
         // Reconfigure the surface with the new size
         self.surface_config.width = new_size.width.max(1);
         self.surface_config.height = new_size.height.max(1);

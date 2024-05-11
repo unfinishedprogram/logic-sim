@@ -14,12 +14,6 @@ pub struct CameraUniform {
     pub size: Vec2,
 }
 
-impl CameraUniform {
-    pub fn translate(&mut self, translation: Vec2) {
-        self.center += translation * 0.1;
-    }
-}
-
 pub struct Camera {
     pub uniform: CameraUniform,
     bind_group: BindGroup,
@@ -47,7 +41,7 @@ impl Camera {
         };
 
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("Camera Bind Group Layout"),
+            label: Some("camera_bind_group_layout"),
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStages::VERTEX,
@@ -61,7 +55,7 @@ impl Camera {
         });
 
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
-            label: Some("Camera Buffer"),
+            label: Some("camera_buffer"),
             contents: bytemuck::cast_slice(&[uniform]),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
@@ -81,14 +75,6 @@ impl Camera {
             bind_group_layout,
             buffer,
         }
-    }
-
-    pub fn bind_group_layout(&self) -> &BindGroupLayout {
-        &self.bind_group_layout
-    }
-
-    pub fn bind_group(&self) -> &BindGroup {
-        &self.bind_group
     }
 
     pub fn update(&self, queue: &Queue) {

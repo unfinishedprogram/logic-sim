@@ -9,7 +9,6 @@ pub struct MsdfFont {
     pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: wgpu::BindGroup,
     pub texture: ImageTexture,
-    pub uniform: MsdfFontUniform,
 }
 
 #[repr(C)]
@@ -42,7 +41,7 @@ impl MsdfFont {
             distance_range: manifest.distance_field.distance_range as f32,
         };
 
-        let bind_group_layout = device.create_bind_group_layout(&Self::layout_descriptor());
+        let bind_group_layout = device.create_bind_group_layout(Self::layout_descriptor());
 
         let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: None,
@@ -65,7 +64,6 @@ impl MsdfFont {
             bind_group_layout,
             bind_group,
             texture,
-            uniform,
         }
     }
 }

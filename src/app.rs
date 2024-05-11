@@ -5,7 +5,7 @@ use std::time::Instant;
 use glam::Vec2;
 use winit::{
     application::ApplicationHandler,
-    event::WindowEvent,
+    event::{MouseScrollDelta, WindowEvent},
     event_loop::EventLoop,
     keyboard::{self, NamedKey},
     window::Window,
@@ -72,52 +72,47 @@ impl ApplicationHandler for App<'_> {
     fn window_event(
         &mut self,
         event_loop: &winit::event_loop::ActiveEventLoop,
-        window_id: winit::window::WindowId,
+        _window_id: winit::window::WindowId,
         event: winit::event::WindowEvent,
     ) {
         match event {
             WindowEvent::Resized(new_size) => self.resize(new_size),
             WindowEvent::RedrawRequested => {
                 let now = Instant::now();
-                let delta = now - self.last_frame;
                 self.last_frame = now;
-                // println!("Delta: {:?}", delta);
-
                 self.update();
                 self.render_state.render();
 
                 self.window.request_redraw();
             }
             WindowEvent::MouseInput {
-                device_id,
+                device_id: _,
                 state,
                 button,
             } => self.input.handle_mouse_input(state, button),
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::MouseWheel {
-                device_id,
-                delta,
-                phase,
+                device_id: _,
+                delta: MouseScrollDelta::LineDelta(_x, y),
+                phase: _,
             } => {
-                if let winit::event::MouseScrollDelta::LineDelta(_x, y) = delta {
-                    let sensitivity = 0.1;
-                    let scale_delta = 1.0 + y * sensitivity;
-                    self.render_state
-                        .binding_state
-                        .camera
-                        .scale(Vec2::splat(scale_delta));
-                }
+                let sensitivity = 0.1;
+                let scale_delta = 1.0 + y * sensitivity;
+                self.render_state
+                    .binding_state
+                    .camera
+                    .scale(Vec2::splat(scale_delta));
             }
             WindowEvent::CursorMoved {
-                device_id,
+                device_id: _,
                 position,
             } => {
                 self.input.handle_mouse_move(position);
             }
             WindowEvent::KeyboardInput {
-                device_id,
+                device_id: _,
                 event,
-                is_synthetic,
+                is_synthetic: _,
             } => {
                 if let keyboard::Key::Named(key) = event.logical_key {
                     match key {
