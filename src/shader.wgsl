@@ -30,7 +30,6 @@ fn vs_main(
     
     out.clip_pos = vec4f((in.vert_pos_2d * vec2f(1.0, -1.0) - camera.center) / camera.size, 0.0, 1.0);
     out.tex_coords = in.uv_pos_2d;
-    
     return out;
 }
 
@@ -40,24 +39,29 @@ fn sampleMsdf(texcoord: vec2f) -> f32 {
     return max(min(c.r, c.g), min(max(c.r, c.g), c.b));
 }
 
+fn screenPxRange(pxRange: f32, texCoord: vec2f) -> f32 {
+    let unitRange = vec2f(pxRange) / vec2f(textureDimensions(t_diffuse, 0));
+    let screenTexSize = vec2(1.0)/fwidth(texCoord);
+    return max(0.5*dot(unitRange, screenTexSize), 1.0);
+}
+
 @fragment
 fn fs_main(
     in: VertexOutput
 ) -> @location(0) vec4f {
-    // pxRange (AKA distanceRange) comes from the msdfgen tool. Don McCurdy's tool
-    // uses the default which is 4.
-    let pxRange = 4.0;
-    let sz = vec2f(textureDimensions(t_diffuse, 0));
-    let dx = sz.x*length(vec2f(dpdxFine(in.tex_coords.x), dpdyFine(in.tex_coords.x)));
-    let dy = sz.y*length(vec2f(dpdxFine(in.tex_coords.y), dpdyFine(in.tex_coords.y)));
-    let toPixels = pxRange * inverseSqrt(dx * dx + dy * dy);
-    let sigDist = sampleMsdf(in.tex_coords) - 0.5;
-    let pxDist = sigDist * toPixels;
+    let fgColor = vec4f(1.0, 1.0, 1.0, 1.0);
+    let bgColor = vec4f(0.0, 0.0, 0.0, 0.0);
 
-    let edgeWidth = 0.5;
+    let sd = sampleMsdf(in.tex_coords);
 
-    let alpha = smoothstep(-edgeWidth, edgeWidth, pxDist);
+    let screenPxDistance = screenPxRange(4.0, in.tex_coords)*(sd - 0.5);
+    let opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
+    
+    if opacity < 0.001 {
+        discard;
+    }
 
-    return vec4f(alpha);
+    let color = mix(bgColor, fgColor, opacity);
+    return color;
 }
 

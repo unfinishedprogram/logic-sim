@@ -40,7 +40,7 @@ impl MsdfFont {
         let manifest = serde_json::from_str::<manifest::Manifest>(manifest).unwrap();
 
         let uniform = MsdfFontUniform {
-            distance_range: manifest.distance_field.distance_range as f32,
+            distance_range: manifest.atlas.distance_range as f32,
         };
 
         let bind_group_layout = device.create_bind_group_layout(Self::layout_descriptor());

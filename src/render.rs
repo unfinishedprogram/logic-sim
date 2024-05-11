@@ -59,7 +59,7 @@ impl<'window> RenderState<'window> {
         let text_object = TextObject {
             content: "Hello, World!".to_string(),
             position: Vec2::new(0.0, -1.0),
-            scale: 1.0 / 64.0,
+            scale: 1.0,
         };
 
         let base = BaseRenderState::create(window).await;
