@@ -2,26 +2,27 @@ mod camera;
 mod img_texture;
 mod quad;
 mod scene;
+pub mod text;
 pub mod vertex;
 
 use wgpu::{
     include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
     Adapter, Buffer, BufferUsages, Device, Instance, Queue, RenderPipeline, Surface,
-    SurfaceConfiguration, Texture,
+    SurfaceConfiguration,
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::{camera::Camera, img_texture::ImageTexture, quad::Quad, scene::Scene, vertex::Vertex};
+use self::{camera::Camera, scene::Scene, text::msdf::MsdfFont, vertex::Vertex};
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
 
-    msdf_texture: ImageTexture,
     scene: Scene,
     pub camera: Camera,
+    msdf_font: MsdfFont,
 }
 
 pub struct BaseRenderState<'window> {
@@ -38,16 +39,17 @@ impl<'window> RenderState<'window> {
         let base = BaseRenderState::create(window).await;
 
         let mut camera = Camera::create(&base.device);
+
+        let mut msdf_font = MsdfFont::create(
+            &base.device,
+            &base.queue,
+            include_str!("../assets/custom-msdf.json"),
+            include_bytes!("../assets/custom.png"),
+        );
+
         camera.set_aspect(
             base.surface_config.width as f32 / base.surface_config.height as f32,
             10.0,
-        );
-
-        let msdf_texture = ImageTexture::create(
-            &base.device,
-            &base.queue,
-            include_bytes!("../assets/custom.png"),
-            None,
         );
 
         let shader = base
@@ -58,7 +60,11 @@ impl<'window> RenderState<'window> {
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[camera.bind_group_layout(), &msdf_texture.bind_group_layout],
+                bind_group_layouts: &[
+                    camera.bind_group_layout(),
+                    &msdf_font.bind_group_layout,
+                    &msdf_font.texture.bind_group_layout,
+                ],
                 push_constant_ranges: &[],
             });
 
@@ -99,7 +105,7 @@ impl<'window> RenderState<'window> {
             vertex_buf,
             scene,
             camera,
-            msdf_texture,
+            msdf_font,
         }
     }
 
@@ -123,7 +129,7 @@ impl<'window> RenderState<'window> {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::GREEN),
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -134,7 +140,8 @@ impl<'window> RenderState<'window> {
             rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
 
             rpass.set_bind_group(0, self.camera.bind_group(), &[]);
-            rpass.set_bind_group(1, &self.msdf_texture.bind_group, &[]);
+            rpass.set_bind_group(1, &self.msdf_font.bind_group, &[]);
+            rpass.set_bind_group(2, &self.msdf_font.texture.bind_group, &[]);
 
             rpass.set_pipeline(&self.render_pipeline);
             rpass.draw(0..self.scene.size(), 0..1);

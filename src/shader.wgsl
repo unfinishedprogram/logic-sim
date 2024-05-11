@@ -6,9 +6,9 @@ struct Camera {
 @group(0) @binding(0)
 var<uniform> camera: Camera;
 
-@group(1) @binding(0)
+@group(2) @binding(0)
 var t_diffuse: texture_2d<f32>;
-@group(1) @binding(1)
+@group(2) @binding(1)
 var s_diffuse: sampler;
 
 struct VertexOutput {
@@ -53,11 +53,6 @@ fn fs_main(
 
     let alpha = smoothstep(-edgeWidth, edgeWidth, pxDist);
 
-    // if (alpha < 0.01) {
-    //     discard;
-    // }
     return vec4f(alpha);
-
-    // return vec4f(sampleMsdf(in.tex_coords));
 }
 

@@ -1,6 +1,9 @@
 use bytemuck::{Pod, Zeroable};
 use glam::Vec2;
-use wgpu::{util::{BufferInitDescriptor, DeviceExt}, BindGroup, BindGroupLayout, Buffer, BufferUsages, Device, Queue};
+use wgpu::{
+    util::{BufferInitDescriptor, DeviceExt},
+    BindGroup, BindGroupLayout, Buffer, BufferUsages, Device, Queue,
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -35,27 +38,25 @@ impl Camera {
         self.uniform.size = Vec2::new(scale, scale / ratio);
     }
 
-    pub fn create(device:&Device) -> Self {
+    pub fn create(device: &Device) -> Self {
         let uniform = CameraUniform {
             center: glam::Vec2::new(0.0, 0.0),
             size: glam::Vec2::new(10.0, 10.0),
         };
 
-        let bind_group_layout = device.create_bind_group_layout(
-            &wgpu::BindGroupLayoutDescriptor {
-                label: Some("Camera Bind Group Layout"),
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                }],
-            },
-        );
+        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("Camera Bind Group Layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
 
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Camera Buffer"),
@@ -65,12 +66,10 @@ impl Camera {
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: buffer.as_entire_binding(),
-                }
-            ],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: buffer.as_entire_binding(),
+            }],
             label: Some("camera_bind_group"),
         });
 
@@ -85,6 +84,7 @@ impl Camera {
     pub fn bind_group_layout(&self) -> &BindGroupLayout {
         &self.bind_group_layout
     }
+
     pub fn bind_group(&self) -> &BindGroup {
         &self.bind_group
     }
