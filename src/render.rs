@@ -3,7 +3,6 @@ mod camera;
 pub mod geometry;
 mod img_texture;
 pub mod msdf;
-mod quad;
 pub mod vertex;
 use glam::Vec2;
 use wgpu::{
