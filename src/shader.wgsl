@@ -27,12 +27,10 @@ fn vs_main(
     in: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;
-    
     out.clip_pos = vec4f((in.vert_pos_2d * vec2f(1.0, -1.0) - camera.center) / camera.size, 0.0, 1.0);
     out.tex_coords = in.uv_pos_2d;
     return out;
 }
-
 
 fn sampleMsdf(texcoord: vec2f) -> f32 {
     let c = textureSample(t_diffuse, s_diffuse, texcoord);
