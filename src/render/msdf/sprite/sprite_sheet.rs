@@ -16,8 +16,7 @@ pub struct SpriteSheet {
 
 impl SpriteSheet {
     pub fn get_sprite(&self, name: &str) -> Option<&Sprite> {
-        println!("Getting sprite: {}", name);
-        dbg!(self.sprites.get(name))
+        self.sprites.get(name)
     }
 }
 

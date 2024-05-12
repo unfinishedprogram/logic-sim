@@ -4,7 +4,6 @@ pub mod geometry;
 mod img_texture;
 pub mod msdf;
 mod quad;
-mod scene;
 pub mod vertex;
 use glam::Vec2;
 use wgpu::{
@@ -19,7 +18,6 @@ use self::{
     bindable::{BindList, BindTarget},
     camera::Camera,
     msdf::text::{MsdfFont, TextObject},
-    scene::Scene,
     vertex::VertexUV,
 };
 
@@ -27,7 +25,6 @@ pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
     render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
-    scene: Scene,
     pub text_object: TextObject,
     pub binding_state: BindingState,
 }
@@ -119,7 +116,6 @@ impl<'window> RenderState<'window> {
                 multisample: wgpu::MultisampleState::default(),
                 multiview: None,
             });
-        let scene = Scene::new();
 
         let text_quads = text_object.as_textured_quads(&binding_state.msdf_font);
 
@@ -134,7 +130,6 @@ impl<'window> RenderState<'window> {
             render_pipeline,
             vertex_buf,
             text_object,
-            scene,
             binding_state,
         }
     }
