@@ -2,9 +2,9 @@ mod bindable;
 mod camera;
 pub mod geometry;
 mod img_texture;
+pub mod msdf;
 mod quad;
 mod scene;
-pub mod text;
 pub mod vertex;
 use glam::Vec2;
 use wgpu::{
@@ -17,8 +17,8 @@ use winit::{dpi::PhysicalSize, window::Window};
 use self::{
     bindable::{BindList, BindTarget},
     camera::Camera,
+    msdf::text::{MsdfFont, TextObject},
     scene::Scene,
-    text::msdf::{text_object::TextObject, MsdfFont},
     vertex::{Vertex, VertexUV},
 };
 

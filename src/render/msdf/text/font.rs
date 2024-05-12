@@ -1,10 +1,9 @@
-mod manifest;
-pub mod text_object;
 use bytemuck::{Pod, Zeroable};
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
 use crate::render::{bindable::Bindable, img_texture::ImageTexture};
-pub use manifest::Manifest;
+
+use super::Manifest;
 
 pub struct MsdfFont {
     pub manifest: Manifest,
@@ -37,7 +36,7 @@ impl MsdfFont {
     }
 
     pub fn create(device: &Device, queue: &Queue, manifest: &str, image: &[u8]) -> Self {
-        let manifest = serde_json::from_str::<manifest::Manifest>(manifest).unwrap();
+        let manifest = serde_json::from_str::<Manifest>(manifest).unwrap();
 
         let uniform = MsdfFontUniform {
             distance_range: manifest.atlas.distance_range as f32,
