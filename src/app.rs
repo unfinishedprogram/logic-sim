@@ -24,6 +24,7 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     pub async fn create(window: &'a Window) -> Self {
+        window.set_transparent(true);
         let render_state = RenderState::create(window).await;
         let input = Input::default();
 

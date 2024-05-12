@@ -49,9 +49,6 @@ fn screenPxRange(pxRange: f32, texCoord: vec2f) -> f32 {
 fn fs_main(
     in: VertexOutput
 ) -> @location(0) vec4f {
-    let fgColor = vec4f(1.0, 1.0, 1.0, 1.0);
-    let bgColor = vec4f(0.0, 0.0, 0.0, 0.0);
-
     let sd = sampleMsdf(in.tex_coords);
 
     let screenPxDistance = screenPxRange(4.0, in.tex_coords)*(sd - 0.5);
@@ -61,7 +58,6 @@ fn fs_main(
         discard;
     }
 
-    let color = mix(bgColor, fgColor, opacity);
-    return color;
+    return vec4f(opacity);
 }
 

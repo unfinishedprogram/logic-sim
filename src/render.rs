@@ -10,7 +10,8 @@ use glam::Vec2;
 use wgpu::{
     include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
-    Adapter, Buffer, BufferUsages, Device, Queue, RenderPipeline, Surface, SurfaceConfiguration,
+    Adapter, Buffer, BufferUsages, Color, Device, Queue, RenderPipeline, Surface,
+    SurfaceConfiguration,
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
@@ -19,7 +20,7 @@ use self::{
     camera::Camera,
     msdf::text::{MsdfFont, TextObject},
     scene::Scene,
-    vertex::{Vertex, VertexUV},
+    vertex::VertexUV,
 };
 
 pub struct RenderState<'window> {
@@ -49,7 +50,7 @@ impl<'a> From<&'a BindingState> for BindList<'a> {
         let mut bind_list = BindList::new();
         bind_list.push(&binding_state.camera);
         bind_list.push(&binding_state.msdf_font);
-        bind_list.push(&binding_state.msdf_font.texture);
+        bind_list.push(binding_state.msdf_font.texture());
         bind_list
     }
 }
@@ -78,10 +79,8 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let mut bind_list = BindList::new();
-        bind_list.push(&camera);
-        bind_list.push(&msdf_font);
-        bind_list.push(&msdf_font.texture);
+        let binding_state = BindingState { camera, msdf_font };
+        let bind_list = BindList::from(&binding_state);
 
         let shader = base
             .device
@@ -122,15 +121,13 @@ impl<'window> RenderState<'window> {
             });
         let scene = Scene::new();
 
-        let text_quads = text_object.into_textured_quads(&msdf_font.manifest);
+        let text_quads = text_object.as_textured_quads(&binding_state.msdf_font);
 
         let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Vertex Buffer"),
             contents: bytemuck::cast_slice(&text_quads),
             usage: BufferUsages::VERTEX,
         });
-
-        let binding_state = BindingState { camera, msdf_font };
 
         Self {
             base,
@@ -164,7 +161,7 @@ impl<'window> RenderState<'window> {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        load: wgpu::LoadOp::Clear(Color::TRANSPARENT),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -229,8 +226,7 @@ impl<'window> BaseRenderState<'window> {
                     label: None,
                     required_features: wgpu::Features::empty(),
                     // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-                    required_limits: wgpu::Limits::downlevel_webgl2_defaults()
-                        .using_resolution(adapter.limits()),
+                    required_limits: wgpu::Limits::default().using_resolution(adapter.limits()),
                 },
                 None,
             )
@@ -242,6 +238,7 @@ impl<'window> BaseRenderState<'window> {
             .unwrap();
 
         surface_config.present_mode = wgpu::PresentMode::AutoVsync;
+        surface_config.alpha_mode = wgpu::CompositeAlphaMode::PreMultiplied;
 
         surface.configure(&device, &surface_config);
 

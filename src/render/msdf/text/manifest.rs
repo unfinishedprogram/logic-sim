@@ -1,14 +1,16 @@
 use glam::Vec2;
 use serde::Deserialize;
 
+use crate::render::msdf::sprite::sprite_sheet::{self, Bounds};
+
 #[allow(unused)]
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Manifest {
     pub atlas: Atlas,
     pub glyphs: Vec<Glyph>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Glyph {
     unicode: u32,
     pub advance: f32,
@@ -18,7 +20,7 @@ pub struct Glyph {
     pub atlas_bounds: Option<Bounds>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Atlas {
     #[serde(rename = "distanceRange")]
     pub distance_range: f32,
@@ -29,14 +31,6 @@ pub struct Atlas {
     pub height: f32,
     #[serde(rename = "yOrigin")]
     pub y_origin: String,
-}
-
-#[derive(Clone, Copy, Deserialize)]
-pub struct Bounds {
-    pub left: f32,
-    pub right: f32,
-    pub top: f32,
-    pub bottom: f32,
 }
 
 impl From<&Bounds> for (Vec2, Vec2) {
@@ -60,11 +54,31 @@ impl Manifest {
                     .unwrap(),
             )
     }
+}
 
-    pub fn uvs_of(&self, atlas_bounds: &Bounds) -> (Vec2, Vec2) {
-        let (start, end) = atlas_bounds.into();
-        let scale = Vec2::new(self.atlas.width, self.atlas.height);
+impl From<Atlas> for sprite_sheet::Atlas {
+    fn from(val: Atlas) -> Self {
+        sprite_sheet::Atlas {
+            distance_range: val.distance_range,
+            width: val.width,
+            height: val.height,
+        }
+    }
+}
 
-        (start / scale, end / scale)
+impl From<Manifest> for sprite_sheet::Manifest {
+    fn from(val: Manifest) -> Self {
+        let atlas: sprite_sheet::Atlas = val.atlas.into();
+        let sprites = val
+            .glyphs
+            .iter()
+            .map(|glyph| sprite_sheet::SpriteDef {
+                name: char::from_u32(glyph.unicode).unwrap().to_string(),
+                plane_bounds: glyph.plane_bounds.unwrap_or_default(),
+                atlas_bounds: glyph.atlas_bounds.unwrap_or_default(),
+            })
+            .collect();
+
+        sprite_sheet::Manifest { atlas, sprites }
     }
 }

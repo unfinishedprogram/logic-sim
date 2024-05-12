@@ -3,5 +3,127 @@
         "distanceRange": 4,
         "width": 256,
         "height": 128
-    }
+    },
+    "sprites": [
+        {
+            "name": "AND",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0,
+                "bottom": 0.5,
+                "left": 0,
+                "right": 0.25
+            }
+        },
+        {
+            "name": "BUF",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0,
+                "bottom": 0.5,
+                "left": 0.25,
+                "right": 0.5
+            }
+        },
+        {
+            "name": "OR",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0,
+                "bottom": 0.5,
+                "left": 0.5,
+                "right": 0.75
+            }
+        },
+        {
+            "name": "XOR",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0,
+                "bottom": 0.5,
+                "left": 0.75,
+                "right": 1
+            }
+        },
+        {
+            "name": "NAND",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0.5,
+                "bottom": 1.0,
+                "left": 0,
+                "right": 0.25
+            }
+        },
+        {
+            "name": "NOT",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0.5,
+                "bottom": 1.0,
+                "left": 0.25,
+                "right": 0.5
+            }
+        },
+        {
+            "name": "NOR",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0.5,
+                "bottom": 1.0,
+                "left": 0.5,
+                "right": 0.75
+            }
+        },
+        {
+            "name": "XNOR",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 0.5,
+                "bottom": 1.0,
+                "left": 0.75,
+                "right": 1
+            }
+        }
+    ]
 }
