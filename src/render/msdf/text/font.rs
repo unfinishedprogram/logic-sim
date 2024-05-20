@@ -1,6 +1,6 @@
 use wgpu::{Device, Queue};
 
-use crate::render::{bindable::Bindable, msdf::sprite::sprite_sheet::SpriteSheet};
+use crate::render::msdf::sprite::sprite_sheet::SpriteSheet;
 
 use super::Manifest;
 

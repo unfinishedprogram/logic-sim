@@ -5,12 +5,9 @@ use glam::Vec2;
 use serde::Deserialize;
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
-use crate::render::{
-    bindable::Bindable, geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV,
-};
+use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV};
 
 pub struct SpriteSheet {
-    pub bind_group_layout: wgpu::BindGroupLayout,
     pub bind_group: wgpu::BindGroup,
     pub texture: ImageTexture,
     pub sprites: HashMap<String, Sprite>,
@@ -86,7 +83,7 @@ impl SpriteSheet {
         sprites
     }
 
-    fn layout_descriptor() -> &'static BindGroupLayoutDescriptor<'static> {
+    pub fn layout_descriptor() -> &'static BindGroupLayoutDescriptor<'static> {
         &wgpu::BindGroupLayoutDescriptor {
             entries: &[
                 wgpu::BindGroupLayoutEntry {
@@ -162,21 +159,10 @@ impl SpriteSheet {
         });
 
         Self {
-            bind_group_layout,
             bind_group,
             texture,
             sprites,
         }
-    }
-}
-
-impl Bindable for SpriteSheet {
-    fn bind_group_layout(&self) -> &wgpu::BindGroupLayout {
-        &self.bind_group_layout
-    }
-
-    fn bind_group(&self) -> &wgpu::BindGroup {
-        &self.bind_group
     }
 }
 

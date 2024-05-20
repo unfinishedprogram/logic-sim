@@ -8,24 +8,21 @@ use glam::Vec2;
 use wgpu::{
     include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
-    Adapter, Buffer, BufferUsages, Color, Device, Queue, RenderPipeline, Surface,
-    SurfaceConfiguration,
+    Adapter, Buffer, BufferUsages, Color, Device, Queue, Surface, SurfaceConfiguration,
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
-    bindable::{BindList, Bindable},
+    bindable::Bindable,
     camera::Camera,
     msdf::{
         sprite_renderer::SpriteRenderer,
         text::{MsdfFont, TextObject},
     },
-    vertex::VertexUV,
 };
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
-    render_pipeline: RenderPipeline,
     vertex_buf: Buffer,
     pub text_object: TextObject,
     pub binding_state: BindingState,
@@ -44,15 +41,6 @@ pub struct BaseRenderState<'window> {
 pub struct BindingState {
     pub camera: Camera,
     pub msdf_font: MsdfFont,
-}
-
-impl<'a> From<&'a BindingState> for BindList<'a> {
-    fn from(binding_state: &'a BindingState) -> Self {
-        let mut bind_list = BindList::new();
-        bind_list.push(&binding_state.camera);
-        bind_list.push(&binding_state.msdf_font.sprite_sheet);
-        bind_list
-    }
 }
 
 impl<'window> RenderState<'window> {
@@ -80,42 +68,6 @@ impl<'window> RenderState<'window> {
         );
 
         let binding_state = BindingState { camera, msdf_font };
-        let bind_list = BindList::from(&binding_state);
-
-        let shader = base
-            .device
-            .create_shader_module(include_wgsl!("shader.wgsl"));
-
-        let bind_group_layouts = bind_list.bind_group_layouts();
-
-        let pipeline_layout = base
-            .device
-            .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: None,
-                bind_group_layouts: &bind_group_layouts,
-                push_constant_ranges: &[],
-            });
-
-        let render_pipeline = base
-            .device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: None,
-                layout: Some(&pipeline_layout),
-                vertex: wgpu::VertexState {
-                    module: &shader,
-                    entry_point: "vs_main",
-                    buffers: &[VertexUV::buffer_layout_descriptor()],
-                },
-                fragment: Some(wgpu::FragmentState {
-                    module: &shader,
-                    entry_point: "fs_main",
-                    targets: &[Some(base.swapchain_format.into())],
-                }),
-                primitive: wgpu::PrimitiveState::default(),
-                depth_stencil: None,
-                multisample: wgpu::MultisampleState::default(),
-                multiview: None,
-            });
 
         let text_quads = text_object.as_textured_quads(&binding_state.msdf_font);
 
@@ -132,12 +84,21 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let sprite_renderer =
-            SpriteRenderer::create(&base, vec![other_font.sprite_sheet], &binding_state.camera);
+        let other_font2 = MsdfFont::create(
+            &base.device,
+            &base.queue,
+            include_str!("../assets/custom-msdf.json"),
+            include_bytes!("../assets/custom.png"),
+        );
+
+        let sprite_renderer = SpriteRenderer::create(
+            &base,
+            vec![other_font.sprite_sheet, other_font2.sprite_sheet],
+            &binding_state.camera,
+        );
 
         Self {
             base,
-            render_pipeline,
             vertex_buf,
             text_object,
             binding_state,

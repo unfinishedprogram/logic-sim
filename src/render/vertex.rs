@@ -32,7 +32,7 @@ impl Vertex {
 pub struct VertexUV(pub Vec2, pub Vec2);
 
 impl VertexUV {
-    const VERTEX_ATTIBUTES: [wgpu::VertexAttribute; 2] = vertex_attr_array![
+    const VERTEX_ATTRIBUTES: [wgpu::VertexAttribute; 2] = vertex_attr_array![
         0 => Float32x2,
         1 => Float32x2,
     ];
@@ -45,7 +45,7 @@ impl VertexUV {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &Self::VERTEX_ATTIBUTES,
+            attributes: &Self::VERTEX_ATTRIBUTES,
         }
     }
 }

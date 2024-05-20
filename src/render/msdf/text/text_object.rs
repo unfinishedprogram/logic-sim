@@ -1,8 +1,6 @@
 use glam::{vec2, Vec2};
 
-use crate::render::{
-    geometry::TexturedQuad, msdf::sprite::sprite_sheet::SpriteInstance, vertex::VertexUV,
-};
+use crate::render::{geometry::TexturedQuad, msdf::sprite::sprite_sheet::SpriteInstance};
 
 use super::MsdfFont;
 
