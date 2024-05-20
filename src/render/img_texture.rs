@@ -56,7 +56,7 @@ impl ImageTexture {
                     count: None,
                 },
             ],
-            label: None,
+            label: Some("Image texture layout"),
         })
     }
 

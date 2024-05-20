@@ -13,6 +13,7 @@ impl<'a> BindList<'a> {
             bind_groups: Vec::new(),
         }
     }
+
     pub fn push(&mut self, bindable: &'a dyn Bindable) {
         self.bind_groups.push(bindable);
     }

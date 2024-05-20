@@ -5,7 +5,7 @@ use std::time::Instant;
 use glam::Vec2;
 use winit::{
     application::ApplicationHandler,
-    event::{MouseScrollDelta, WindowEvent},
+    event::{ElementState, MouseScrollDelta, WindowEvent},
     event_loop::EventLoop,
     keyboard::{self, NamedKey},
     window::Window,
@@ -138,7 +138,24 @@ impl ApplicationHandler for App<'_> {
                             .binding_state
                             .camera
                             .translate(Vec2::new(0.0, -1.0)),
+
+                        NamedKey::Backspace => {
+                            if event.state == ElementState::Pressed {
+                                self.render_state.text_object.content.pop();
+                            }
+                        }
+                        NamedKey::Space => {
+                            if event.state == ElementState::Pressed {
+                                self.render_state.text_object.content.push(' ');
+                            }
+                        }
                         _ => {}
+                    }
+                }
+
+                if let keyboard::Key::Character(c) = event.logical_key {
+                    if matches!(event.state, ElementState::Pressed) {
+                        self.render_state.text_object.content += &c;
                     }
                 }
             }

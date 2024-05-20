@@ -5,7 +5,9 @@ use glam::Vec2;
 use serde::Deserialize;
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
-use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV};
+use crate::render::{
+    bindable::Bindable, geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV,
+};
 
 pub struct SpriteSheet {
     pub bind_group_layout: wgpu::BindGroupLayout,
@@ -86,17 +88,37 @@ impl SpriteSheet {
 
     fn layout_descriptor() -> &'static BindGroupLayoutDescriptor<'static> {
         &wgpu::BindGroupLayoutDescriptor {
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
                 },
-                count: None,
-            }],
-            label: None,
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    // This should match the filterable field of the
+                    // corresponding Texture entry above.
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+            ],
+            label: Some("Sprite sheet layout descriptor"),
         }
     }
 
@@ -115,16 +137,29 @@ impl SpriteSheet {
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
+        let texture = ImageTexture::create(device, queue, image, None);
+
+        let texture_view = &texture.texture_view;
+        let sampler = &texture.sampler;
+
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform_buffer.as_entire_binding(),
-            }],
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(texture_view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(sampler),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: uniform_buffer.as_entire_binding(),
+                },
+            ],
             label: None,
         });
-
-        let texture = ImageTexture::create(device, queue, image, None);
 
         Self {
             bind_group_layout,
@@ -132,6 +167,16 @@ impl SpriteSheet {
             texture,
             sprites,
         }
+    }
+}
+
+impl Bindable for SpriteSheet {
+    fn bind_group_layout(&self) -> &wgpu::BindGroupLayout {
+        &self.bind_group_layout
+    }
+
+    fn bind_group(&self) -> &wgpu::BindGroup {
+        &self.bind_group
     }
 }
 

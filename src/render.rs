@@ -14,9 +14,12 @@ use wgpu::{
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
-    bindable::{BindList, BindTarget},
+    bindable::{BindList, Bindable},
     camera::Camera,
-    msdf::text::{MsdfFont, TextObject},
+    msdf::{
+        sprite_renderer::SpriteRenderer,
+        text::{MsdfFont, TextObject},
+    },
     vertex::VertexUV,
 };
 
@@ -26,6 +29,7 @@ pub struct RenderState<'window> {
     vertex_buf: Buffer,
     pub text_object: TextObject,
     pub binding_state: BindingState,
+    pub sprite_renderer: SpriteRenderer,
 }
 
 pub struct BaseRenderState<'window> {
@@ -46,8 +50,7 @@ impl<'a> From<&'a BindingState> for BindList<'a> {
     fn from(binding_state: &'a BindingState) -> Self {
         let mut bind_list = BindList::new();
         bind_list.push(&binding_state.camera);
-        bind_list.push(&binding_state.msdf_font);
-        bind_list.push(binding_state.msdf_font.texture());
+        bind_list.push(&binding_state.msdf_font.sprite_sheet);
         bind_list
     }
 }
@@ -55,7 +58,7 @@ impl<'a> From<&'a BindingState> for BindList<'a> {
 impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
         let text_object = TextObject {
-            content: "Hello, World!".to_string(),
+            content: "".to_string(),
             position: Vec2::new(0.0, -1.0),
             scale: 1.0,
         };
@@ -122,12 +125,23 @@ impl<'window> RenderState<'window> {
             usage: BufferUsages::VERTEX,
         });
 
+        let other_font = MsdfFont::create(
+            &base.device,
+            &base.queue,
+            include_str!("../assets/custom-msdf.json"),
+            include_bytes!("../assets/custom.png"),
+        );
+
+        let sprite_renderer =
+            SpriteRenderer::create(&base, vec![other_font.sprite_sheet], &binding_state.camera);
+
         Self {
             base,
             render_pipeline,
             vertex_buf,
             text_object,
             binding_state,
+            sprite_renderer,
         }
     }
 
@@ -145,7 +159,6 @@ impl<'window> RenderState<'window> {
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        let bind_list = BindList::from(&self.binding_state);
         {
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -161,13 +174,16 @@ impl<'window> RenderState<'window> {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-            rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
 
-            rpass.set_bind_groups(&bind_list);
+            self.sprite_renderer.upload_sprites(
+                &self.base.queue,
+                &self
+                    .text_object
+                    .as_sprite_instances(&self.binding_state.msdf_font),
+            );
 
-            rpass.set_pipeline(&self.render_pipeline);
-
-            rpass.draw(0..self.text_object.content.len() as u32 * 6, 0..1);
+            rpass.set_bind_group(0, self.binding_state.camera.bind_group(), &[]);
+            self.sprite_renderer.render(rpass);
         }
 
         self.base.queue.submit(Some(encoder.finish()));
