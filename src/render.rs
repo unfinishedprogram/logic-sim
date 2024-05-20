@@ -16,6 +16,7 @@ use self::{
     bindable::Bindable,
     camera::Camera,
     msdf::{
+        sprite::sprite_sheet::SpriteSheet,
         sprite_renderer::SpriteRenderer,
         text::{MsdfFont, TextObject},
     },
@@ -84,16 +85,16 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let other_font2 = MsdfFont::create(
+        let sprite_sheet = SpriteSheet::create(
             &base.device,
             &base.queue,
-            include_str!("../assets/custom-msdf.json"),
-            include_bytes!("../assets/custom.png"),
+            &serde_json::from_str(include_str!("../assets/gates/manifest.json")).unwrap(),
+            include_bytes!("../assets/gates/spritesheet-msdf.png"),
         );
 
         let sprite_renderer = SpriteRenderer::create(
             &base,
-            vec![other_font.sprite_sheet, other_font2.sprite_sheet],
+            vec![other_font.sprite_sheet, sprite_sheet],
             &binding_state.camera,
         );
 

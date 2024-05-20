@@ -6,6 +6,7 @@ use crate::render::msdf::sprite::sprite_sheet::{self, Bounds};
 #[allow(unused)]
 #[derive(Deserialize, Clone)]
 pub struct Manifest {
+    pub name: &'static str,
     pub atlas: Atlas,
     pub glyphs: Vec<Glyph>,
 }
@@ -79,6 +80,10 @@ impl From<Manifest> for sprite_sheet::Manifest {
             })
             .collect();
 
-        sprite_sheet::Manifest { atlas, sprites }
+        sprite_sheet::Manifest {
+            atlas,
+            sprites,
+            name: val.name,
+        }
     }
 }

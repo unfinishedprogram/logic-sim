@@ -8,6 +8,7 @@ use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV};
 
 pub struct SpriteSheet {
+    pub name: &'static str,
     pub bind_group: wgpu::BindGroup,
     pub texture: ImageTexture,
     pub sprites: HashMap<String, Sprite>,
@@ -28,6 +29,7 @@ pub struct SpriteInstance {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Sprite {
+    pub name: &'static str,
     pub offsets: [Vec2; 2],
     pub uv: [Vec2; 2],
 }
@@ -60,7 +62,7 @@ pub struct MsdfSpriteSheetUniform {
 }
 
 impl SpriteSheet {
-    pub fn build_sprite_lookup(manifest: &Manifest) -> HashMap<String, Sprite> {
+    pub fn build_sprite_lookup(manifest: &Manifest, name: &'static str) -> HashMap<String, Sprite> {
         let mut sprites = HashMap::new();
         let atlas_size = Vec2::new(manifest.atlas.width, manifest.atlas.height);
         for sprite_def in &manifest.sprites {
@@ -78,7 +80,7 @@ impl SpriteSheet {
                     sprite_def.atlas_bounds.bottom,
                 ) / atlas_size,
             ];
-            sprites.insert(sprite_def.name.clone(), Sprite { offsets, uv });
+            sprites.insert(sprite_def.name.clone(), Sprite { offsets, uv, name });
         }
         sprites
     }
@@ -120,7 +122,7 @@ impl SpriteSheet {
     }
 
     pub fn create(device: &Device, queue: &Queue, manifest: &Manifest, image: &[u8]) -> Self {
-        let sprites = Self::build_sprite_lookup(manifest);
+        let sprites = Self::build_sprite_lookup(manifest, manifest.name);
 
         let uniform = MsdfSpriteSheetUniform {
             distance_range: manifest.atlas.distance_range,
@@ -162,6 +164,7 @@ impl SpriteSheet {
             bind_group,
             texture,
             sprites,
+            name: manifest.name,
         }
     }
 }
@@ -184,6 +187,7 @@ pub struct Bounds {
 
 #[derive(Deserialize)]
 pub struct Manifest {
+    pub name: &'static str,
     pub atlas: Atlas,
     pub sprites: Vec<SpriteDef>,
 }

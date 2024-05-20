@@ -1,4 +1,5 @@
 {
+    "name": "gates",
     "atlas": {
         "distanceRange": 4,
         "width": 256,

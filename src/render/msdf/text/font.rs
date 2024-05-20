@@ -10,7 +10,7 @@ pub struct MsdfFont {
 }
 
 impl MsdfFont {
-    pub fn create(device: &Device, queue: &Queue, manifest: &str, image: &[u8]) -> Self {
+    pub fn create(device: &Device, queue: &Queue, manifest: &'static str, image: &[u8]) -> Self {
         let manifest = serde_json::from_str::<Manifest>(manifest).unwrap();
         let sprite_sheet = SpriteSheet::create(device, queue, &manifest.clone().into(), image);
 
