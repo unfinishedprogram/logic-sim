@@ -34,6 +34,7 @@ pub struct BaseRenderState<'window> {
     adapter: Adapter,
     device: Device,
     queue: Queue,
+    swapchain_format: wgpu::TextureFormat,
 }
 
 pub struct BindingState {
@@ -92,9 +93,6 @@ impl<'window> RenderState<'window> {
                 push_constant_ranges: &[],
             });
 
-        let swapchain_capabilities = base.surface.get_capabilities(&base.adapter);
-        let swapchain_format = swapchain_capabilities.formats[0];
-
         let render_pipeline = base
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -108,7 +106,7 @@ impl<'window> RenderState<'window> {
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
                     entry_point: "fs_main",
-                    targets: &[Some(swapchain_format.into())],
+                    targets: &[Some(base.swapchain_format.into())],
                 }),
                 primitive: wgpu::PrimitiveState::default(),
                 depth_stencil: None,
@@ -236,12 +234,16 @@ impl<'window> BaseRenderState<'window> {
 
         surface.configure(&device, &surface_config);
 
+        let swapchain_capabilities = surface.get_capabilities(&adapter);
+        let swapchain_format = swapchain_capabilities.formats[0];
+
         Self {
             surface,
             surface_config,
             adapter,
             device,
             queue,
+            swapchain_format,
         }
     }
 
