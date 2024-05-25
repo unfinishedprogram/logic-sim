@@ -51,10 +51,6 @@ fn fs_main(
 
     let screenPxDistance = screenPxRange(4.0, in.tex_coords)*(sd - 0.5);
     let opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
-    
-    if opacity < 0.001 {
-        discard;
-    }
 
     return vec4f(opacity);
 }

@@ -114,7 +114,18 @@ impl ApplicationHandler for App<'_> {
                 device_id: _,
                 state,
                 button,
-            } => self.input.handle_mouse_input(state, button),
+            } => {
+                // Drag
+                self.input.handle_mouse_input(state, button);
+                if matches!(state, ElementState::Pressed)
+                    && matches!(button, winit::event::MouseButton::Left)
+                {
+                    self.game_state.on_click(
+                        self.input
+                            .mouse_world_position(self.screen_size(), &self.game_state.camera),
+                    )
+                }
+            }
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::MouseWheel {
                 device_id: _,

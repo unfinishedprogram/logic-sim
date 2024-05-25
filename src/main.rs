@@ -2,7 +2,7 @@
 
 mod app;
 mod game;
-mod logic;
+pub mod logic;
 mod render;
 
 use pollster::FutureExt;

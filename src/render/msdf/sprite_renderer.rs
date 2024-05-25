@@ -168,7 +168,14 @@ impl SpriteRenderer {
         let bind_group_layouts: Vec<&BindGroupLayout> = vec![camera.bind_group_layout(), layout];
 
         let layout = Self::pipeline_layout(&base.device, &bind_group_layouts);
-        let targets = [Some(base.swapchain_format.into())];
+
+        let target = ColorTargetState {
+            format: base.swapchain_format,
+            blend: Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING),
+            write_mask: wgpu::ColorWrites::ALL,
+        };
+
+        let targets = [Some(target)];
         let buffers = [VertexUV::buffer_layout_descriptor()];
         let descriptor = &Self::pipeline_descriptor(&layout, shader_module, &targets, &buffers);
 

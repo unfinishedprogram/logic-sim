@@ -19,7 +19,7 @@ impl Input {
     }
 
     pub fn handle_mouse_input(&mut self, state: ElementState, button: MouseButton) {
-        if button == MouseButton::Left {
+        if button == MouseButton::Right {
             match state {
                 ElementState::Pressed => {
                     self.drag = true;
