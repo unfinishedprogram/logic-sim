@@ -39,6 +39,19 @@ impl SpriteRenderer {
         }
     }
 
+    pub fn reference(&self) -> SpriteRendererReference {
+        let sheets = self
+            .sprite_sheets
+            .iter()
+            .map(|(name, sheet)| {
+                let sprites = sheet.sprites.clone();
+                (name.to_string(), sprites)
+            })
+            .collect();
+
+        SpriteRendererReference { sheets }
+    }
+
     fn vertex_buffer(device: &Device) -> Buffer {
         device.create_buffer(&BufferDescriptor {
             label: Some("Sprite Renderer Vertex Buffer"),
@@ -170,5 +183,15 @@ impl SpriteRenderer {
         self.sprite_sheets
             .get(sheet)
             .and_then(|sheet| sheet.get_sprite(sprite))
+    }
+}
+
+pub struct SpriteRendererReference {
+    pub sheets: HashMap<String, HashMap<String, Sprite>>,
+}
+
+impl SpriteRendererReference {
+    pub fn get_sprite(&self, sheet: &str, sprite: &str) -> Option<&Sprite> {
+        self.sheets.get(sheet).and_then(|sheet| sheet.get(sprite))
     }
 }

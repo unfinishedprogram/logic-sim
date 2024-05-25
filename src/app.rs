@@ -11,7 +11,10 @@ use winit::{
     window::Window,
 };
 
-use crate::render::RenderState;
+use crate::{
+    game::{self, GameState},
+    render::RenderState,
+};
 
 use self::input::Input;
 
@@ -20,6 +23,7 @@ pub struct App<'a> {
     render_state: RenderState<'a>,
     input: Input,
     last_frame: Instant,
+    game_state: GameState,
 }
 
 impl<'a> App<'a> {
@@ -28,11 +32,17 @@ impl<'a> App<'a> {
         let render_state = RenderState::create(window).await;
         let input = Input::default();
 
+        let game_state = GameState::new(
+            render_state.msdf_font.reference(),
+            render_state.sprite_renderer.reference(),
+        );
+
         Self {
             window,
             render_state,
             input,
             last_frame: Instant::now(),
+            game_state,
         }
     }
 
@@ -56,7 +66,7 @@ impl<'a> App<'a> {
             self.render_state.binding_state.camera.translate(clip_delta);
         }
 
-        self.render_state.text_object.position = self
+        self.game_state.text_object.position = self
             .input
             .mouse_world_position(self.screen_size(), &self.render_state.binding_state.camera);
 
@@ -86,7 +96,8 @@ impl ApplicationHandler for App<'_> {
                 let now = Instant::now();
                 self.last_frame = now;
                 self.update();
-                self.render_state.render();
+                self.render_state
+                    .render(&self.game_state.get_sprite_instances());
                 self.window.request_redraw();
             }
             WindowEvent::MouseInput {
@@ -123,12 +134,12 @@ impl ApplicationHandler for App<'_> {
                         NamedKey::Escape => event_loop.exit(),
                         NamedKey::Backspace => {
                             if event.state == ElementState::Pressed {
-                                self.render_state.text_object.content.pop();
+                                self.game_state.text_object.content.pop();
                             }
                         }
                         NamedKey::Space => {
                             if event.state == ElementState::Pressed {
-                                self.render_state.text_object.content.push(' ');
+                                self.game_state.text_object.content.push(' ');
                             }
                         }
                         _ => {}
@@ -137,7 +148,7 @@ impl ApplicationHandler for App<'_> {
 
                 if let keyboard::Key::Character(c) = event.logical_key {
                     if matches!(event.state, ElementState::Pressed) {
-                        self.render_state.text_object.content += &c;
+                        self.game_state.text_object.content += &c;
                     }
                 }
             }

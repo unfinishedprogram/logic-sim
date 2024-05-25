@@ -169,7 +169,7 @@ impl SpriteSheet {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Atlas {
     #[serde(rename = "distanceRange")]
     pub distance_range: f32,
@@ -185,14 +185,14 @@ pub struct Bounds {
     pub bottom: f32,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Manifest {
     pub name: &'static str,
     pub atlas: Atlas,
     pub sprites: Vec<SpriteDef>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct SpriteDef {
     pub name: String,
     #[serde(rename = "planeBounds")]
