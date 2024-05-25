@@ -118,27 +118,6 @@ impl ApplicationHandler for App<'_> {
                 if let keyboard::Key::Named(key) = event.logical_key {
                     match key {
                         NamedKey::Escape => event_loop.exit(),
-                        NamedKey::ArrowLeft => self
-                            .render_state
-                            .binding_state
-                            .camera
-                            .translate(Vec2::new(-1.0, 0.0)),
-                        NamedKey::ArrowRight => self
-                            .render_state
-                            .binding_state
-                            .camera
-                            .translate(Vec2::new(1.0, 0.0)),
-                        NamedKey::ArrowUp => self
-                            .render_state
-                            .binding_state
-                            .camera
-                            .translate(Vec2::new(0.0, 1.0)),
-                        NamedKey::ArrowDown => self
-                            .render_state
-                            .binding_state
-                            .camera
-                            .translate(Vec2::new(0.0, -1.0)),
-
                         NamedKey::Backspace => {
                             if event.state == ElementState::Pressed {
                                 self.render_state.text_object.content.pop();
