@@ -14,12 +14,14 @@ var s_diffuse: sampler;
 struct VertexOutput {
     @builtin(position) clip_pos: vec4f,
     @location(0) tex_coords: vec2<f32>,
+    @location(1) color: vec4<f32>,
 }
 
 struct VertexInput {
     @builtin(vertex_index) in_vertex_index: u32,
     @location(0) vert_pos_2d: vec2<f32>,
     @location(1) uv_pos_2d: vec2<f32>,
+    @location(2) color: vec4<f32>,
 }
 
 @vertex
@@ -29,6 +31,7 @@ fn vs_main(
     var out: VertexOutput;
     out.clip_pos = vec4f((in.vert_pos_2d * vec2f(1.0, -1.0) - camera.center) / camera.size, 0.0, 1.0);
     out.tex_coords = in.uv_pos_2d;
+    out.color = in.color;
     return out;
 }
 
@@ -52,6 +55,6 @@ fn fs_main(
     let screenPxDistance = screenPxRange(4.0, in.tex_coords)*(sd - 0.5);
     let opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
 
-    return vec4f(opacity);
+    return vec4f(opacity) * in.color;
 }
 

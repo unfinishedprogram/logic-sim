@@ -1,3 +1,5 @@
+use glam::Vec2;
+
 use super::circuit::connection::Connectable;
 
 pub enum Gate {
@@ -10,6 +12,27 @@ pub enum Gate {
     Nand,
     Nor,
     Xnor,
+}
+
+impl Gate {
+    const INPUT_OFFSETS_AND: [Vec2; 2] = [Vec2::new(-0.3, -0.2), Vec2::new(-0.3, 0.2)];
+    const INPUT_OFFSETS_NOT: [Vec2; 1] = [Vec2::new(-0.3, 0.0)];
+    const INPUT_OFFSETS_EMPTY: [Vec2; 0] = [];
+
+    pub const fn input_offsets(&self) -> &'static [Vec2] {
+        match self {
+            Self::Input(_) => &Self::INPUT_OFFSETS_EMPTY,
+            Self::And | Self::Or | Self::Xor | Self::Nand | Self::Nor | Self::Xnor => {
+                &Self::INPUT_OFFSETS_AND
+            }
+            Self::Not | Self::Buf => &Self::INPUT_OFFSETS_NOT,
+        }
+    }
+
+    const OUTPUT_OFFSET: Vec2 = Vec2::new(0.4, 0.0);
+    pub const fn output_offset(&self) -> Vec2 {
+        Self::OUTPUT_OFFSET
+    }
 }
 
 impl Connectable for Gate {

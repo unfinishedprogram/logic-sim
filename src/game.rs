@@ -46,7 +46,20 @@ impl GameState {
 
 impl GameState {
     pub fn on_click(&mut self, position: Vec2) {
-        let gate = crate::logic::gate::Gate::And;
-        self.circuit.add_gate(gate, position);
+        let gates = [
+            crate::logic::gate::Gate::And,
+            crate::logic::gate::Gate::Or,
+            crate::logic::gate::Gate::Not,
+            crate::logic::gate::Gate::Buf,
+            crate::logic::gate::Gate::Xor,
+            crate::logic::gate::Gate::Nand,
+            crate::logic::gate::Gate::Nor,
+            crate::logic::gate::Gate::Xnor,
+        ];
+
+        for (i, gate) in gates.into_iter().enumerate() {
+            self.circuit
+                .add_gate(gate, position + Vec2::new(0.0, i as f32));
+        }
     }
 }

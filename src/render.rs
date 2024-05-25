@@ -53,8 +53,21 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/gates/spritesheet-msdf.png"),
         );
 
-        let sprite_renderer =
-            SpriteRenderer::create(&base, vec![other_font.sprite_sheet, gates_sprite_sheet]);
+        let dot_sprite_sheet = SpriteSheet::create(
+            &base.device,
+            &base.queue,
+            &serde_json::from_str(include_str!("../assets/dot/manifest.json")).unwrap(),
+            include_bytes!("../assets/dot/spritesheet-msdf.png"),
+        );
+
+        let sprite_renderer = SpriteRenderer::create(
+            &base,
+            vec![
+                other_font.sprite_sheet,
+                gates_sprite_sheet,
+                dot_sprite_sheet,
+            ],
+        );
 
         Self {
             base,
@@ -63,7 +76,7 @@ impl<'window> RenderState<'window> {
         }
     }
 
-    pub fn render(&mut self, sprites: &Vec<SpriteInstance>) {
+    pub fn render(&mut self, sprites: &[SpriteInstance]) {
         let frame = self
             .base
             .surface
@@ -94,9 +107,8 @@ impl<'window> RenderState<'window> {
             });
 
             self.sprite_renderer
-                .upload_sprites(&self.base.queue, &sprites);
+                .upload_sprites(&self.base.queue, sprites);
 
-            // rpass.set_bind_group(0, self.binding_state.camera.bind_group(), &[]);
             self.sprite_renderer.render(rpass);
         }
 

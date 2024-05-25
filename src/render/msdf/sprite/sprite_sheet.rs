@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use bytemuck::{Pod, Zeroable};
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 use serde::Deserialize;
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
@@ -19,6 +19,7 @@ pub struct SpriteInstance {
     pub sprite: Sprite,
     pub position: Vec2,
     pub scale: f32,
+    pub color: Vec4,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -34,6 +35,16 @@ impl Sprite {
             sprite: self,
             position,
             scale,
+            color: Vec4::splat(1.0),
+        }
+    }
+
+    pub fn instantiate_with_color(self, position: Vec2, scale: f32, color: Vec4) -> SpriteInstance {
+        SpriteInstance {
+            sprite: self,
+            position,
+            scale,
+            color,
         }
     }
 }
@@ -42,8 +53,16 @@ impl From<SpriteInstance> for TexturedQuad {
     fn from(val: SpriteInstance) -> Self {
         let [uv1, uv2] = val.sprite.uv;
 
-        let p1 = VertexUV(val.position + val.sprite.offsets[0] * val.scale, uv1);
-        let p2 = VertexUV(val.position + val.sprite.offsets[1] * val.scale, uv2);
+        let p1 = VertexUV(
+            val.position + val.sprite.offsets[0] * val.scale,
+            uv1,
+            val.color,
+        );
+        let p2 = VertexUV(
+            val.position + val.sprite.offsets[1] * val.scale,
+            uv2,
+            val.color,
+        );
 
         TexturedQuad::new(p1, p2)
     }
