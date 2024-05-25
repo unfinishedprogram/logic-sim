@@ -5,10 +5,7 @@ mod img_texture;
 pub mod msdf;
 pub mod vertex;
 use glam::Vec2;
-use wgpu::{
-    util::{BufferInitDescriptor, DeviceExt},
-    Adapter, Buffer, BufferUsages, Color, Device, Queue, Surface, SurfaceConfiguration,
-};
+use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
@@ -23,7 +20,6 @@ use self::{
 
 pub struct RenderState<'window> {
     base: BaseRenderState<'window>,
-    vertex_buf: Buffer,
     pub text_object: TextObject,
     pub binding_state: BindingState,
     pub sprite_renderer: SpriteRenderer,
@@ -69,14 +65,6 @@ impl<'window> RenderState<'window> {
 
         let binding_state = BindingState { camera, msdf_font };
 
-        let text_quads = text_object.as_textured_quads(&binding_state.msdf_font);
-
-        let vertex_buf = base.device.create_buffer_init(&BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(&text_quads),
-            usage: BufferUsages::VERTEX,
-        });
-
         let other_font = MsdfFont::create(
             &base.device,
             &base.queue,
@@ -99,7 +87,6 @@ impl<'window> RenderState<'window> {
 
         Self {
             base,
-            vertex_buf,
             text_object,
             binding_state,
             sprite_renderer,
