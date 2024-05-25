@@ -9,37 +9,40 @@ use super::bindable::Bindable;
 
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
-pub struct CameraUniform {
+pub struct Camera {
     pub center: Vec2,
     pub size: Vec2,
 }
 
-pub struct Camera {
-    pub uniform: CameraUniform,
+pub struct CameraBinding {
     bind_group: BindGroup,
     bind_group_layout: BindGroupLayout,
     buffer: Buffer,
 }
 
 impl Camera {
+    pub fn new() -> Self {
+        Self {
+            center: Vec2::ZERO,
+            size: Vec2::ONE,
+        }
+    }
+
     pub fn translate(&mut self, translation: Vec2) {
-        self.uniform.center += translation;
+        self.center += translation;
     }
 
     pub fn scale(&mut self, scale: Vec2) {
-        self.uniform.size *= scale;
+        self.size *= scale;
     }
 
     pub fn set_aspect(&mut self, ratio: f32, scale: f32) {
-        self.uniform.size = Vec2::new(scale, scale / ratio);
+        self.size = Vec2::new(scale, scale / ratio);
     }
+}
 
+impl CameraBinding {
     pub fn create(device: &Device) -> Self {
-        let uniform = CameraUniform {
-            center: glam::Vec2::new(0.0, 0.0),
-            size: glam::Vec2::new(10.0, 10.0),
-        };
-
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("camera_bind_group_layout"),
             entries: &[wgpu::BindGroupLayoutEntry {
@@ -56,7 +59,7 @@ impl Camera {
 
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("camera_buffer"),
-            contents: bytemuck::cast_slice(&[uniform]),
+            contents: bytemuck::cast_slice(&[Camera::new()]),
             usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
         });
 
@@ -70,19 +73,18 @@ impl Camera {
         });
 
         Self {
-            uniform,
             bind_group,
             bind_group_layout,
             buffer,
         }
     }
 
-    pub fn update(&self, queue: &Queue) {
-        queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[self.uniform]));
+    pub fn update(&self, queue: &Queue, camera: &Camera) {
+        queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[camera.clone()]));
     }
 }
 
-impl Bindable for Camera {
+impl Bindable for CameraBinding {
     fn bind_group_layout(&self) -> &BindGroupLayout {
         &self.bind_group_layout
     }

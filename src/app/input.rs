@@ -4,7 +4,7 @@ use winit::{
     event::{ElementState, MouseButton},
 };
 
-use crate::render::camera::Camera;
+use crate::render::camera::{Camera, CameraBinding};
 
 #[derive(Default)]
 pub struct Input {
@@ -43,7 +43,7 @@ impl Input {
         let screen_pos_pixels = self.mouse_position;
         let screen_pos = screen_pos_pixels / screen_size;
         let screen_clip_pos = (screen_pos - 0.5) * 2.0;
-        let camera_offset = camera.uniform.center / Vec2::new(1.0, -1.0);
-        (screen_clip_pos * camera.uniform.size) + camera_offset
+        let camera_offset = camera.center / Vec2::new(1.0, -1.0);
+        (screen_clip_pos * camera.size) + camera_offset
     }
 }

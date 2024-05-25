@@ -1,13 +1,17 @@
 use glam::Vec2;
 
-use crate::render::msdf::{
-    sprite::sprite_sheet::SpriteInstance,
-    sprite_renderer::SpriteRendererReference,
-    text::{MsdfFontReference, TextObject},
+use crate::render::{
+    camera::Camera,
+    msdf::{
+        sprite::sprite_sheet::SpriteInstance,
+        sprite_renderer::SpriteRendererReference,
+        text::{MsdfFontReference, TextObject},
+    },
 };
 
 pub struct GameState {
     pub text_object: TextObject,
+    pub camera: Camera,
     sprites: SpriteRendererReference,
     font: MsdfFontReference,
 }
@@ -21,6 +25,7 @@ impl GameState {
         };
 
         Self {
+            camera: Camera::new(),
             text_object,
             font,
             sprites,

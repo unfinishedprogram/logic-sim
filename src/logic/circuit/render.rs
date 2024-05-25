@@ -1,5 +1,5 @@
 use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
-use crate::render::msdf::sprite_renderer::SpriteRenderer;
+use crate::render::msdf::sprite_renderer::{SpriteRenderer, SpriteRendererReference};
 
 use super::super::gate::Gate;
 use super::Circuit;
@@ -21,11 +21,11 @@ pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
 }
 
 impl Circuit {
-    pub fn sprite_instances(&self, sprite_renderer: &SpriteRenderer) -> Vec<SpriteInstance> {
+    pub fn sprite_instances(&self, sheets: &SpriteRendererReference) -> Vec<SpriteInstance> {
         let mut sprites = vec![];
         for element in self.elements.iter() {
             let sprite = sprite_of(&element.gate).unwrap();
-            let sprite_instance = sprite_renderer
+            let sprite_instance = sheets
                 .get_sprite(GATE_SHEET, sprite)
                 .unwrap()
                 .instantiate(element.position, 1.0);

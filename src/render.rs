@@ -8,8 +8,7 @@ use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
-    bindable::Bindable,
-    camera::Camera,
+    camera::CameraBinding,
     msdf::{
         sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
         sprite_renderer::SpriteRenderer,
@@ -18,35 +17,27 @@ use self::{
 };
 
 pub struct RenderState<'window> {
-    base: BaseRenderState<'window>,
-    pub binding_state: BindingState,
+    pub base: BaseRenderState<'window>,
     pub sprite_renderer: SpriteRenderer,
     pub msdf_font: MsdfFont,
 }
 
 pub struct BaseRenderState<'window> {
     surface: Surface<'window>,
-    surface_config: SurfaceConfiguration,
+    pub surface_config: SurfaceConfiguration,
     adapter: Adapter,
     device: Device,
-    queue: Queue,
+    pub queue: Queue,
     swapchain_format: wgpu::TextureFormat,
 }
 
 pub struct BindingState {
-    pub camera: Camera,
+    pub camera: CameraBinding,
 }
 
 impl<'window> RenderState<'window> {
     pub async fn create(window: &'window Window) -> Self {
         let base = BaseRenderState::create(window).await;
-
-        let mut camera = Camera::create(&base.device);
-
-        camera.set_aspect(
-            base.surface_config.width as f32 / base.surface_config.height as f32,
-            10.0,
-        );
 
         let msdf_font = MsdfFont::create(
             &base.device,
@@ -54,8 +45,6 @@ impl<'window> RenderState<'window> {
             include_str!("../assets/custom-msdf.json"),
             include_bytes!("../assets/custom.png"),
         );
-
-        let binding_state = BindingState { camera };
 
         let other_font = MsdfFont::create(
             &base.device,
@@ -71,15 +60,11 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/gates/spritesheet-msdf.png"),
         );
 
-        let sprite_renderer = SpriteRenderer::create(
-            &base,
-            vec![other_font.sprite_sheet, gates_sprite_sheet],
-            &binding_state.camera,
-        );
+        let sprite_renderer =
+            SpriteRenderer::create(&base, vec![other_font.sprite_sheet, gates_sprite_sheet]);
 
         Self {
             base,
-            binding_state,
             msdf_font,
             sprite_renderer,
         }
@@ -100,7 +85,7 @@ impl<'window> RenderState<'window> {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         {
-            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
@@ -118,7 +103,7 @@ impl<'window> RenderState<'window> {
             self.sprite_renderer
                 .upload_sprites(&self.base.queue, &sprites);
 
-            rpass.set_bind_group(0, self.binding_state.camera.bind_group(), &[]);
+            // rpass.set_bind_group(0, self.binding_state.camera.bind_group(), &[]);
             self.sprite_renderer.render(rpass);
         }
 
@@ -127,19 +112,7 @@ impl<'window> RenderState<'window> {
     }
 
     pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
-        let old_width = self.base.surface_config.width as f32;
-        let old_height = self.base.surface_config.height as f32;
-
-        let new_width = new_size.width as f32;
-        let new_height = new_size.height as f32;
-
-        let scale = (new_width / old_width, new_height / old_height);
-        self.binding_state.camera.scale(scale.into());
         self.base.resize(window, new_size);
-    }
-
-    pub fn update_camera(&self) {
-        self.binding_state.camera.update(&self.base.queue);
     }
 }
 

@@ -6,7 +6,11 @@ use wgpu::{
 };
 
 use crate::render::{
-    bindable::Bindable, camera::Camera, geometry::TexturedQuad, vertex::VertexUV, BaseRenderState,
+    bindable::Bindable,
+    camera::{Camera, CameraBinding},
+    geometry::TexturedQuad,
+    vertex::VertexUV,
+    BaseRenderState,
 };
 
 use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
@@ -14,16 +18,18 @@ use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,
     vertex_buffer: Buffer,
+    camera_binding: CameraBinding,
     sprite_sheets: HashMap<String, SpriteSheet>,
     sprite_ranges: HashMap<String, (usize, usize)>,
-    vertex_count: usize,
 }
 
 impl SpriteRenderer {
-    pub fn create(base: &BaseRenderState, sheets: Vec<SpriteSheet>, camera: &Camera) -> Self {
+    pub fn create(base: &BaseRenderState, sheets: Vec<SpriteSheet>) -> Self {
         let shader_module = Self::shader_module(&base.device);
-        let render_pipeline = Self::create_render_pipeline(base, &shader_module, camera);
         let vertex_buffer = Self::vertex_buffer(&base.device);
+        let camera_binding = CameraBinding::create(&base.device);
+
+        let render_pipeline = Self::create_render_pipeline(base, &shader_module, &camera_binding);
 
         let sprite_sheets = sheets
             .into_iter()
@@ -34,8 +40,8 @@ impl SpriteRenderer {
             render_pipeline,
             vertex_buffer,
             sprite_sheets,
+            camera_binding,
             sprite_ranges: HashMap::new(),
-            vertex_count: 0,
         }
     }
 
@@ -71,6 +77,10 @@ impl SpriteRenderer {
             bind_group_layouts,
             push_constant_ranges: &[],
         })
+    }
+
+    pub fn update_camera(&self, queue: &wgpu::Queue, camera: &Camera) {
+        self.camera_binding.update(queue, camera);
     }
 
     // Loads sprite instances to be rendered
@@ -149,7 +159,7 @@ impl SpriteRenderer {
     fn create_render_pipeline(
         base: &BaseRenderState,
         shader_module: &ShaderModule,
-        camera: &Camera,
+        camera: &CameraBinding,
     ) -> RenderPipeline {
         let layout = &base
             .device
@@ -157,7 +167,7 @@ impl SpriteRenderer {
 
         let bind_group_layouts: Vec<&BindGroupLayout> = vec![camera.bind_group_layout(), layout];
 
-        let layout = Self::pipeline_layout(&base.device, bind_group_layouts.as_slice());
+        let layout = Self::pipeline_layout(&base.device, &bind_group_layouts);
         let targets = [Some(base.swapchain_format.into())];
         let buffers = [VertexUV::buffer_layout_descriptor()];
         let descriptor = &Self::pipeline_descriptor(&layout, shader_module, &targets, &buffers);
@@ -167,8 +177,8 @@ impl SpriteRenderer {
 
     pub fn render<'pass, 'a: 'pass>(&'a self, mut rpass: RenderPass<'pass>) {
         rpass.set_pipeline(&self.render_pipeline);
-
         rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+        rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
 
         for (name, sheet) in self.sprite_sheets.iter() {
             rpass.set_bind_group(1, &sheet.bind_group, &[]);
@@ -177,12 +187,6 @@ impl SpriteRenderer {
 
             rpass.draw(range.0 as u32..range.1 as u32, 0..1);
         }
-    }
-
-    pub fn get_sprite(&self, sheet: &str, sprite: &str) -> Option<&Sprite> {
-        self.sprite_sheets
-            .get(sheet)
-            .and_then(|sheet| sheet.get_sprite(sprite))
     }
 }
 
