@@ -7,13 +7,10 @@ pub mod vertex;
 use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::{
-    camera::CameraBinding,
-    msdf::{
-        sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
-        sprite_renderer::SpriteRenderer,
-        text::MsdfFont,
-    },
+use self::msdf::{
+    sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
+    sprite_renderer::SpriteRenderer,
+    text::MsdfFont,
 };
 
 pub struct RenderState<'window> {
@@ -29,10 +26,6 @@ pub struct BaseRenderState<'window> {
     device: Device,
     pub queue: Queue,
     swapchain_format: wgpu::TextureFormat,
-}
-
-pub struct BindingState {
-    pub camera: CameraBinding,
 }
 
 impl<'window> RenderState<'window> {

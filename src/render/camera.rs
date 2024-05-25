@@ -80,7 +80,7 @@ impl CameraBinding {
     }
 
     pub fn update(&self, queue: &Queue, camera: &Camera) {
-        queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[camera.clone()]));
+        queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[*camera]));
     }
 }
 
