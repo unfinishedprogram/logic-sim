@@ -1119,6 +1119,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 
 [[package]]
+name = "logic-sim"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "env_logger",
+ "glam",
+ "image",
+ "pollster",
+ "serde",
+ "serde_json",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
 name = "loop9"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1464,21 +1479,6 @@ dependencies = [
  "redox_syscall 0.5.1",
  "smallvec",
  "windows-targets 0.52.5",
-]
-
-[[package]]
-name = "particles"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "env_logger",
- "glam",
- "image",
- "pollster",
- "serde",
- "serde_json",
- "wgpu",
- "winit",
 ]
 
 [[package]]
