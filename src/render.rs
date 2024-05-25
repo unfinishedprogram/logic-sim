@@ -6,7 +6,6 @@ pub mod msdf;
 pub mod vertex;
 use glam::Vec2;
 use wgpu::{
-    include_wgsl,
     util::{BufferInitDescriptor, DeviceExt},
     Adapter, Buffer, BufferUsages, Color, Device, Queue, Surface, SurfaceConfiguration,
 };

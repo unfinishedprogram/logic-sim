@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
 use wgpu::{
     include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages, ColorTargetState,
@@ -6,11 +6,7 @@ use wgpu::{
 };
 
 use crate::render::{
-    bindable::Bindable,
-    camera::Camera,
-    geometry::TexturedQuad,
-    vertex::{Vertex, VertexUV},
-    BaseRenderState,
+    bindable::Bindable, camera::Camera, geometry::TexturedQuad, vertex::VertexUV, BaseRenderState,
 };
 
 use super::sprite::sprite_sheet::{SpriteInstance, SpriteSheet};
@@ -69,6 +65,7 @@ impl SpriteRenderer {
             let sheet = acc
                 .entry(instance.sprite.name.to_string())
                 .or_insert_with(Vec::new);
+
             sheet.push(instance);
             acc
         });
