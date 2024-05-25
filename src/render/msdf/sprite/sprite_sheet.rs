@@ -14,12 +14,6 @@ pub struct SpriteSheet {
     pub sprites: HashMap<String, Sprite>,
 }
 
-impl SpriteSheet {
-    pub fn get_sprite(&self, name: &str) -> Option<&Sprite> {
-        self.sprites.get(name)
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct SpriteInstance {
     pub sprite: Sprite,
