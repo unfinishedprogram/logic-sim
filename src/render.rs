@@ -72,7 +72,7 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let sprite_sheet = SpriteSheet::create(
+        let gates_sprite_sheet = SpriteSheet::create(
             &base.device,
             &base.queue,
             &serde_json::from_str(include_str!("../assets/gates/manifest.json")).unwrap(),
@@ -81,7 +81,7 @@ impl<'window> RenderState<'window> {
 
         let sprite_renderer = SpriteRenderer::create(
             &base,
-            vec![other_font.sprite_sheet, sprite_sheet],
+            vec![other_font.sprite_sheet, gates_sprite_sheet],
             &binding_state.camera,
         );
 
@@ -123,9 +123,22 @@ impl<'window> RenderState<'window> {
                 occlusion_query_set: None,
             });
 
-            let sprites: Vec<msdf::sprite::sprite_sheet::SpriteInstance> = self
+            let mut sprites: Vec<msdf::sprite::sprite_sheet::SpriteInstance> = self
                 .text_object
                 .as_sprite_instances(&self.binding_state.msdf_font);
+
+            for (index, gate) in ["AND", "BUF", "OR", "XOR", "XNOR", "NOT"]
+                .iter()
+                .enumerate()
+            {
+                let sprite = self
+                    .sprite_renderer
+                    .get_sprite("gates", gate)
+                    .unwrap()
+                    .instantiate((index as f32, 1.0).into(), 1.0);
+
+                sprites.push(sprite);
+            }
 
             self.sprite_renderer
                 .upload_sprites(&self.base.queue, &sprites);

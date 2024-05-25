@@ -9,7 +9,7 @@ use crate::render::{
     bindable::Bindable, camera::Camera, geometry::TexturedQuad, vertex::VertexUV, BaseRenderState,
 };
 
-use super::sprite::sprite_sheet::{SpriteInstance, SpriteSheet};
+use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
 
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,
@@ -164,5 +164,11 @@ impl SpriteRenderer {
 
             rpass.draw(range.0 as u32..range.1 as u32, 0..1);
         }
+    }
+
+    pub fn get_sprite(&self, sheet: &str, sprite: &str) -> Option<&Sprite> {
+        self.sprite_sheets
+            .get(sheet)
+            .and_then(|sheet| sheet.get_sprite(sprite))
     }
 }

@@ -16,9 +16,9 @@
             },
             "atlasBounds": {
                 "top": 0,
-                "bottom": 0.5,
+                "bottom": 64,
                 "left": 0,
-                "right": 0.25
+                "right": 64
             }
         },
         {
@@ -31,9 +31,9 @@
             },
             "atlasBounds": {
                 "top": 0,
-                "bottom": 0.5,
-                "left": 0.25,
-                "right": 0.5
+                "bottom": 64,
+                "left": 64,
+                "right": 128
             }
         },
         {
@@ -46,9 +46,9 @@
             },
             "atlasBounds": {
                 "top": 0,
-                "bottom": 0.5,
-                "left": 0.5,
-                "right": 0.75
+                "bottom": 64,
+                "left": 128,
+                "right": 192
             }
         },
         {
@@ -61,9 +61,9 @@
             },
             "atlasBounds": {
                 "top": 0,
-                "bottom": 0.5,
-                "left": 0.75,
-                "right": 1
+                "bottom": 64,
+                "left": 192,
+                "right": 256
             }
         },
         {
@@ -75,10 +75,10 @@
                 "right": 0.5
             },
             "atlasBounds": {
-                "top": 0.5,
-                "bottom": 1.0,
+                "top": 64,
+                "bottom": 128,
                 "left": 0,
-                "right": 0.25
+                "right": 64
             }
         },
         {
@@ -90,10 +90,10 @@
                 "right": 0.5
             },
             "atlasBounds": {
-                "top": 0.5,
-                "bottom": 1.0,
-                "left": 0.25,
-                "right": 0.5
+                "top": 64,
+                "bottom": 128,
+                "left": 64,
+                "right": 128
             }
         },
         {
@@ -105,10 +105,10 @@
                 "right": 0.5
             },
             "atlasBounds": {
-                "top": 0.5,
-                "bottom": 1.0,
-                "left": 0.5,
-                "right": 0.75
+                "top": 0,
+                "bottom": 64,
+                "left": 128,
+                "right": 192
             }
         },
         {
@@ -120,10 +120,10 @@
                 "right": 0.5
             },
             "atlasBounds": {
-                "top": 0.5,
-                "bottom": 1.0,
-                "left": 0.75,
-                "right": 1
+                "top": 64,
+                "bottom": 128,
+                "left": 192,
+                "right": 256
             }
         }
     ]
