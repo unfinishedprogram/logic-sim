@@ -5,7 +5,7 @@ use super::vertex::VertexUV;
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 pub struct TexturedQuad {
-    pub verticies: [VertexUV; 6],
+    pub vertices: [VertexUV; 6],
 }
 
 impl TexturedQuad {
@@ -26,7 +26,7 @@ impl TexturedQuad {
             top_left.1.y,
         );
         Self {
-            verticies: [
+            vertices: [
                 bottom_left,
                 top_right,
                 bottom_right,

@@ -60,27 +60,32 @@ impl SpriteRenderer {
         })
     }
 
+    // Loads sprite instances to be rendered
     pub fn upload_sprites(&mut self, queue: &wgpu::Queue, sprites: &[SpriteInstance]) {
-        let instances_by_sheet = sprites.iter().fold(HashMap::new(), |mut acc, instance| {
-            let sheet = acc
-                .entry(instance.sprite.name.to_string())
-                .or_insert_with(Vec::new);
+        let mut instances_by_sheet: HashMap<String, Vec<&SpriteInstance>> = self
+            .sprite_sheets
+            .keys()
+            .map(|name| (name.to_owned(), vec![]))
+            .collect();
 
-            sheet.push(instance);
-            acc
-        });
+        for sprite in sprites {
+            instances_by_sheet
+                .get_mut(sprite.sprite.name)
+                .expect("Sprite sheet not found on this renderer")
+                .push(sprite);
+        }
 
         let verts_by_sheet = instances_by_sheet
-            .iter()
+            .into_iter()
             .map(|(name, instances)| {
                 let quads = instances
-                    .iter()
-                    .map(|instance| TexturedQuad::from(*instance.clone()))
+                    .into_iter()
+                    .map(|instance| TexturedQuad::from(*instance))
                     .collect::<Vec<TexturedQuad>>();
 
                 let verts = quads
                     .iter()
-                    .flat_map(|quad| quad.verticies)
+                    .flat_map(|quad| quad.vertices)
                     .collect::<Vec<VertexUV>>();
 
                 (name.to_string(), verts)
@@ -100,8 +105,6 @@ impl SpriteRenderer {
         self.sprite_ranges = ranges;
 
         queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&verts));
-
-        // self.vertex_count = vertices.len();
     }
 
     fn pipeline_descriptor<'a>(

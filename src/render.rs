@@ -136,12 +136,12 @@ impl<'window> RenderState<'window> {
                 occlusion_query_set: None,
             });
 
-            self.sprite_renderer.upload_sprites(
-                &self.base.queue,
-                &self
-                    .text_object
-                    .as_sprite_instances(&self.binding_state.msdf_font),
-            );
+            let sprites: Vec<msdf::sprite::sprite_sheet::SpriteInstance> = self
+                .text_object
+                .as_sprite_instances(&self.binding_state.msdf_font);
+
+            self.sprite_renderer
+                .upload_sprites(&self.base.queue, &sprites);
 
             rpass.set_bind_group(0, self.binding_state.camera.bind_group(), &[]);
             self.sprite_renderer.render(rpass);
