@@ -45,6 +45,4 @@ impl GameState {
 
         sprites
     }
-
-    pub fn render() {}
 }
