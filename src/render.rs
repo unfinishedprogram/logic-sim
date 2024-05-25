@@ -1,5 +1,5 @@
 mod bindable;
-mod camera;
+pub mod camera;
 pub mod geometry;
 mod img_texture;
 pub mod msdf;

@@ -56,6 +56,10 @@ impl<'a> App<'a> {
             self.render_state.binding_state.camera.translate(clip_delta);
         }
 
+        self.render_state.text_object.position = self
+            .input
+            .mouse_world_position(self.screen_size(), &self.render_state.binding_state.camera);
+
         self.input.update();
         self.render_state.update_camera();
     }
@@ -83,7 +87,6 @@ impl ApplicationHandler for App<'_> {
                 self.last_frame = now;
                 self.update();
                 self.render_state.render();
-
                 self.window.request_redraw();
             }
             WindowEvent::MouseInput {
