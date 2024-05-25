@@ -3,7 +3,6 @@ use serde::Deserialize;
 
 use crate::render::msdf::sprite::sprite_sheet::{self, Bounds};
 
-#[allow(unused)]
 #[derive(Deserialize, Clone)]
 pub struct Manifest {
     pub name: &'static str,
