@@ -1,6 +1,7 @@
 #![feature(slice_as_chunks)]
 
 mod app;
+mod logic;
 mod render;
 
 use pollster::FutureExt;
