@@ -1,0 +1,25 @@
+{
+    "name": "dot",
+    "atlas": {
+        "distanceRange": 4,
+        "width": 16,
+        "height": 16
+    },
+    "sprites": [
+        {
+            "name": "dot",
+            "planeBounds": {
+                "top": -0.1,
+                "bottom": 0.1,
+                "left": -0.1,
+                "right": 0.1
+            },
+            "atlasBounds": {
+                "top": 0,
+                "bottom": 16,
+                "left": 0,
+                "right": 16
+            }
+        }
+    ]
+}

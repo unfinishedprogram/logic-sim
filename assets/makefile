@@ -1,9 +1,9 @@
 # Makefile
 
 # Define the make commands
-.PHONY: build build-font build-sprites
+.PHONY: build build-font build-sprites build-dot
 
-build: build-font build-sprites
+build: build-font build-sprites build-dot
 
 build-font:
 	msdf-atlas-gen \
@@ -23,3 +23,11 @@ build-sprites:
 		-dimensions 256 128 \
 		-svg gates/filled.svg \
 		-o gates/spritesheet-msdf.png
+
+build-dot:
+	msdfgen \
+		-pxrange 4 \
+		-scale 2 \
+		-dimensions 32 32 \
+		-svg dot/filled.svg \
+		-o dot/spritesheet-msdf.png
