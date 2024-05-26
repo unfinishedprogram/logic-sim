@@ -6,7 +6,7 @@ use crate::{
     logic::{circuit::Circuit, hit_test::HitTestResult},
     render::{
         camera::Camera,
-        line::{cubic_bezier::CubicBezier, LineGeometry},
+        line::LineGeometry,
         msdf::{
             sprite::sprite_sheet::SpriteInstance,
             sprite_renderer::SpriteRendererReference,
@@ -31,32 +31,13 @@ impl GameState {
             scale: 1.0,
         };
 
-        let mut res = Self {
+        Self {
             camera: Camera::new(),
             text_object,
             font,
             sprites,
-            circuit: Circuit::default(),
-        };
-
-        {
-            let gates = [
-                crate::logic::gate::Gate::And,
-                crate::logic::gate::Gate::Or,
-                crate::logic::gate::Gate::Not,
-                crate::logic::gate::Gate::Buf,
-                crate::logic::gate::Gate::Xor,
-                crate::logic::gate::Gate::Nand,
-                crate::logic::gate::Gate::Nor,
-                crate::logic::gate::Gate::Xnor,
-            ];
-
-            for (i, gate) in gates.into_iter().enumerate() {
-                res.circuit.add_gate(gate, Vec2::new(0.0, i as f32));
-            }
+            circuit: Circuit::test_circuit(),
         }
-
-        res
     }
 
     pub fn get_sprite_instances(&self) -> Vec<SpriteInstance> {
@@ -66,24 +47,11 @@ impl GameState {
     }
 
     pub fn get_line_instances(&self) -> Vec<LineGeometry> {
-        let mut geo: Vec<LineGeometry> = vec![];
-
-        geo.extend(
-            CubicBezier::between_points(Vec2::new(-1.0, -1.0), Vec2::new(1.0, 0.5))
-                .as_line_geometries(10, 0.1),
-        );
-
-        geo.extend(
-            CubicBezier::between_points(Vec2::new(-1.0, 3.0), Vec2::new(1.0, 3.0))
-                .as_line_geometries(10, 0.1),
-        );
-
-        geo.extend(
-            CubicBezier::between_points(Vec2::new(-1.0, -1.0), Vec2::new(-1.0, 3.0))
-                .as_line_geometries(3, 0.1),
-        );
-
-        geo
+        self.circuit
+            .connection_instances()
+            .into_iter()
+            .flat_map(|bezier| bezier.as_line_geometries(10, 0.05))
+            .collect()
     }
 }
 

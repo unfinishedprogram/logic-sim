@@ -1,5 +1,6 @@
 use glam::Vec4;
 
+use crate::render::line::cubic_bezier::CubicBezier;
 use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
 use crate::render::msdf::sprite_renderer::SpriteRendererReference;
 
@@ -61,5 +62,24 @@ impl Circuit {
             sprites.push(sprite_instance);
         }
         sprites
+    }
+
+    pub fn connection_instances(&self) -> Vec<CubicBezier> {
+        let mut beziers = vec![];
+
+        for connection in self.connections.iter() {
+            let from = self.elements[connection.from.element_idx]
+                .gate
+                .output_offset()
+                + self.elements[connection.from.element_idx].position;
+            let to = self.elements[connection.to.element_idx]
+                .gate
+                .input_offsets()[connection.to.input_idx]
+                + self.elements[connection.to.element_idx].position;
+
+            beziers.push(CubicBezier::between_points(from, to));
+        }
+
+        beziers
     }
 }

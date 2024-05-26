@@ -20,6 +20,38 @@ pub struct CircuitElement {
 }
 
 impl Circuit {
+    pub fn test_circuit() -> Self {
+        let mut circuit = Circuit::default();
+
+        circuit.add_gate(Gate::And, Vec2::new(0.0, 0.0));
+        circuit.add_gate(Gate::Or, Vec2::new(2.0, 2.0));
+        circuit.add_gate(Gate::Not, Vec2::new(3.0, 3.0));
+
+        circuit.add_connection(Connection {
+            from: connection::OutputSpecifier {
+                element_idx: 0,
+                output_idx: 0,
+            },
+            to: connection::InputSpecifier {
+                element_idx: 1,
+                input_idx: 0,
+            },
+        });
+
+        circuit.add_connection(Connection {
+            from: connection::OutputSpecifier {
+                element_idx: 1,
+                output_idx: 0,
+            },
+            to: connection::InputSpecifier {
+                element_idx: 2,
+                input_idx: 0,
+            },
+        });
+
+        circuit
+    }
+
     pub fn add_gate(&mut self, gate: Gate, position: Vec2) {
         self.elements.push(CircuitElement { gate, position });
     }
