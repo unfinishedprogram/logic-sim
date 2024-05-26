@@ -2,21 +2,29 @@ mod bindable;
 pub mod camera;
 pub mod geometry;
 mod img_texture;
+pub mod line;
 pub mod msdf;
 pub mod vertex;
 use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
-use self::msdf::{
-    sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
-    sprite_renderer::SpriteRenderer,
-    text::MsdfFont,
+use self::{
+    camera::Camera,
+    line::{LineDescriptor, LineRenderer},
+    msdf::{
+        sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
+        sprite_renderer::SpriteRenderer,
+        text::MsdfFont,
+    },
 };
 
 pub struct RenderState<'window> {
     pub base: BaseRenderState<'window>,
-    pub sprite_renderer: SpriteRenderer,
     pub msdf_font: MsdfFont,
+
+    // Render pipelines
+    pub line_renderer: LineRenderer,
+    pub sprite_renderer: SpriteRenderer,
 }
 
 pub struct BaseRenderState<'window> {
@@ -69,14 +77,22 @@ impl<'window> RenderState<'window> {
             ],
         );
 
+        let line_renderer = line::LineRenderer::create(&base);
+
         Self {
             base,
             msdf_font,
             sprite_renderer,
+            line_renderer,
         }
     }
 
-    pub fn render(&mut self, sprites: &[SpriteInstance]) {
+    pub fn render(
+        &mut self,
+        camera: &Camera,
+        sprites: &[SpriteInstance],
+        lines: &[LineDescriptor],
+    ) {
         let frame = self
             .base
             .surface
@@ -91,7 +107,7 @@ impl<'window> RenderState<'window> {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         {
-            let rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
@@ -106,10 +122,15 @@ impl<'window> RenderState<'window> {
                 occlusion_query_set: None,
             });
 
+            self.sprite_renderer.update_camera(&self.base.queue, camera);
+            self.line_renderer.update_camera(&self.base.queue, camera);
+
             self.sprite_renderer
                 .upload_sprites(&self.base.queue, sprites);
+            self.sprite_renderer.render(&mut rpass);
 
-            self.sprite_renderer.render(rpass);
+            self.line_renderer.upload_lines(&self.base.queue, lines);
+            self.line_renderer.render(rpass);
         }
 
         self.base.queue.submit(Some(encoder.finish()));

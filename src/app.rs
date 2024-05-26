@@ -103,11 +103,13 @@ impl ApplicationHandler for App<'_> {
                 let now = Instant::now();
                 self.last_frame = now;
                 self.update();
-                self.render_state
-                    .sprite_renderer
-                    .update_camera(&self.render_state.base.queue, &self.game_state.camera);
-                self.render_state
-                    .render(&self.game_state.get_sprite_instances());
+
+                self.render_state.render(
+                    &self.game_state.camera,
+                    &self.game_state.get_sprite_instances(),
+                    &self.game_state.get_line_instances(),
+                );
+
                 self.window.request_redraw();
             }
             WindowEvent::MouseInput {

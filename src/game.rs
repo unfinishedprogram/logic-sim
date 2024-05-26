@@ -4,6 +4,7 @@ use crate::{
     logic::circuit::Circuit,
     render::{
         camera::Camera,
+        line::LineDescriptor,
         msdf::{
             sprite::sprite_sheet::SpriteInstance,
             sprite_renderer::SpriteRendererReference,
@@ -41,6 +42,14 @@ impl GameState {
         let mut sprites: Vec<SpriteInstance> = self.text_object.as_sprite_instances(&self.font);
         sprites.extend(self.circuit.sprite_instances(&self.sprites));
         sprites
+    }
+
+    pub fn get_line_instances(&self) -> Vec<LineDescriptor> {
+        vec![LineDescriptor {
+            start: Vec2::new(-1.0, -1.0),
+            end: Vec2::new(1.0, 0.5),
+            width: 0.1,
+        }]
     }
 }
 

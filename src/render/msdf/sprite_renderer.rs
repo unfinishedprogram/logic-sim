@@ -45,6 +45,20 @@ impl SpriteRenderer {
         }
     }
 
+    pub fn render<'pass, 'a: 'pass>(&'a self, rpass: &mut RenderPass<'pass>) {
+        rpass.set_pipeline(&self.render_pipeline);
+        rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+        rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
+
+        for (name, sheet) in self.sprite_sheets.iter() {
+            rpass.set_bind_group(1, &sheet.bind_group, &[]);
+
+            let range = self.sprite_ranges.get(name).unwrap_or(&(0, 0));
+
+            rpass.draw(range.0 as u32..range.1 as u32, 0..1);
+        }
+    }
+
     pub fn reference(&self) -> SpriteRendererReference {
         let sheets = self
             .sprite_sheets
@@ -180,20 +194,6 @@ impl SpriteRenderer {
         let descriptor = &Self::pipeline_descriptor(&layout, shader_module, &targets, &buffers);
 
         base.device.create_render_pipeline(descriptor)
-    }
-
-    pub fn render<'pass, 'a: 'pass>(&'a self, mut rpass: RenderPass<'pass>) {
-        rpass.set_pipeline(&self.render_pipeline);
-        rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-        rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
-
-        for (name, sheet) in self.sprite_sheets.iter() {
-            rpass.set_bind_group(1, &sheet.bind_group, &[]);
-
-            let range = self.sprite_ranges.get(name).unwrap_or(&(0, 0));
-
-            rpass.draw(range.0 as u32..range.1 as u32, 0..1);
-        }
     }
 }
 
