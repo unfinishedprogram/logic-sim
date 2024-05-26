@@ -43,20 +43,13 @@ impl LineRenderer {
     }
 
     // Loads sprite instances to be rendered
-    pub fn upload_lines(&mut self, queue: &wgpu::Queue, lines: &[LineDescriptor]) {
-        // TODO: Remove this unnecessary double allocation
-        let geometries: Vec<LineGeometry> = lines
-            .iter()
-            .copied()
-            .map(LineGeometry::from_descriptor)
-            .collect();
-
-        let vertices = geometries
+    pub fn upload_lines(&mut self, queue: &wgpu::Queue, lines: &[LineGeometry]) {
+        let vertices = lines
             .iter()
             .flat_map(|quad| quad.vertices)
             .collect::<Vec<VertexUV>>();
 
-        self.quad_count = geometries.len();
+        self.quad_count = lines.len();
         queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
     }
 

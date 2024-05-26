@@ -4,7 +4,7 @@ use crate::{
     logic::circuit::Circuit,
     render::{
         camera::Camera,
-        line::LineDescriptor,
+        line::{cubic_bezier::CubicBezier, LineDescriptor, LineGeometry},
         msdf::{
             sprite::sprite_sheet::SpriteInstance,
             sprite_renderer::SpriteRendererReference,
@@ -44,12 +44,25 @@ impl GameState {
         sprites
     }
 
-    pub fn get_line_instances(&self) -> Vec<LineDescriptor> {
-        vec![LineDescriptor {
-            start: Vec2::new(-1.0, -1.0),
-            end: Vec2::new(1.0, 0.5),
-            width: 0.1,
-        }]
+    pub fn get_line_instances(&self) -> Vec<LineGeometry> {
+        let mut geo: Vec<LineGeometry> = vec![];
+
+        geo.extend(
+            CubicBezier::between_points(Vec2::new(-1.0, -1.0), Vec2::new(1.0, 0.5))
+                .as_line_geometries(10, 0.1),
+        );
+
+        geo.extend(
+            CubicBezier::between_points(Vec2::new(-1.0, 3.0), Vec2::new(1.0, 3.0))
+                .as_line_geometries(10, 0.1),
+        );
+
+        geo.extend(
+            CubicBezier::between_points(Vec2::new(-1.0, -1.0), Vec2::new(-1.0, 3.0))
+                .as_line_geometries(3, 0.1),
+        );
+
+        geo
     }
 }
 

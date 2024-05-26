@@ -10,7 +10,7 @@ use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
     camera::Camera,
-    line::{LineDescriptor, LineRenderer},
+    line::{LineGeometry, LineRenderer},
     msdf::{
         sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
         sprite_renderer::SpriteRenderer,
@@ -87,12 +87,7 @@ impl<'window> RenderState<'window> {
         }
     }
 
-    pub fn render(
-        &mut self,
-        camera: &Camera,
-        sprites: &[SpriteInstance],
-        lines: &[LineDescriptor],
-    ) {
+    pub fn render(&mut self, camera: &Camera, sprites: &[SpriteInstance], lines: &[LineGeometry]) {
         let frame = self
             .base
             .surface

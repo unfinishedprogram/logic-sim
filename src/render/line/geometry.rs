@@ -57,4 +57,18 @@ impl LineGeometry {
 
         Self { vertices }
     }
+
+    pub fn from_corner_points([top_left, top_right, bottom_right, bottom_left]: [Vec2; 4]) -> Self {
+        let mut vertices = [VertexUV::new(0.0, 0.0, 0.0, 0.0, Vec4::splat(1.0)); 6];
+
+        vertices[0].position = top_left;
+        vertices[1].position = top_right;
+        vertices[2].position = bottom_right;
+
+        vertices[3].position = top_right;
+        vertices[4].position = bottom_right;
+        vertices[5].position = bottom_left;
+
+        Self { vertices }
+    }
 }

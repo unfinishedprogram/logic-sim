@@ -1,4 +1,6 @@
 #![feature(slice_as_chunks)]
+#![feature(array_windows)]
+#![feature(array_chunks)]
 
 mod app;
 mod game;
