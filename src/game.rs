@@ -1,10 +1,10 @@
 use glam::Vec2;
 
 use crate::{
-    logic::circuit::Circuit,
+    logic::{circuit::Circuit, hit_test::HitTestResult},
     render::{
         camera::Camera,
-        line::{cubic_bezier::CubicBezier, LineDescriptor, LineGeometry},
+        line::{cubic_bezier::CubicBezier, LineGeometry},
         msdf::{
             sprite::sprite_sheet::SpriteInstance,
             sprite_renderer::SpriteRendererReference,
@@ -29,13 +29,32 @@ impl GameState {
             scale: 1.0,
         };
 
-        Self {
+        let mut res = Self {
             camera: Camera::new(),
             text_object,
             font,
             sprites,
             circuit: Circuit::default(),
+        };
+
+        {
+            let gates = [
+                crate::logic::gate::Gate::And,
+                crate::logic::gate::Gate::Or,
+                crate::logic::gate::Gate::Not,
+                crate::logic::gate::Gate::Buf,
+                crate::logic::gate::Gate::Xor,
+                crate::logic::gate::Gate::Nand,
+                crate::logic::gate::Gate::Nor,
+                crate::logic::gate::Gate::Xnor,
+            ];
+
+            for (i, gate) in gates.into_iter().enumerate() {
+                res.circuit.add_gate(gate, Vec2::new(0.0, i as f32));
+            }
         }
+
+        res
     }
 
     pub fn get_sprite_instances(&self) -> Vec<SpriteInstance> {
@@ -68,20 +87,10 @@ impl GameState {
 
 impl GameState {
     pub fn on_click(&mut self, position: Vec2) {
-        let gates = [
-            crate::logic::gate::Gate::And,
-            crate::logic::gate::Gate::Or,
-            crate::logic::gate::Gate::Not,
-            crate::logic::gate::Gate::Buf,
-            crate::logic::gate::Gate::Xor,
-            crate::logic::gate::Gate::Nand,
-            crate::logic::gate::Gate::Nor,
-            crate::logic::gate::Gate::Xnor,
-        ];
+        let hit = self.circuit.hit_test(position);
 
-        for (i, gate) in gates.into_iter().enumerate() {
-            self.circuit
-                .add_gate(gate, position + Vec2::new(0.0, i as f32));
+        if let HitTestResult::Element(idx) = hit {
+            self.circuit.remove_gate(idx);
         }
     }
 }

@@ -44,7 +44,7 @@ impl CubicBezier {
             .collect()
     }
 
-    // Samples a pair of points, which are equidistant to the curve at time t
+    // Samples a pair of points, which are equidistant to the curve at point t
     fn sample_pair(&self, t: f32, width: f32) -> (Vec2, Vec2) {
         let p = self.sample(t);
         let n = self.normal(t);

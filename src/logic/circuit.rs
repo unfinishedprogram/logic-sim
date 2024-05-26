@@ -1,6 +1,7 @@
 use glam::Vec2;
 
-use super::gate::Gate;
+use super::{gate::Gate, hit_test::HitTestResult};
+use crate::util::bounds::Bounds;
 
 pub mod connection;
 mod render;
@@ -46,5 +47,17 @@ impl Circuit {
 
         // Finally remove the element
         self.elements.remove(index);
+    }
+
+    pub fn hit_test(&self, position: Vec2) -> HitTestResult {
+        for (i, element) in self.elements.iter().enumerate() {
+            let bounds: Bounds = element.gate.bounds().translate(element.position);
+
+            if bounds.contains(position) {
+                return HitTestResult::Element(i);
+            }
+        }
+
+        HitTestResult::None
     }
 }

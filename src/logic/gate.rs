@@ -1,6 +1,7 @@
-use glam::Vec2;
+use crate::util::bounds::Bounds;
 
 use super::circuit::connection::Connectable;
+use glam::Vec2;
 
 pub enum Gate {
     Input(bool),
@@ -32,6 +33,10 @@ impl Gate {
     const OUTPUT_OFFSET: Vec2 = Vec2::new(0.4, 0.0);
     pub const fn output_offset(&self) -> Vec2 {
         Self::OUTPUT_OFFSET
+    }
+
+    pub fn bounds(&self) -> Bounds {
+        Bounds::new(Vec2::new(-0.5, -0.5), Vec2::new(0.5, 0.5))
     }
 }
 

@@ -1,11 +1,11 @@
 #![feature(slice_as_chunks)]
 #![feature(array_windows)]
-#![feature(array_chunks)]
 
 mod app;
 mod game;
 pub mod logic;
 mod render;
+mod util;
 
 use pollster::FutureExt;
 use winit::{event_loop::EventLoop, window::Window};
