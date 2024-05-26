@@ -18,6 +18,7 @@ build-font:
 
 build-sprites:
 	msdfgen \
+		mtsdf \
 		-pxrange 4 \
 		-scale 2 \
 		-dimensions 256 128 \
@@ -26,6 +27,7 @@ build-sprites:
 
 build-dot:
 	msdfgen \
+		mtsdf \
 		-pxrange 4 \
 		-scale 2 \
 		-dimensions 32 32 \
