@@ -5,7 +5,11 @@ use wgpu::vertex_attr_array;
 // A vertex with UV data
 #[repr(C)]
 #[derive(Copy, Clone, Pod, Zeroable)]
-pub struct VertexUV(pub Vec2, pub Vec2, pub Vec4);
+pub struct VertexUV {
+    pub position: Vec2,
+    pub uv: Vec2,
+    pub color: Vec4,
+}
 
 impl VertexUV {
     const VERTEX_ATTRIBUTES: [wgpu::VertexAttribute; 3] = vertex_attr_array![
@@ -15,7 +19,11 @@ impl VertexUV {
     ];
 
     pub fn new(x: f32, y: f32, u: f32, v: f32, c: Vec4) -> Self {
-        Self(Vec2::new(x, y), Vec2::new(u, v), c)
+        Self {
+            position: Vec2::new(x, y),
+            uv: Vec2::new(u, v),
+            color: c,
+        }
     }
 
     pub fn buffer_layout_descriptor() -> wgpu::VertexBufferLayout<'static> {

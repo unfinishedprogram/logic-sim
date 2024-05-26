@@ -14,18 +14,18 @@ impl TexturedQuad {
         let bottom_right = p2;
 
         let top_right = VertexUV::new(
-            top_left.0.x,
-            bottom_right.0.y,
-            top_left.1.x,
-            bottom_right.1.y,
-            top_left.2,
+            top_left.position.x,
+            bottom_right.position.y,
+            top_left.uv.x,
+            bottom_right.uv.y,
+            top_left.color,
         );
         let bottom_left = VertexUV::new(
-            bottom_right.0.x,
-            top_left.0.y,
-            bottom_right.1.x,
-            top_left.1.y,
-            top_left.2,
+            bottom_right.position.x,
+            top_left.position.y,
+            bottom_right.uv.x,
+            top_left.uv.y,
+            top_left.color,
         );
         Self {
             vertices: [

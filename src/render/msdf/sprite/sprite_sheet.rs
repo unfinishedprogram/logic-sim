@@ -53,16 +53,16 @@ impl From<SpriteInstance> for TexturedQuad {
     fn from(val: SpriteInstance) -> Self {
         let [uv1, uv2] = val.sprite.uv;
 
-        let p1 = VertexUV(
-            val.position + val.sprite.offsets[0] * val.scale,
-            uv1,
-            val.color,
-        );
-        let p2 = VertexUV(
-            val.position + val.sprite.offsets[1] * val.scale,
-            uv2,
-            val.color,
-        );
+        let p1 = VertexUV {
+            position: val.position + val.sprite.offsets[0] * val.scale,
+            uv: uv1,
+            color: val.color,
+        };
+        let p2 = VertexUV {
+            position: val.position + val.sprite.offsets[1] * val.scale,
+            uv: uv2,
+            color: val.color,
+        };
 
         TexturedQuad::new(p1, p2)
     }
