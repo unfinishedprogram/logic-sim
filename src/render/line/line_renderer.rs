@@ -10,7 +10,7 @@ use crate::render::{
     BaseRenderState,
 };
 
-use super::geometry::{LineDescriptor, LineGeometry};
+use super::geometry::LineGeometry;
 
 pub struct LineRenderer {
     render_pipeline: RenderPipeline,

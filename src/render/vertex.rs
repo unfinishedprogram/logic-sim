@@ -1,5 +1,5 @@
 use bytemuck::{Pod, Zeroable};
-use glam::{Vec2, Vec3, Vec4};
+use glam::{Vec2, Vec4};
 use wgpu::vertex_attr_array;
 
 // A vertex with UV data

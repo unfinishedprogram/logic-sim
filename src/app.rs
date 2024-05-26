@@ -1,38 +1,48 @@
-mod input;
-
 use std::time::Instant;
 
 use glam::Vec2;
 use winit::{
     application::ApplicationHandler,
-    event::{ElementState, MouseScrollDelta, WindowEvent},
+    dpi::PhysicalPosition,
+    event::{MouseScrollDelta, WindowEvent},
     event_loop::EventLoop,
     keyboard::{self, NamedKey},
     window::Window,
 };
 
-use crate::{game::GameState, render::RenderState};
-
-use self::input::Input;
+use crate::{
+    game::{input::InputState, GameState},
+    render::{camera::Camera, RenderState},
+};
 
 pub struct App<'a> {
     window: &'a Window,
     render_state: RenderState<'a>,
-    input: Input,
+    mouse_position: PhysicalPosition<f64>,
+    input: InputState,
     last_frame: Instant,
     game_state: GameState,
+}
+
+pub fn mouse_world_position(mouse_position: Vec2, screen_size: Vec2, camera: &Camera) -> Vec2 {
+    let screen_pos_pixels = mouse_position;
+    let screen_pos = screen_pos_pixels / screen_size;
+    let screen_clip_pos = (screen_pos - 0.5) * 2.0;
+    let camera_offset = camera.center;
+    (screen_clip_pos * camera.size) + camera_offset
 }
 
 impl<'a> App<'a> {
     pub async fn create(window: &'a Window) -> Self {
         window.set_transparent(true);
         let render_state = RenderState::create(window).await;
-        let input = Input::default();
+        let input = InputState::default();
 
         let mut game_state = GameState::new(
             render_state.msdf_font.reference(),
             render_state.sprite_renderer.reference(),
         );
+
         let window_size = window.inner_size();
         let aspect = window_size.width as f32 / window_size.height as f32;
         game_state.camera.set_aspect(aspect, 10.0);
@@ -43,6 +53,7 @@ impl<'a> App<'a> {
             input,
             last_frame: Instant::now(),
             game_state,
+            mouse_position: PhysicalPosition::new(0.0, 0.0),
         }
     }
 
@@ -58,17 +69,7 @@ impl<'a> App<'a> {
     }
 
     fn update(&mut self) {
-        if self.input.drag {
-            let screen_delta_pixels = self.input.mouse_delta() * Vec2::new(-1.0, 1.0);
-            let screen_delta = screen_delta_pixels / self.screen_size();
-            let clip_delta = screen_delta * 2.0 * self.game_state.camera.size;
-            self.game_state.camera.translate(clip_delta);
-        }
-
-        self.game_state.text_object.position = self
-            .input
-            .mouse_world_position(self.screen_size(), &self.game_state.camera);
-
+        self.game_state.update(&self.input);
         self.input.update();
     }
 
@@ -117,16 +118,7 @@ impl ApplicationHandler for App<'_> {
                 state,
                 button,
             } => {
-                // Drag
-                self.input.handle_mouse_input(state, button);
-                if matches!(state, ElementState::Pressed)
-                    && matches!(button, winit::event::MouseButton::Left)
-                {
-                    self.game_state.on_click(
-                        self.input
-                            .mouse_world_position(self.screen_size(), &self.game_state.camera),
-                    )
-                }
+                self.input.on_mouse_button(button, state);
             }
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::MouseWheel {
@@ -134,15 +126,30 @@ impl ApplicationHandler for App<'_> {
                 delta: MouseScrollDelta::LineDelta(_x, y),
                 phase: _,
             } => {
-                let sensitivity = 0.1;
-                let scale_delta = 1.0 + y * sensitivity;
-                self.game_state.camera.scale(Vec2::splat(scale_delta));
+                self.input.on_scroll(y);
             }
             WindowEvent::CursorMoved {
                 device_id: _,
                 position,
             } => {
-                self.input.handle_mouse_move(position);
+                let world_position = mouse_world_position(
+                    Vec2::new(position.x as f32, position.y as f32),
+                    self.screen_size(),
+                    &self.game_state.camera,
+                );
+
+                let pixel_delta = Vec2::new(
+                    position.x as f32 - self.mouse_position.x as f32,
+                    position.y as f32 - self.mouse_position.y as f32,
+                );
+
+                let screen_delta_pixels = pixel_delta * Vec2::new(1.0, -1.0);
+                let screen_delta = screen_delta_pixels / self.screen_size();
+                let world_delta = screen_delta * 2.0 * self.game_state.camera.size;
+
+                self.mouse_position = position;
+
+                self.input.on_mouse_move(world_position, world_delta);
             }
             WindowEvent::KeyboardInput {
                 device_id: _,
@@ -150,25 +157,8 @@ impl ApplicationHandler for App<'_> {
                 is_synthetic: _,
             } => {
                 if let keyboard::Key::Named(key) = event.logical_key {
-                    match key {
-                        NamedKey::Escape => event_loop.exit(),
-                        NamedKey::Backspace => {
-                            if event.state == ElementState::Pressed {
-                                self.game_state.text_object.content.pop();
-                            }
-                        }
-                        NamedKey::Space => {
-                            if event.state == ElementState::Pressed {
-                                self.game_state.text_object.content.push(' ');
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-
-                if let keyboard::Key::Character(c) = event.logical_key {
-                    if matches!(event.state, ElementState::Pressed) {
-                        self.game_state.text_object.content += &c;
+                    if key == NamedKey::Escape {
+                        event_loop.exit()
                     }
                 }
             }
