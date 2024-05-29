@@ -12,7 +12,7 @@ use winit::{
 
 use crate::{
     game::{input::InputState, GameState},
-    render::{camera::Camera, RenderState},
+    render::{camera::Camera, frame::Frame, RenderState},
 };
 
 pub struct App<'a> {
@@ -68,9 +68,11 @@ impl<'a> App<'a> {
         event_loop.run_app(self).expect("Failure in event loop");
     }
 
-    fn update(&mut self) {
-        self.game_state.update(&self.input);
+    fn update(&mut self) -> Frame {
+        let mut frame = Frame::new(&self.game_state.camera);
+        self.game_state.update(&self.input, &mut frame);
         self.input.update();
+        frame
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -103,13 +105,8 @@ impl ApplicationHandler for App<'_> {
             WindowEvent::RedrawRequested => {
                 let now = Instant::now();
                 self.last_frame = now;
-                self.update();
-
-                self.render_state.render(
-                    &self.game_state.camera,
-                    &self.game_state.get_sprite_instances(),
-                    &self.game_state.get_line_instances(),
-                );
+                let frame = self.update();
+                self.render_state.render(frame);
 
                 self.window.request_redraw();
             }

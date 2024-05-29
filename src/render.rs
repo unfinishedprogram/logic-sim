@@ -1,21 +1,18 @@
 mod bindable;
 pub mod camera;
+pub mod frame;
 pub mod geometry;
 mod img_texture;
 pub mod line;
 pub mod msdf;
 pub mod vertex;
+use frame::Frame;
 use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
-    camera::Camera,
-    line::{LineGeometry, LineRenderer},
-    msdf::{
-        sprite::sprite_sheet::{SpriteInstance, SpriteSheet},
-        sprite_renderer::SpriteRenderer,
-        text::MsdfFont,
-    },
+    line::LineRenderer,
+    msdf::{sprite::sprite_sheet::SpriteSheet, sprite_renderer::SpriteRenderer, text::MsdfFont},
 };
 
 pub struct RenderState<'window> {
@@ -87,13 +84,17 @@ impl<'window> RenderState<'window> {
         }
     }
 
-    pub fn render(&mut self, camera: &Camera, sprites: &[SpriteInstance], lines: &[LineGeometry]) {
-        let frame = self
+    pub fn render(&mut self, frame: Frame) {
+        let camera = frame.camera();
+        let lines = frame.lines();
+        let sprites = frame.sprites();
+
+        let surface = self
             .base
             .surface
             .get_current_texture()
             .expect("Failed to acquire next swap chain texture");
-        let view = frame
+        let view = surface
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
         let mut encoder = self
@@ -129,7 +130,8 @@ impl<'window> RenderState<'window> {
         }
 
         self.base.queue.submit(Some(encoder.finish()));
-        frame.present();
+
+        surface.present();
     }
 
     pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
