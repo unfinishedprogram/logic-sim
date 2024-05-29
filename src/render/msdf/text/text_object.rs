@@ -1,6 +1,6 @@
 use glam::{vec2, Vec2};
 
-use crate::render::{geometry::TexturedQuad, msdf::sprite::sprite_sheet::SpriteInstance};
+use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
 
 use super::MsdfFontReference;
 
@@ -28,12 +28,5 @@ impl TextObject {
         }
 
         instances
-    }
-
-    pub fn as_textured_quads(&self, font: &MsdfFontReference) -> Vec<TexturedQuad> {
-        self.as_sprite_instances(font)
-            .iter()
-            .map(|i| TexturedQuad::from(*i))
-            .collect()
     }
 }
