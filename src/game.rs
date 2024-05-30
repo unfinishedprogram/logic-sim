@@ -8,7 +8,6 @@ use crate::{
         camera::Camera,
         line::LineGeometry,
         msdf::{
-            sprite::sprite_sheet::SpriteInstance,
             sprite_renderer::SpriteRendererReference,
             text::{MsdfFontReference, TextObject},
         },
@@ -19,7 +18,7 @@ pub struct GameState {
     pub text_object: TextObject,
     pub camera: Camera,
     sprites: SpriteRendererReference,
-    font: MsdfFontReference,
+    pub font: MsdfFontReference,
     circuit: Circuit,
 }
 
@@ -38,12 +37,6 @@ impl GameState {
             sprites,
             circuit: Circuit::test_circuit(),
         }
-    }
-
-    pub fn get_sprite_instances(&self) -> Vec<SpriteInstance> {
-        let mut sprites: Vec<SpriteInstance> = self.text_object.as_sprite_instances(&self.font);
-        sprites.extend(self.circuit.sprite_instances(&self.sprites));
-        sprites
     }
 
     pub fn get_line_instances(&self) -> Vec<LineGeometry> {

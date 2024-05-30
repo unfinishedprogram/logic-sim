@@ -12,7 +12,7 @@ use winit::{
 
 use crate::{
     game::{input::InputState, GameState},
-    render::{camera::Camera, frame::Frame, RenderState},
+    render::{camera::Camera, frame::Frame, msdf::text::TextObject, RenderState},
 };
 
 pub struct App<'a> {
@@ -28,8 +28,7 @@ pub fn mouse_world_position(mouse_position: Vec2, screen_size: Vec2, camera: &Ca
     let screen_pos_pixels = mouse_position;
     let screen_pos = screen_pos_pixels / screen_size;
     let screen_clip_pos = (screen_pos - 0.5) * 2.0;
-    let camera_offset = camera.center;
-    (screen_clip_pos * camera.size) + camera_offset
+    (screen_clip_pos * camera.size) + camera.center
 }
 
 impl<'a> App<'a> {
@@ -69,21 +68,16 @@ impl<'a> App<'a> {
     }
 
     fn update(&mut self) -> Frame {
-        let mut frame = Frame::new(&self.game_state.camera);
-        self.game_state.update(&self.input, &mut frame);
+        let mut frame = Frame::new(&self.game_state.camera, &self.input);
         self.input.update();
+        self.game_state.update(&mut frame);
         frame
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        let old_width = self.render_state.base.surface_config.width as f32;
-        let old_height = self.render_state.base.surface_config.height as f32;
-
-        let new_width = new_size.width as f32;
-        let new_height = new_size.height as f32;
-
-        let scale = (new_width / old_width, new_height / old_height);
-        self.game_state.camera.scale(scale.into());
+        self.game_state
+            .camera
+            .set_aspect_ratio(Vec2::new(new_size.width as f32, new_size.height as f32));
 
         self.render_state.resize(self.window, new_size);
     }
@@ -104,8 +98,37 @@ impl ApplicationHandler for App<'_> {
             WindowEvent::Resized(new_size) => self.resize(new_size),
             WindowEvent::RedrawRequested => {
                 let now = Instant::now();
+                let frame_time = now - self.last_frame;
                 self.last_frame = now;
-                let frame = self.update();
+                let mut frame = self.update();
+
+                self.game_state.text_object.content =
+                    format!("FPS: {:.2}", 1.0 / frame_time.as_secs_f32());
+                self.game_state.text_object.position = frame.camera().top_left();
+                self.game_state.text_object.scale = self.game_state.camera.size.length() / 30.0;
+                self.game_state.text_object.position +=
+                    Vec2::new(0.0, self.game_state.text_object.scale);
+
+                let sprites = self
+                    .game_state
+                    .text_object
+                    .as_sprite_instances(&self.game_state.font);
+
+                for sprite in sprites {
+                    frame.draw_sprite_instance(sprite);
+                }
+
+                for i in 0..100 {
+                    TextObject {
+                        content: format!("Text Object {}", i).repeat(50),
+                        position: Vec2::new(0.0, i as f32 * 0.1),
+                        scale: 0.1,
+                    }
+                    .as_sprite_instances(&self.game_state.font)
+                    .into_iter()
+                    .for_each(|sprite| frame.draw_sprite_instance(sprite));
+                }
+
                 self.render_state.render(frame);
 
                 self.window.request_redraw();
@@ -140,7 +163,7 @@ impl ApplicationHandler for App<'_> {
                     position.y as f32 - self.mouse_position.y as f32,
                 );
 
-                let screen_delta_pixels = pixel_delta * Vec2::new(1.0, -1.0);
+                let screen_delta_pixels = pixel_delta;
                 let screen_delta = screen_delta_pixels / self.screen_size();
                 let world_delta = screen_delta * 2.0 * self.game_state.camera.size;
 

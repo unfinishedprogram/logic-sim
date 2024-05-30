@@ -45,6 +45,7 @@ impl SpriteRenderer {
         }
     }
 
+    #[inline(never)]
     pub fn render<'pass, 'a: 'pass>(&'a self, rpass: &mut RenderPass<'pass>) {
         rpass.set_pipeline(&self.render_pipeline);
         rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));

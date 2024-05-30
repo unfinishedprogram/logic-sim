@@ -1,4 +1,6 @@
-use glam::Vec4;
+use std::iter::once;
+
+use glam::Vec2;
 
 use crate::render::line::cubic_bezier::CubicBezier;
 use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
@@ -35,30 +37,30 @@ impl Circuit {
                 .unwrap()
                 .instantiate(element.position, 1.0);
 
-            let input_offsets = element.gate.input_offsets();
+            // let input_offsets = element.gate.input_offsets();
 
-            for offset in input_offsets {
-                let input_instance = sheets
-                    .get_sprite("dot", "dot")
-                    .unwrap()
-                    .instantiate_with_color(
-                        element.position + *offset,
-                        1.0,
-                        Vec4::new(1.0, 0.0, 0.0, 1.0),
-                    );
-                sprites.push(input_instance);
-            }
+            // for offset in input_offsets {
+            //     let input_instance = sheets
+            //         .get_sprite("dot", "dot")
+            //         .unwrap()
+            //         .instantiate_with_color(
+            //             element.position + *offset,
+            //             1.0,
+            //             Vec4::new(1.0, 0.0, 0.0, 1.0),
+            //         );
+            //     sprites.push(input_instance);
+            // }
 
-            let output_instance = sheets
-                .get_sprite("dot", "dot")
-                .unwrap()
-                .instantiate_with_color(
-                    element.position + element.gate.output_offset(),
-                    1.0,
-                    Vec4::new(0.0, 1.0, 0.0, 1.0),
-                );
+            // let output_instance = sheets
+            //     .get_sprite("dot", "dot")
+            //     .unwrap()
+            //     .instantiate_with_color(
+            //         element.position + element.gate.output_offset(),
+            //         1.0,
+            //         Vec4::new(0.0, 1.0, 0.0, 1.0),
+            //     );
 
-            sprites.push(output_instance);
+            // sprites.push(output_instance);
             sprites.push(sprite_instance);
         }
         sprites

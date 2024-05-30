@@ -177,7 +177,7 @@ impl<'window> BaseRenderState<'window> {
             .get_default_config(&adapter, size.width, size.height)
             .unwrap();
 
-        surface_config.present_mode = wgpu::PresentMode::AutoVsync;
+        // surface_config.present_mode = wgpu::PresentMode::AutoVsync;
         surface_config.alpha_mode = wgpu::CompositeAlphaMode::PreMultiplied;
 
         surface.configure(&device, &surface_config);

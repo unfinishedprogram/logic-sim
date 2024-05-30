@@ -29,7 +29,7 @@ fn vs_main(
     in: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;
-    out.clip_pos = vec4f((in.vert_pos_2d * vec2f(1.0, -1.0) - camera.center) / camera.size, 0.0, 1.0);
+    out.clip_pos = vec4f((in.vert_pos_2d - camera.center) / camera.size, 0.0, 1.0) * vec4f(1.0, -1.0, 1.0, 1.0);
     out.tex_coords = in.uv_pos_2d;
     out.color = in.color;
     return out;

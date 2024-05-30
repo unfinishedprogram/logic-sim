@@ -2,7 +2,7 @@ use glam::Vec2;
 use winit::event::{ElementState, MouseButton};
 
 // State passed to the update function of the game
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct InputState {
     pub mouse_world_position: Vec2,
     pub mouse_world_position_delta: Vec2,
@@ -11,7 +11,7 @@ pub struct InputState {
     pub scroll_delta: f32,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ButtonState {
     pub pressed: bool,
     pub released: bool,

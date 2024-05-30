@@ -1,3 +1,5 @@
+use std::iter::once;
+
 use glam::Vec2;
 
 use super::{gate::Gate, hit_test::HitTestResult};
@@ -17,6 +19,17 @@ pub struct Circuit {
 pub struct CircuitElement {
     gate: Gate,
     position: Vec2,
+}
+
+pub enum ConnectionDotRefType {
+    Input,
+    Output,
+}
+pub struct ConnectionDotRef {
+    pub position: Vec2,
+    pub ty: ConnectionDotRefType,
+    pub element_idx: usize,
+    pub connection_idx: usize,
 }
 
 impl Circuit {
@@ -91,5 +104,29 @@ impl Circuit {
         }
 
         HitTestResult::None
+    }
+
+    pub fn connection_dots(&self) -> impl Iterator<Item = ConnectionDotRef> + '_ {
+        self.elements
+            .iter()
+            .enumerate()
+            .flat_map(|(element_idx, element)| {
+                element
+                    .gate
+                    .input_offsets()
+                    .iter()
+                    .map(move |offset| (*offset, ConnectionDotRefType::Input))
+                    .chain(once((
+                        element.gate.output_offset(),
+                        ConnectionDotRefType::Output,
+                    )))
+                    .enumerate()
+                    .map(move |(connection_idx, (offset, ty))| ConnectionDotRef {
+                        position: element.position + offset,
+                        ty,
+                        element_idx,
+                        connection_idx,
+                    })
+            })
     }
 }

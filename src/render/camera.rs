@@ -39,6 +39,15 @@ impl Camera {
     pub fn set_aspect(&mut self, ratio: f32, scale: f32) {
         self.size = Vec2::new(scale, scale / ratio);
     }
+
+    pub fn set_aspect_ratio(&mut self, aspect: Vec2) {
+        let magnitude = self.size.length();
+        self.size = aspect.normalize() * magnitude;
+    }
+
+    pub fn top_left(&self) -> Vec2 {
+        self.center - self.size
+    }
 }
 
 impl CameraBinding {
