@@ -122,10 +122,10 @@ impl<'window> RenderState<'window> {
             self.sprite_renderer.update_camera(&self.base.queue, camera);
 
             self.line_renderer.upload_lines(&self.base.queue, lines);
-            self.line_renderer.render(&mut rpass);
-
             self.sprite_renderer
                 .upload_sprites(&self.base.queue, sprites);
+
+            self.line_renderer.render(&mut rpass);
             self.sprite_renderer.render(&mut rpass);
         }
 
