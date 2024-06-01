@@ -17,14 +17,14 @@ impl TextObject {
         let mut x_offset: f32 = 0.0;
 
         for c in self.content.chars() {
-            if let Some(sprite) = font.sprite_lookup.get(&c.to_string()) {
+            if let Some(sprite) = font.get(c) {
                 let instance = sprite
                     .instantiate(self.position + vec2(x_offset * self.scale, 0.0), self.scale);
 
                 instances.push(instance);
             }
 
-            x_offset += font.manifest.get_glyph(c).advance;
+            x_offset += font.advance(c)
         }
 
         instances

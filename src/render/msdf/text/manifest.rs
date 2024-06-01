@@ -12,7 +12,7 @@ pub struct Manifest {
 
 #[derive(Deserialize, Clone)]
 pub struct Glyph {
-    unicode: u32,
+    pub unicode: u32,
     pub advance: f32,
     #[serde(rename = "planeBounds")]
     pub plane_bounds: Option<Bounds>,
