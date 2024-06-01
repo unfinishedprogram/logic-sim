@@ -1,10 +1,14 @@
+mod sprite_handle;
 mod sprite_instance;
+
+pub use sprite_handle::SpriteHandle;
 
 use std::{collections::HashMap, ops::Range};
 
 use wgpu::{
-    include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages, ColorTargetState,
-    Device, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModule,
+    hal::vulkan::Instance, include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages,
+    ColorTargetState, Device, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor,
+    ShaderModule,
 };
 
 use crate::render::{
@@ -15,7 +19,7 @@ use crate::render::{
     BaseRenderState,
 };
 
-use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
+use super::sprite::sprite_sheet::{SpriteInstance, SpriteSheet};
 
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,
@@ -23,8 +27,8 @@ pub struct SpriteRenderer {
     instance_buffer: Buffer,
     index_buffer: Buffer,
     camera_binding: CameraBinding,
-    sprite_sheets: HashMap<String, SpriteSheet>,
-    sprite_ranges: HashMap<String, RenderRange>,
+    sprite_sheets: Vec<SpriteSheet>,
+    sprite_ranges: Vec<RenderRange>,
 }
 
 #[derive(Default, Clone)]
@@ -41,7 +45,7 @@ impl RenderRange {
 }
 
 impl SpriteRenderer {
-    pub fn create(base: &BaseRenderState, sheets: Vec<SpriteSheet>) -> Self {
+    pub fn create(base: &BaseRenderState, sprite_sheets: Vec<SpriteSheet>) -> Self {
         let shader_module = Self::shader_module(&base.device);
         let vertex_buffer = Self::vertex_buffer(&base.device);
         let instance_buffer = Self::instance_buffer(&base.device);
@@ -50,11 +54,6 @@ impl SpriteRenderer {
 
         let render_pipeline = Self::create_render_pipeline(base, &shader_module, &camera_binding);
 
-        let sprite_sheets = sheets
-            .into_iter()
-            .map(|sheet| (sheet.name.to_string(), sheet))
-            .collect();
-
         Self {
             render_pipeline,
             vertex_buffer,
@@ -62,7 +61,7 @@ impl SpriteRenderer {
             index_buffer,
             sprite_sheets,
             camera_binding,
-            sprite_ranges: HashMap::new(),
+            sprite_ranges: vec![],
         }
     }
 
@@ -74,10 +73,10 @@ impl SpriteRenderer {
         rpass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
 
-        for (name, sheet) in self.sprite_sheets.iter() {
+        for (sheet_idx, sheet) in self.sprite_sheets.iter().enumerate() {
             rpass.set_bind_group(1, &sheet.bind_group, &[]);
 
-            let range = self.sprite_ranges.get(name).unwrap_or(&RenderRange::ZERO);
+            let range = &self.sprite_ranges[sheet_idx];
 
             rpass.draw_indexed(range.indices.clone(), range.verts.start as i32, 0..1);
         }
@@ -87,9 +86,22 @@ impl SpriteRenderer {
         let sheets = self
             .sprite_sheets
             .iter()
-            .map(|(name, sheet)| {
-                let sprites = sheet.sprites.clone();
-                (name.to_string(), sprites)
+            .enumerate()
+            .map(|(sheet_idx, sheet)| {
+                let sprites = sheet
+                    .sprites
+                    .iter()
+                    .map(|(name, sprite_idx)| {
+                        (
+                            name.clone(),
+                            SpriteHandle {
+                                sheet_idx,
+                                sprite_idx: *sprite_idx,
+                            },
+                        )
+                    })
+                    .collect();
+                (sheet.name.to_owned(), sprites)
             })
             .collect();
 
@@ -141,46 +153,38 @@ impl SpriteRenderer {
 
     // Loads sprite instances to be rendered
     pub fn upload_sprites(&mut self, queue: &wgpu::Queue, sprites: &[SpriteInstance]) {
-        let mut instances_by_sheet: HashMap<String, Vec<&SpriteInstance>> = self
-            .sprite_sheets
-            .keys()
-            .map(|name| (name.to_owned(), vec![]))
-            .collect();
+        let mut instances_by_sheet = vec![vec![]; self.sprite_sheets.len()];
 
         for sprite in sprites {
-            instances_by_sheet
-                .get_mut(sprite.sprite.sheet_name)
-                .expect("Sprite sheet not found on this renderer")
-                .push(sprite);
+            instances_by_sheet[sprite.sprite_handle.sheet_idx].push(sprite.clone());
         }
 
-        let verts_by_sheet: HashMap<String, (Vec<VertexUV>, Vec<u32>)> = instances_by_sheet
+        let verts_by_sheet: Vec<_> = instances_by_sheet
             .into_iter()
-            .map(|(name, instances)| {
-                let quads = instances
-                    .into_iter()
-                    .map(|instance| TexturedQuad::from(*instance))
-                    .collect::<Vec<TexturedQuad>>();
-
+            .map(|instances| {
                 let mut verts = vec![];
                 let mut indices = vec![];
 
-                for quad in quads.iter() {
+                for instance in instances {
+                    let quad = self.sprite_sheets[instance.sprite_handle.sheet_idx].sprites_vec
+                        [instance.sprite_handle.sprite_idx]
+                        .as_textured_quad(&instance);
+
                     let start = verts.len() as u32;
                     verts.extend(quad.vertices.into_iter());
                     indices.extend(quad.indices.iter().map(|i| i + start));
                 }
 
-                (name.to_string(), (verts, indices))
+                (verts, indices)
             })
             .collect();
 
         // Add vertex index ranges
-        let mut ranges: HashMap<String, RenderRange> = HashMap::new();
+        let mut ranges: Vec<RenderRange> = vec![];
         let mut verts: Vec<VertexUV> = vec![];
         let mut indices: Vec<u32> = vec![];
 
-        for (name, (sheet_verts, sheet_indices)) in verts_by_sheet.iter() {
+        for (sheet_verts, sheet_indices) in verts_by_sheet.into_iter() {
             let v_start = verts.len() as u32;
             let i_start = indices.len() as u32;
 
@@ -190,13 +194,10 @@ impl SpriteRenderer {
             let v_end = verts.len() as u32;
             let i_end = indices.len() as u32;
 
-            ranges.insert(
-                name.clone(),
-                RenderRange {
-                    verts: (v_start..v_end),
-                    indices: (i_start..i_end),
-                },
-            );
+            ranges.push(RenderRange {
+                verts: (v_start..v_end),
+                indices: (i_start..i_end),
+            });
         }
 
         self.sprite_ranges = ranges;
@@ -256,14 +257,21 @@ impl SpriteRenderer {
 
         base.device.create_render_pipeline(descriptor)
     }
+
+    fn sheet_by_name(&self, name: &str) -> &SpriteSheet {
+        self.sprite_sheets
+            .iter()
+            .find(|sheet| sheet.name == name)
+            .expect("Sprite sheet not found")
+    }
 }
 
 pub struct SpriteRendererReference {
-    pub sheets: HashMap<String, HashMap<String, Sprite>>,
+    pub sheets: HashMap<String, HashMap<String, SpriteHandle>>,
 }
 
 impl SpriteRendererReference {
-    pub fn get_sprite(&self, sheet: &str, sprite: &str) -> Option<&Sprite> {
+    pub fn get_sprite(&self, sheet: &str, sprite: &str) -> Option<&SpriteHandle> {
         self.sheets.get(sheet).and_then(|sheet| sheet.get(sprite))
     }
 }

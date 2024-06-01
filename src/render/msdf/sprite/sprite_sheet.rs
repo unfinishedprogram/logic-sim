@@ -5,24 +5,27 @@ use glam::{Vec2, Vec4};
 use serde::Deserialize;
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
-use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV};
+use crate::render::{
+    geometry::TexturedQuad, img_texture::ImageTexture, msdf::sprite_renderer::SpriteHandle,
+    vertex::VertexUV,
+};
 
 pub struct SpriteSheet {
     pub name: &'static str,
     pub bind_group: wgpu::BindGroup,
     pub texture: ImageTexture,
-    pub sprites: HashMap<String, Sprite>,
+    pub sprites: HashMap<String, usize>,
+    pub sprites_vec: Vec<Sprite>,
 }
 
 #[derive(Clone, Copy)]
 pub struct SpriteInstance {
-    pub sprite: Sprite,
+    pub sprite_handle: SpriteHandle,
     pub position: Vec2,
     pub scale: f32,
     pub color: Vec4,
 }
 
-#[derive(Clone, Copy, Debug)]
 pub struct Sprite {
     pub sheet_name: &'static str,
     pub offsets: [Vec2; 2],
@@ -30,38 +33,18 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn instantiate(self, position: Vec2, scale: f32) -> SpriteInstance {
-        SpriteInstance {
-            sprite: self,
-            position,
-            scale,
-            color: Vec4::splat(1.0),
-        }
-    }
-
-    pub fn instantiate_with_color(self, position: Vec2, scale: f32, color: Vec4) -> SpriteInstance {
-        SpriteInstance {
-            sprite: self,
-            position,
-            scale,
-            color,
-        }
-    }
-}
-
-impl From<SpriteInstance> for TexturedQuad {
-    fn from(val: SpriteInstance) -> Self {
-        let [uv1, uv2] = val.sprite.uv;
+    pub fn as_textured_quad(&self, sprite_instance: &SpriteInstance) -> TexturedQuad {
+        let [uv1, uv2] = self.uv;
 
         let p1 = VertexUV {
-            position: val.position + val.sprite.offsets[0] * val.scale,
+            position: sprite_instance.position + self.offsets[0] * sprite_instance.scale,
             uv: uv1,
-            color: val.color,
+            color: sprite_instance.color,
         };
         let p2 = VertexUV {
-            position: val.position + val.sprite.offsets[1] * val.scale,
+            position: sprite_instance.position + self.offsets[1] * sprite_instance.scale,
             uv: uv2,
-            color: val.color,
+            color: sprite_instance.color,
         };
 
         TexturedQuad::new(p1, p2)
@@ -75,10 +58,6 @@ pub struct MsdfSpriteSheetUniform {
 }
 
 impl SpriteSheet {
-    pub fn build_sprite_lookup(manifest: &Manifest) -> HashMap<String, Sprite> {
-        manifest.sprites()
-    }
-
     pub fn layout_descriptor() -> &'static BindGroupLayoutDescriptor<'static> {
         &wgpu::BindGroupLayoutDescriptor {
             entries: &[
@@ -116,7 +95,14 @@ impl SpriteSheet {
     }
 
     pub fn create(device: &Device, queue: &Queue, manifest: &Manifest, image: &[u8]) -> Self {
-        let sprites = manifest.sprites();
+        let mut sprites = HashMap::new();
+        let mut sprites_vec = Vec::new();
+
+        for (name, sprite) in manifest.sprites() {
+            let idx = sprites_vec.len();
+            sprites.insert(name.clone(), idx);
+            sprites_vec.push(sprite);
+        }
 
         let uniform = MsdfSpriteSheetUniform {
             distance_range: manifest.atlas.distance_range,
@@ -158,6 +144,7 @@ impl SpriteSheet {
             bind_group,
             texture,
             sprites,
+            sprites_vec,
             name: manifest.name,
         }
     }

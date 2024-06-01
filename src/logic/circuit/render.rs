@@ -27,11 +27,14 @@ impl Circuit {
 
         for element in self.elements.iter() {
             let sprite = sprite_of(&element.gate).unwrap();
+            let sprite_handle = *sheets.get_sprite(GATE_SHEET, sprite).unwrap();
 
-            let sprite_instance = sheets
-                .get_sprite(GATE_SHEET, sprite)
-                .unwrap()
-                .instantiate(element.position, 1.0);
+            let sprite_instance = SpriteInstance {
+                sprite_handle,
+                position: element.position,
+                scale: 1.0,
+                color: glam::Vec4::splat(1.0),
+            };
 
             sprites.push(sprite_instance);
         }

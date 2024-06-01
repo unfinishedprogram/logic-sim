@@ -7,6 +7,7 @@ pub mod line;
 pub mod msdf;
 pub mod vertex;
 use frame::Frame;
+use msdf::text::MsdfFontReference;
 use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
@@ -17,8 +18,7 @@ use self::{
 
 pub struct RenderState<'window> {
     pub base: BaseRenderState<'window>,
-    pub msdf_font: MsdfFont,
-
+    pub msdf_font_ref: MsdfFontReference,
     // Render pipelines
     pub line_renderer: LineRenderer,
     pub sprite_renderer: SpriteRenderer,
@@ -44,13 +44,6 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let other_font = MsdfFont::create(
-            &base.device,
-            &base.queue,
-            include_str!("../assets/custom-msdf.json"),
-            include_bytes!("../assets/custom.png"),
-        );
-
         let gates_sprite_sheet = SpriteSheet::create(
             &base.device,
             &base.queue,
@@ -65,21 +58,19 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/dot/spritesheet-msdf.png"),
         );
 
+        let msdf_font_ref = msdf_font.reference(0);
+
         let sprite_renderer = SpriteRenderer::create(
             &base,
-            vec![
-                other_font.sprite_sheet,
-                gates_sprite_sheet,
-                dot_sprite_sheet,
-            ],
+            vec![msdf_font.sprite_sheet, gates_sprite_sheet, dot_sprite_sheet],
         );
 
         let line_renderer = line::LineRenderer::create(&base);
 
         Self {
             base,
-            msdf_font,
             sprite_renderer,
+            msdf_font_ref,
             line_renderer,
         }
     }

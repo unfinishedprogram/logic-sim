@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use glam::Vec2;
 use wgpu::{Device, Queue};
 
-use crate::render::msdf::sprite::sprite_sheet::{Sprite, SpriteSheet};
+use crate::render::msdf::{sprite::sprite_sheet::SpriteSheet, sprite_renderer::SpriteHandle};
 
 use super::Manifest;
 
@@ -12,15 +11,15 @@ pub struct MsdfFont {
     pub sprite_sheet: SpriteSheet,
 }
 
+#[derive(Clone)]
 pub struct MsdfFontReference {
-    manifest: Manifest,
-    unicode_lookup: HashMap<char, Sprite>,
-    ascii_lookup: [Sprite; 256],
+    unicode_lookup: HashMap<char, SpriteHandle>,
+    ascii_lookup: [SpriteHandle; 256],
     advance_lookup: HashMap<char, f32>,
 }
 
 impl MsdfFontReference {
-    pub fn get(&self, c: char) -> Option<Sprite> {
+    pub fn get(&self, c: char) -> Option<SpriteHandle> {
         if c.is_ascii() {
             Some(self.ascii_lookup[c as usize])
         } else {
@@ -34,25 +33,32 @@ impl MsdfFontReference {
 }
 
 impl MsdfFont {
-    pub fn reference(&self) -> MsdfFontReference {
+    pub fn reference(&self, sheet_idx: usize) -> MsdfFontReference {
         let unicode_lookup = self
             .sprite_sheet
             .sprites
             .iter()
-            .map(|(k, v)| (k.chars().next().unwrap(), *v))
+            .map(|(k, v)| {
+                (
+                    k.chars().next().unwrap(),
+                    SpriteHandle {
+                        sheet_idx,
+                        sprite_idx: *v,
+                    },
+                )
+            })
             .collect();
 
-        let mut ascii_lookup = [Sprite {
-            sheet_name: self.sprite_sheet.name,
-            offsets: [Vec2::ZERO, Vec2::ZERO],
-            uv: [Vec2::ZERO, Vec2::ZERO],
+        let mut ascii_lookup = [SpriteHandle {
+            sheet_idx,
+            sprite_idx: 0,
         }; 256];
 
         for (name, sprite) in &self.sprite_sheet.sprites {
             if name.len() == 1 {
                 let c = name.chars().next().unwrap();
                 if c.is_ascii() {
-                    ascii_lookup[c as usize] = *sprite;
+                    ascii_lookup[c as usize].sprite_idx = *sprite;
                 }
             }
         }
@@ -65,7 +71,6 @@ impl MsdfFont {
             .collect();
 
         MsdfFontReference {
-            manifest: self.manifest.clone(),
             unicode_lookup,
             ascii_lookup,
             advance_lookup,

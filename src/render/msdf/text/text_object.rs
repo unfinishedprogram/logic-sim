@@ -18,7 +18,7 @@ impl TextObject {
         for c in self.content.chars() {
             if let Some(sprite) = font.get(c) {
                 frame.draw_sprite(
-                    &sprite,
+                    sprite,
                     self.position + vec2(x_offset * self.scale, 0.0),
                     self.scale,
                 )

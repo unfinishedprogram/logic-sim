@@ -37,7 +37,7 @@ impl<'a> App<'a> {
         let input = InputState::default();
 
         let mut game_state = GameState::new(
-            render_state.msdf_font.reference(),
+            render_state.msdf_font_ref.clone(),
             render_state.sprite_renderer.reference(),
         );
 
