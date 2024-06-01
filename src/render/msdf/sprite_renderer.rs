@@ -1,5 +1,4 @@
 mod sprite_handle;
-mod sprite_instance;
 
 pub use sprite_handle::SpriteHandle;
 
@@ -25,7 +24,6 @@ use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,
     vertex_buffer: Buffer,
-    instance_buffer: Buffer,
     index_buffer: Buffer,
     camera_binding: CameraBinding,
     sprite_sheets: Vec<SpriteSheet>,
@@ -50,7 +48,6 @@ impl SpriteRenderer {
     pub fn create(base: &BaseRenderState, sprite_sheets: Vec<SpriteSheet>) -> Self {
         let shader_module = Self::shader_module(&base.device);
         let vertex_buffer = Self::vertex_buffer(&base.device);
-        let instance_buffer = Self::instance_buffer(&base.device);
         let index_buffer = Self::index_buffer(&base.device);
         let camera_binding = CameraBinding::create(&base.device);
 
@@ -59,7 +56,6 @@ impl SpriteRenderer {
         Self {
             render_pipeline,
             vertex_buffer,
-            instance_buffer,
             index_buffer,
             sprite_sheets,
             camera_binding,
@@ -71,7 +67,6 @@ impl SpriteRenderer {
     pub fn render<'pass, 'a: 'pass>(&'a self, rpass: &mut RenderPass<'pass>) {
         rpass.set_pipeline(&self.render_pipeline);
         rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-        rpass.set_vertex_buffer(1, self.instance_buffer.slice(..));
         rpass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
 
@@ -122,15 +117,6 @@ impl SpriteRenderer {
         })
     }
 
-    fn instance_buffer(device: &Device) -> Buffer {
-        device.create_buffer(&BufferDescriptor {
-            label: Some("Sprite Renderer Instance Buffer"),
-            size: 8096 * 8096,
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        })
-    }
-
     fn shader_module(device: &Device) -> ShaderModule {
         device.create_shader_module(include_wgsl!("shader.wgsl"))
     }
@@ -152,7 +138,7 @@ impl SpriteRenderer {
         let mut instances_by_sheet = vec![vec![]; self.sprite_sheets.len()];
 
         for sprite in sprites {
-            instances_by_sheet[sprite.sprite_handle.sheet.idx].push(sprite.clone());
+            instances_by_sheet[sprite.sprite_handle.sheet.idx].push(*sprite);
         }
 
         let verts_by_sheet: Vec<_> = instances_by_sheet
@@ -250,13 +236,6 @@ impl SpriteRenderer {
         let descriptor = &Self::pipeline_descriptor(&layout, shader_module, &targets, &buffers);
 
         base.device.create_render_pipeline(descriptor)
-    }
-
-    fn sheet_by_name(&self, name: &str) -> &SpriteSheet {
-        self.sprite_sheets
-            .iter()
-            .find(|sheet| sheet.name == name)
-            .expect("Sprite sheet not found")
     }
 }
 
