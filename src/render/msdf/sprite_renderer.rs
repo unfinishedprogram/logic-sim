@@ -3,23 +3,24 @@ mod sprite_instance;
 
 pub use sprite_handle::SpriteHandle;
 
-use std::{collections::HashMap, ops::Range};
+use std::{
+    collections::HashMap,
+    ops::{Index, Range},
+};
 
 use wgpu::{
-    hal::vulkan::Instance, include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages,
-    ColorTargetState, Device, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor,
-    ShaderModule,
+    include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages, ColorTargetState,
+    Device, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModule,
 };
 
 use crate::render::{
     bindable::Bindable,
     camera::{Camera, CameraBinding},
-    geometry::TexturedQuad,
     vertex::VertexUV,
     BaseRenderState,
 };
 
-use super::sprite::sprite_sheet::{SpriteInstance, SpriteSheet};
+use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
 
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,
@@ -37,11 +38,12 @@ struct RenderRange {
     indices: Range<u32>,
 }
 
-impl RenderRange {
-    const ZERO: Self = Self {
-        verts: 0..0,
-        indices: 0..0,
-    };
+impl Index<SpriteHandle> for SpriteRenderer {
+    type Output = Sprite;
+
+    fn index(&self, handle: SpriteHandle) -> &Self::Output {
+        &self.sprite_sheets[handle.sheet.idx].sprites_vec[handle.sprite.idx]
+    }
 }
 
 impl SpriteRenderer {
@@ -92,13 +94,7 @@ impl SpriteRenderer {
                     .sprites
                     .iter()
                     .map(|(name, sprite_idx)| {
-                        (
-                            name.clone(),
-                            SpriteHandle {
-                                sheet_idx,
-                                sprite_idx: *sprite_idx,
-                            },
-                        )
+                        (name.clone(), SpriteHandle::new(sheet_idx, *sprite_idx))
                     })
                     .collect();
                 (sheet.name.to_owned(), sprites)
@@ -156,7 +152,7 @@ impl SpriteRenderer {
         let mut instances_by_sheet = vec![vec![]; self.sprite_sheets.len()];
 
         for sprite in sprites {
-            instances_by_sheet[sprite.sprite_handle.sheet_idx].push(sprite.clone());
+            instances_by_sheet[sprite.sprite_handle.sheet.idx].push(sprite.clone());
         }
 
         let verts_by_sheet: Vec<_> = instances_by_sheet
@@ -166,9 +162,7 @@ impl SpriteRenderer {
                 let mut indices = vec![];
 
                 for instance in instances {
-                    let quad = self.sprite_sheets[instance.sprite_handle.sheet_idx].sprites_vec
-                        [instance.sprite_handle.sprite_idx]
-                        .as_textured_quad(&instance);
+                    let quad = self[instance.sprite_handle].as_textured_quad(&instance);
 
                     let start = verts.len() as u32;
                     verts.extend(quad.vertices.into_iter());
