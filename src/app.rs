@@ -108,8 +108,8 @@ impl ApplicationHandler for App<'_> {
                 for i in 0..100 {
                     TextObject {
                         content: format!("Text Object {}", i).repeat(50),
-                        position: Vec2::new(0.0, i as f32 * 0.1),
-                        scale: 0.1,
+                        position: Vec2::new(0.0, i as f32 * 0.05),
+                        scale: 0.05,
                     }
                     .draw(&mut frame, &self.game_state.font)
                 }

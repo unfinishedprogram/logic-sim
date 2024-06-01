@@ -1,11 +1,9 @@
-use bytemuck::{Pod, Zeroable};
-
 use super::vertex::VertexUV;
 
 #[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable)]
 pub struct TexturedQuad {
-    pub vertices: [VertexUV; 6],
+    pub vertices: [VertexUV; 4],
+    pub indices: [u32; 6],
 }
 
 impl TexturedQuad {
@@ -28,14 +26,8 @@ impl TexturedQuad {
             top_left.color,
         );
         Self {
-            vertices: [
-                bottom_left,
-                top_right,
-                bottom_right,
-                top_left,
-                top_right,
-                bottom_left,
-            ],
+            vertices: [bottom_left, top_right, bottom_right, top_left],
+            indices: [0, 1, 2, 3, 1, 0],
         }
     }
 }
