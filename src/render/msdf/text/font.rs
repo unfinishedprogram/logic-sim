@@ -43,7 +43,7 @@ impl MsdfFont {
             .collect();
 
         let mut ascii_lookup = [Sprite {
-            name: self.sprite_sheet.name,
+            sheet_name: self.sprite_sheet.name,
             offsets: [Vec2::ZERO, Vec2::ZERO],
             uv: [Vec2::ZERO, Vec2::ZERO],
         }; 256];

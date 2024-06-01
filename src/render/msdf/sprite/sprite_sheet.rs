@@ -24,7 +24,7 @@ pub struct SpriteInstance {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Sprite {
-    pub name: &'static str,
+    pub sheet_name: &'static str,
     pub offsets: [Vec2; 2],
     pub uv: [Vec2; 2],
 }
@@ -75,27 +75,8 @@ pub struct MsdfSpriteSheetUniform {
 }
 
 impl SpriteSheet {
-    pub fn build_sprite_lookup(manifest: &Manifest, name: &'static str) -> HashMap<String, Sprite> {
-        let mut sprites = HashMap::new();
-        let atlas_size = Vec2::new(manifest.atlas.width, manifest.atlas.height);
-        for sprite_def in &manifest.sprites {
-            let offsets = [
-                Vec2::new(sprite_def.plane_bounds.left, sprite_def.plane_bounds.top),
-                Vec2::new(
-                    sprite_def.plane_bounds.right,
-                    sprite_def.plane_bounds.bottom,
-                ),
-            ];
-            let uv = [
-                Vec2::new(sprite_def.atlas_bounds.left, sprite_def.atlas_bounds.top) / atlas_size,
-                Vec2::new(
-                    sprite_def.atlas_bounds.right,
-                    sprite_def.atlas_bounds.bottom,
-                ) / atlas_size,
-            ];
-            sprites.insert(sprite_def.name.clone(), Sprite { offsets, uv, name });
-        }
-        sprites
+    pub fn build_sprite_lookup(manifest: &Manifest) -> HashMap<String, Sprite> {
+        manifest.sprites()
     }
 
     pub fn layout_descriptor() -> &'static BindGroupLayoutDescriptor<'static> {
@@ -135,7 +116,7 @@ impl SpriteSheet {
     }
 
     pub fn create(device: &Device, queue: &Queue, manifest: &Manifest, image: &[u8]) -> Self {
-        let sprites = Self::build_sprite_lookup(manifest, manifest.name);
+        let sprites = manifest.sprites();
 
         let uniform = MsdfSpriteSheetUniform {
             distance_range: manifest.atlas.distance_range,
@@ -212,4 +193,36 @@ pub struct SpriteDef {
     pub plane_bounds: Bounds,
     #[serde(rename = "atlasBounds")]
     pub atlas_bounds: Bounds,
+}
+
+impl Manifest {
+    pub fn sprites(&self) -> HashMap<String, Sprite> {
+        let mut sprites = HashMap::new();
+        let atlas_size = Vec2::new(self.atlas.width, self.atlas.height);
+        for sprite_def in &self.sprites {
+            let offsets = [
+                Vec2::new(sprite_def.plane_bounds.left, sprite_def.plane_bounds.top),
+                Vec2::new(
+                    sprite_def.plane_bounds.right,
+                    sprite_def.plane_bounds.bottom,
+                ),
+            ];
+            let uv = [
+                Vec2::new(sprite_def.atlas_bounds.left, sprite_def.atlas_bounds.top) / atlas_size,
+                Vec2::new(
+                    sprite_def.atlas_bounds.right,
+                    sprite_def.atlas_bounds.bottom,
+                ) / atlas_size,
+            ];
+            sprites.insert(
+                sprite_def.name.clone(),
+                Sprite {
+                    offsets,
+                    uv,
+                    sheet_name: self.name,
+                },
+            );
+        }
+        sprites
+    }
 }

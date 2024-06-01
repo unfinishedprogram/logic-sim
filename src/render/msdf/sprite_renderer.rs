@@ -108,7 +108,7 @@ impl SpriteRenderer {
 
         for sprite in sprites {
             instances_by_sheet
-                .get_mut(sprite.sprite.name)
+                .get_mut(sprite.sprite.sheet_name)
                 .expect("Sprite sheet not found on this renderer")
                 .push(sprite);
         }
