@@ -1,3 +1,5 @@
+mod sprite_instance;
+
 use std::{collections::HashMap, ops::Range};
 
 use wgpu::{
@@ -18,6 +20,7 @@ use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,
     vertex_buffer: Buffer,
+    instance_buffer: Buffer,
     index_buffer: Buffer,
     camera_binding: CameraBinding,
     sprite_sheets: HashMap<String, SpriteSheet>,
@@ -41,6 +44,7 @@ impl SpriteRenderer {
     pub fn create(base: &BaseRenderState, sheets: Vec<SpriteSheet>) -> Self {
         let shader_module = Self::shader_module(&base.device);
         let vertex_buffer = Self::vertex_buffer(&base.device);
+        let instance_buffer = Self::instance_buffer(&base.device);
         let index_buffer = Self::index_buffer(&base.device);
         let camera_binding = CameraBinding::create(&base.device);
 
@@ -54,6 +58,7 @@ impl SpriteRenderer {
         Self {
             render_pipeline,
             vertex_buffer,
+            instance_buffer,
             index_buffer,
             sprite_sheets,
             camera_binding,
@@ -65,6 +70,7 @@ impl SpriteRenderer {
     pub fn render<'pass, 'a: 'pass>(&'a self, rpass: &mut RenderPass<'pass>) {
         rpass.set_pipeline(&self.render_pipeline);
         rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+        rpass.set_vertex_buffer(1, self.instance_buffer.slice(..));
         rpass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
 
@@ -102,6 +108,15 @@ impl SpriteRenderer {
     fn vertex_buffer(device: &Device) -> Buffer {
         device.create_buffer(&BufferDescriptor {
             label: Some("Sprite Renderer Vertex Buffer"),
+            size: 8096 * 8096,
+            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        })
+    }
+
+    fn instance_buffer(device: &Device) -> Buffer {
+        device.create_buffer(&BufferDescriptor {
+            label: Some("Sprite Renderer Instance Buffer"),
             size: 8096 * 8096,
             usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
