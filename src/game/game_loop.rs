@@ -7,6 +7,11 @@ use super::{input::InputState, GameState};
 impl GameState {
     pub fn update(&mut self, frame: &mut Frame) {
         self.handle_inputs(frame.input());
+
+        self.text_object.position = frame.camera().top_left();
+        self.text_object.scale = self.camera.size.length() / 30.0;
+        self.text_object.position += Vec2::new(0.0, self.text_object.scale);
+
         self.draw(frame);
     }
 
@@ -15,7 +20,9 @@ impl GameState {
             frame.draw_line(line);
         }
 
-        for instance in self.text_object.as_sprite_instances(&self.font) {
+        self.text_object.draw(frame, &self.font);
+
+        for instance in self.circuit.sprite_instances(&self.sprites) {
             frame.draw_sprite_instance(instance);
         }
 

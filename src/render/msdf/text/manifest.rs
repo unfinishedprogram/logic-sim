@@ -42,20 +42,6 @@ impl From<&Bounds> for (Vec2, Vec2) {
     }
 }
 
-impl Manifest {
-    pub fn get_glyph(&self, c: char) -> &Glyph {
-        self.glyphs
-            .iter()
-            .find(|ch| ch.unicode == c as u32)
-            .unwrap_or(
-                self.glyphs
-                    .iter()
-                    .find(|ch: &&Glyph| ch.unicode == '?' as u32)
-                    .unwrap(),
-            )
-    }
-}
-
 impl From<Atlas> for sprite_sheet::Atlas {
     fn from(val: Atlas) -> Self {
         sprite_sheet::Atlas {

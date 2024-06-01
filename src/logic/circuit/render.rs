@@ -1,7 +1,3 @@
-use std::iter::once;
-
-use glam::Vec2;
-
 use crate::render::line::cubic_bezier::CubicBezier;
 use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
 use crate::render::msdf::sprite_renderer::SpriteRendererReference;

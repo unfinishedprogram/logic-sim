@@ -1,8 +1,3 @@
-use std::{
-    collections::VecDeque,
-    time::{Duration, Instant},
-};
-
 use glam::Vec2;
 use winit::{
     application::ApplicationHandler,
@@ -110,29 +105,13 @@ impl ApplicationHandler for App<'_> {
                     self.frame_time.running_average().as_millis_f64()
                 );
 
-                self.game_state.text_object.position = frame.camera().top_left();
-                self.game_state.text_object.scale = self.game_state.camera.size.length() / 30.0;
-                self.game_state.text_object.position +=
-                    Vec2::new(0.0, self.game_state.text_object.scale);
-
-                let sprites = self
-                    .game_state
-                    .text_object
-                    .as_sprite_instances(&self.game_state.font);
-
-                for sprite in sprites {
-                    frame.draw_sprite_instance(sprite);
-                }
-
                 for i in 0..100 {
                     TextObject {
                         content: format!("Text Object {}", i).repeat(50),
                         position: Vec2::new(0.0, i as f32 * 0.1),
                         scale: 0.1,
                     }
-                    .as_sprite_instances(&self.game_state.font)
-                    .into_iter()
-                    .for_each(|sprite| frame.draw_sprite_instance(sprite));
+                    .draw(&mut frame, &self.game_state.font)
                 }
 
                 self.render_state.render(frame);

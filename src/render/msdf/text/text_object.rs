@@ -1,6 +1,6 @@
 use glam::{vec2, Vec2};
 
-use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
+use crate::render::frame::Frame;
 
 use super::MsdfFontReference;
 
@@ -12,21 +12,19 @@ pub struct TextObject {
 }
 
 impl TextObject {
-    pub fn as_sprite_instances(&self, font: &MsdfFontReference) -> Vec<SpriteInstance> {
-        let mut instances = Vec::new();
+    pub fn draw(&self, frame: &mut Frame, font: &MsdfFontReference) {
         let mut x_offset: f32 = 0.0;
 
         for c in self.content.chars() {
             if let Some(sprite) = font.get(c) {
-                let instance = sprite
-                    .instantiate(self.position + vec2(x_offset * self.scale, 0.0), self.scale);
-
-                instances.push(instance);
+                frame.draw_sprite(
+                    &sprite,
+                    self.position + vec2(x_offset * self.scale, 0.0),
+                    self.scale,
+                )
             }
 
             x_offset += font.advance(c)
         }
-
-        instances
     }
 }
