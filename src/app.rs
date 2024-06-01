@@ -1,4 +1,7 @@
-use std::time::Instant;
+use std::{
+    collections::VecDeque,
+    time::{Duration, Instant},
+};
 
 use glam::Vec2;
 use winit::{
@@ -13,6 +16,7 @@ use winit::{
 use crate::{
     game::{input::InputState, GameState},
     render::{camera::Camera, frame::Frame, msdf::text::TextObject, RenderState},
+    util::stopwatch::Stopwatch,
 };
 
 pub struct App<'a> {
@@ -20,8 +24,8 @@ pub struct App<'a> {
     render_state: RenderState<'a>,
     mouse_position: PhysicalPosition<f64>,
     input: InputState,
-    last_frame: Instant,
     game_state: GameState,
+    frame_time: Stopwatch,
 }
 
 pub fn mouse_world_position(mouse_position: Vec2, screen_size: Vec2, camera: &Camera) -> Vec2 {
@@ -50,9 +54,9 @@ impl<'a> App<'a> {
             window,
             render_state,
             input,
-            last_frame: Instant::now(),
             game_state,
             mouse_position: PhysicalPosition::new(0.0, 0.0),
+            frame_time: Stopwatch::default(),
         }
     }
 
@@ -97,13 +101,15 @@ impl ApplicationHandler for App<'_> {
         match event {
             WindowEvent::Resized(new_size) => self.resize(new_size),
             WindowEvent::RedrawRequested => {
-                let now = Instant::now();
-                let frame_time = now - self.last_frame;
-                self.last_frame = now;
+                self.frame_time.tick();
+
                 let mut frame = self.update();
 
-                self.game_state.text_object.content =
-                    format!("FPS: {:.2}", 1.0 / frame_time.as_secs_f32());
+                self.game_state.text_object.content = format!(
+                    "Frame_MS: {:}",
+                    self.frame_time.running_average().as_millis_f64()
+                );
+
                 self.game_state.text_object.position = frame.camera().top_left();
                 self.game_state.text_object.scale = self.game_state.camera.size.length() / 30.0;
                 self.game_state.text_object.position +=
