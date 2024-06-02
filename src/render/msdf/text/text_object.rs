@@ -1,4 +1,4 @@
-use glam::{vec2, Vec2, Vec4};
+use glam::{Vec2, Vec4};
 
 use crate::render::frame::Frame;
 
