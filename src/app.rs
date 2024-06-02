@@ -10,7 +10,7 @@ use winit::{
 
 use crate::{
     game::{input::InputState, GameState},
-    render::{camera::Camera, frame::Frame, msdf::text::TextObject, RenderState},
+    render::{camera::Camera, frame::Frame, RenderState},
     util::stopwatch::Stopwatch,
 };
 

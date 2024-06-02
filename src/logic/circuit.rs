@@ -1,4 +1,7 @@
-use std::{iter::once, ops::Index};
+use std::{
+    iter::once,
+    ops::{Index, IndexMut},
+};
 
 use glam::{vec2, Vec2};
 
@@ -20,7 +23,7 @@ pub struct Circuit {
 
 pub struct CircuitElement {
     gate: Gate,
-    position: Vec2,
+    pub position: Vec2,
 }
 
 impl Circuit {
@@ -48,7 +51,7 @@ impl Circuit {
         idx
     }
 
-    fn add_connection(&mut self, connection: Connection) {
+    pub fn add_connection(&mut self, connection: Connection) {
         self.connections.push(connection);
     }
 
@@ -72,6 +75,18 @@ impl Circuit {
         self.elements.remove(index);
     }
 
+    pub fn delete_connections(&mut self, spec: impl Into<IOSpecifier>) {
+        match spec.into() {
+            IOSpecifier::Input(input) => {
+                self.connections.retain(|connection| connection.to != input);
+            }
+            IOSpecifier::Output(output) => {
+                self.connections
+                    .retain(|connection| connection.from != output);
+            }
+        }
+    }
+
     pub fn hit_test(&self, position: Vec2) -> Option<HitTestResult> {
         for (element_idx, element) in self.elements.iter().enumerate() {
             for (input_idx, offset) in element.gate.input_offsets().iter().enumerate() {
@@ -79,10 +94,9 @@ impl Circuit {
                     Bounds::from_center_and_size(element.position + *offset, vec2(0.1, 0.1));
 
                 if bounds.contains(position) {
-                    return Some(HitTestResult::Input(InputSpecifier(
-                        ElementIdx(element_idx),
-                        InputIdx(input_idx),
-                    )));
+                    return Some(HitTestResult::IO(
+                        InputSpecifier(ElementIdx(element_idx), InputIdx(input_idx)).into(),
+                    ));
                 }
             }
 
@@ -91,10 +105,9 @@ impl Circuit {
                     Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
                 if bounds.contains(position) {
-                    return Some(HitTestResult::Output(OutputSpecifier(
-                        ElementIdx(element_idx),
-                        OutputIdx(output_idx),
-                    )));
+                    return Some(HitTestResult::IO(
+                        OutputSpecifier(ElementIdx(element_idx), OutputIdx(output_idx)).into(),
+                    ));
                 }
             }
         }
@@ -150,5 +163,11 @@ impl Index<ElementIdx> for Circuit {
 
     fn index(&self, index: ElementIdx) -> &Self::Output {
         &self.elements[index.0]
+    }
+}
+
+impl IndexMut<ElementIdx> for Circuit {
+    fn index_mut(&mut self, index: ElementIdx) -> &mut Self::Output {
+        &mut self.elements[index.0]
     }
 }
