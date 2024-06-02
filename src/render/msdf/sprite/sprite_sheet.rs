@@ -115,7 +115,7 @@ impl SpriteSheet {
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
-        let texture = ImageTexture::create(device, queue, image, None);
+        let texture = ImageTexture::create(device, queue, image);
 
         let texture_view = &texture.texture_view;
         let sampler = &texture.sampler;

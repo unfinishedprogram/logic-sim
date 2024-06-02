@@ -7,7 +7,6 @@ pub struct ImageTexture {
     pub texture: Texture,
     pub sampler: Sampler,
     pub texture_view: TextureView,
-    pub label: Option<&'static str>,
     pub bind_group_layout: BindGroupLayout,
     pub bind_group: BindGroup,
 }
@@ -56,7 +55,7 @@ impl ImageTexture {
                     count: None,
                 },
             ],
-            label: Some("Image texture layout"),
+            label: None,
         })
     }
 
@@ -82,12 +81,7 @@ impl ImageTexture {
         })
     }
 
-    pub fn create(
-        device: &Device,
-        queue: &Queue,
-        bytes: &[u8],
-        label: Option<&'static str>,
-    ) -> ImageTexture {
+    pub fn create(device: &Device, queue: &Queue, bytes: &[u8]) -> ImageTexture {
         let diffuse_img = image::load_from_memory(bytes).unwrap();
         let diffuse_bytes = diffuse_img.to_rgba8().into_raw();
         let texture_size = texture_size_of_image(&diffuse_img);
@@ -147,7 +141,6 @@ impl ImageTexture {
             texture,
             sampler,
             texture_view,
-            label,
             bind_group_layout,
             bind_group,
         }
