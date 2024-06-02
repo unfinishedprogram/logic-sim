@@ -6,7 +6,6 @@ use crate::{
     logic::{circuit::Circuit, hit_test::HitTestResult},
     render::{
         camera::Camera,
-        line::LineGeometry,
         msdf::{
             sprite_renderer::SpriteRendererReference,
             text::{MsdfFontReference, TextObject},
@@ -37,14 +36,6 @@ impl GameState {
             sprites,
             circuit: Circuit::test_circuit(),
         }
-    }
-
-    pub fn get_line_instances(&self) -> Vec<LineGeometry> {
-        self.circuit
-            .connection_instances()
-            .into_iter()
-            .flat_map(|bezier| bezier.as_line_geometries(10, 0.05))
-            .collect()
     }
 }
 

@@ -1,8 +1,20 @@
 use glam::{Vec2, Vec4};
 
-use crate::{logic::circuit::ConnectionDotRefType, render::frame::Frame};
+use crate::{
+    logic::circuit::ConnectionDotRefType,
+    render::{frame::Frame, msdf::sprite::sprite_sheet::SpriteInstance},
+};
 
 use super::{input::InputState, GameState};
+
+impl SpriteInstance {
+    pub fn is_colliding(&self, position: Vec2) -> bool {
+        let min = self.position - Vec2::splat(0.5) * self.scale;
+        let max = self.position + Vec2::splat(0.5) * self.scale;
+
+        position.x >= min.x && position.x <= max.x && position.y >= min.y && position.y <= max.y
+    }
+}
 
 impl GameState {
     pub fn update(&mut self, frame: &mut Frame) {
@@ -16,8 +28,10 @@ impl GameState {
     }
 
     pub fn draw(&self, frame: &mut Frame) {
-        for line in self.get_line_instances() {
-            frame.draw_line(line);
+        for line in self.circuit.connection_instances() {
+            for line in line.as_line_geometries(10, 0.05) {
+                frame.draw_line(line);
+            }
         }
 
         self.text_object.draw(frame, &self.font);
@@ -54,7 +68,15 @@ impl GameState {
         frame.draw_sprite_instance(sprite);
     }
 
-    pub fn handle_inputs(&mut self, input_state: &InputState) {
+    fn handle_inputs(&mut self, input_state: &InputState) {
+        self.camera_move(input_state);
+
+        if input_state.left_mouse.pressed {
+            self.on_click(input_state.mouse_world_position);
+        }
+    }
+
+    fn camera_move(&mut self, input_state: &InputState) {
         if input_state.scroll_delta != 0.0 {
             self.camera
                 .scale(Vec2::splat(1.0 + input_state.scroll_delta * 0.1));

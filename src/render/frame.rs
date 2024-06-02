@@ -1,4 +1,6 @@
 pub mod draw;
+pub mod handle;
+pub mod response;
 
 use crate::game::input::InputState;
 
