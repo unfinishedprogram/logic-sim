@@ -20,6 +20,21 @@
                 "left": 0,
                 "right": 16
             }
+        },
+        {
+            "name": "solid",
+            "planeBounds": {
+                "top": -0.5,
+                "bottom": 0.5,
+                "left": -0.5,
+                "right": 0.5
+            },
+            "atlasBounds": {
+                "top": 8,
+                "bottom": 8,
+                "left": 8,
+                "right": 8
+            }
         }
     ]
 }

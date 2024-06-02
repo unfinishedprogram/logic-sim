@@ -20,6 +20,12 @@ impl GameState {
     pub fn update(&mut self, frame: &mut Frame) {
         self.handle_inputs(frame.input());
 
+        self.stopwatch.tick();
+
+        let solver = self.circuit.solver.clone();
+        let solver = solver.clone().step(&self.circuit);
+        self.circuit.solver = solver;
+
         self.text_object.position = frame.camera().top_left();
         self.text_object.scale = self.camera.size.length() / 50.0;
         self.text_object.position += Vec2::new(0.0, self.text_object.scale);

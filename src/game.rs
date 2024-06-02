@@ -11,6 +11,7 @@ use crate::{
             text::{MsdfFontReference, TextObject},
         },
     },
+    util::stopwatch::Stopwatch,
 };
 
 pub struct GameState {
@@ -21,6 +22,7 @@ pub struct GameState {
     circuit: Circuit,
     pub hot: Option<HitTestResult>,
     pub active: Option<HitTestResult>,
+    pub stopwatch: Stopwatch,
 }
 
 impl GameState {
@@ -39,10 +41,16 @@ impl GameState {
             circuit: Circuit::test_circuit(),
             hot: None,
             active: None,
+            stopwatch: Stopwatch::default(),
         }
     }
 
     pub fn debug_text(&self) -> String {
-        format!("Hot: {:?}\nActive: {:?}", self.hot, self.active)
+        format!(
+            "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms",
+            self.hot,
+            self.active,
+            self.stopwatch.running_average().as_millis_f32()
+        )
     }
 }

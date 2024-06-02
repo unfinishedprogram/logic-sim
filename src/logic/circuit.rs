@@ -5,7 +5,7 @@ use std::{
 
 use glam::{vec2, Vec2};
 
-use super::{gate::Gate, hit_test::HitTestResult};
+use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::util::bounds::Bounds;
 
 pub mod connection;
@@ -19,10 +19,11 @@ pub struct Circuit {
     // TODO: Make this generic
     pub(crate) elements: Vec<CircuitElement>,
     pub(crate) connections: Vec<Connection>,
+    pub(crate) solver: SolverState,
 }
 
 pub struct CircuitElement {
-    gate: Gate,
+    pub gate: Gate,
     pub position: Vec2,
 }
 
@@ -31,7 +32,7 @@ impl Circuit {
         let mut circuit = Circuit::default();
 
         let a = circuit.add_gate(Gate::Buf, vec2(0.0, 0.0));
-        let b = circuit.add_gate(Gate::Buf, vec2(0.0, 1.0));
+        let b = circuit.add_gate(Gate::Not, vec2(0.0, 1.0));
 
         let xor = circuit.add_gate(Gate::Xor, vec2(3.0, 0.0));
         let and = circuit.add_gate(Gate::And, vec2(3.0, 1.0));
@@ -42,7 +43,42 @@ impl Circuit {
         circuit.add_connection(b.to(InputSpecifier(xor, InputIdx(1))));
         circuit.add_connection(b.to(InputSpecifier(and, InputIdx(1))));
 
+        for i in 0..10000 {
+            circuit.add_random_component()
+        }
+
+        for i in 0..10000 {
+            circuit.add_random_connection()
+        }
+
         circuit
+    }
+
+    pub fn add_random_component(&mut self) {
+        let position = vec2(rand::random::<f32>() * 100.0, rand::random::<f32>() * 100.0);
+        let gate = match rand::random::<u8>() % 4 {
+            0 => Gate::And,
+            1 => Gate::Or,
+            2 => Gate::Not,
+            3 => Gate::Buf,
+            _ => Gate::Xor,
+        };
+
+        self.add_gate(gate, position);
+    }
+
+    pub fn add_random_connection(&mut self) {
+        let from = OutputSpecifier(
+            ElementIdx(rand::random::<usize>() % self.elements.len()),
+            OutputIdx(0),
+        );
+
+        let to = InputSpecifier(
+            ElementIdx(rand::random::<usize>() % self.elements.len()),
+            InputIdx(0),
+        );
+
+        self.add_connection(from.to(to));
     }
 
     pub fn add_gate(&mut self, gate: Gate, position: Vec2) -> ElementIdx {

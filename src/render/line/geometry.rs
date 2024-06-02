@@ -9,6 +9,16 @@ pub struct LineGeometry {
     pub vertices: [VertexUV; 6],
 }
 
+impl LineGeometry {
+    pub fn of_color(mut self, color: Vec4) -> Self {
+        for vertex in self.vertices.iter_mut() {
+            vertex.color = color;
+        }
+
+        self
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct LineDescriptor {
     pub start: Vec2,

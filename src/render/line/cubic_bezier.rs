@@ -1,4 +1,4 @@
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 
 use super::geometry::LineGeometry;
 
@@ -24,7 +24,12 @@ impl CubicBezier {
         }
     }
 
-    pub fn as_line_geometries(&self, mut resolution: usize, width: f32) -> Vec<LineGeometry> {
+    pub fn as_line_geometries(
+        &self,
+        mut resolution: usize,
+        width: f32,
+        color: Vec4,
+    ) -> Vec<LineGeometry> {
         if resolution < 2 {
             resolution = 2;
         }
@@ -39,7 +44,7 @@ impl CubicBezier {
         samples
             .array_windows::<2>()
             .map(|[left, right]| {
-                LineGeometry::from_corner_points([left.0, left.1, right.0, right.1])
+                LineGeometry::from_corner_points([left.0, left.1, right.0, right.1]).of_color(color)
             })
             .collect()
     }
