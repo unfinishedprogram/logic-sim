@@ -52,6 +52,9 @@ impl Circuit {
     }
 
     pub fn add_connection(&mut self, connection: Connection) {
+        if self.connections.contains(&connection) {
+            return;
+        }
         self.connections.push(connection);
     }
 
