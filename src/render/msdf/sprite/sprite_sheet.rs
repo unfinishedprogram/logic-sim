@@ -27,7 +27,6 @@ pub struct SpriteInstance {
 }
 
 pub struct Sprite {
-    pub sheet_name: &'static str,
     pub offsets: [Vec2; 2],
     pub uv: [Vec2; 2],
 }
@@ -201,14 +200,7 @@ impl Manifest {
                     sprite_def.atlas_bounds.bottom,
                 ) / atlas_size,
             ];
-            sprites.insert(
-                sprite_def.name.clone(),
-                Sprite {
-                    offsets,
-                    uv,
-                    sheet_name: self.name,
-                },
-            );
+            sprites.insert(sprite_def.name.clone(), Sprite { offsets, uv });
         }
         sprites
     }
