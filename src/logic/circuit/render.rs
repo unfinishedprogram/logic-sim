@@ -1,9 +1,6 @@
-use crate::render::line::cubic_bezier::CubicBezier;
-use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
-use crate::render::msdf::sprite_renderer::SpriteRendererReference;
+use crate::render::{frame::Frame, line::cubic_bezier::CubicBezier};
 
-use super::super::gate::Gate;
-use super::Circuit;
+use super::{super::gate::Gate, Circuit, CircuitElement};
 
 const GATE_SHEET: &str = "gates";
 
@@ -21,28 +18,19 @@ pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
     }
 }
 
-impl Circuit {
-    pub fn sprite_instances(&self, sheets: &SpriteRendererReference) -> Vec<SpriteInstance> {
-        let mut sprites = vec![];
-
-        for element in self.elements.iter() {
-            let sprite = sprite_of(&element.gate).unwrap();
-            let sprite_handle = *sheets.get_sprite(GATE_SHEET, sprite).unwrap();
-
-            let sprite_instance = SpriteInstance {
-                sprite_handle,
-                position: element.position,
-                scale: 1.0,
-                color: glam::Vec4::splat(1.0),
-            };
-
-            sprites.push(sprite_instance);
-        }
-        sprites
+impl CircuitElement {
+    pub fn draw(&self, frame: &mut Frame) {
+        let sprite = sprite_of(&self.gate).unwrap();
+        let sprite_handle = *frame.assets.sprites.get_sprite(GATE_SHEET, sprite).unwrap();
+        frame.draw_sprite(sprite_handle, self.position, 1.0);
     }
+}
 
-    pub fn connection_instances(&self) -> Vec<CubicBezier> {
-        let mut beziers = vec![];
+impl Circuit {
+    pub fn draw(&self, frame: &mut Frame) {
+        for element in &self.elements {
+            element.draw(frame);
+        }
 
         for connection in self.connections.iter() {
             let from_elm = &self[connection.from.0];
@@ -51,9 +39,11 @@ impl Circuit {
             let to_elm = &self[connection.to.0];
             let to = to_elm.gate.input_offsets()[connection.to.1 .0] + to_elm.position;
 
-            beziers.push(CubicBezier::between_points(from, to));
-        }
+            let line = CubicBezier::between_points(from, to);
 
-        beziers
+            for line in line.as_line_geometries(10, 0.05) {
+                frame.draw_line(line);
+            }
+        }
     }
 }

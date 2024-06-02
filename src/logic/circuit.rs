@@ -17,8 +17,8 @@ use connection::{
 #[derive(Default)]
 pub struct Circuit {
     // TODO: Make this generic
-    elements: Vec<CircuitElement>,
-    connections: Vec<Connection>,
+    pub(crate) elements: Vec<CircuitElement>,
+    pub(crate) connections: Vec<Connection>,
 }
 
 pub struct CircuitElement {

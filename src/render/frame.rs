@@ -4,7 +4,11 @@ pub mod response;
 
 use crate::game::input::InputState;
 
-use super::{camera::Camera, line::LineGeometry, msdf::sprite::sprite_sheet::SpriteInstance};
+use super::{
+    camera::Camera,
+    line::LineGeometry,
+    msdf::{sprite::sprite_sheet::SpriteInstance, sprite_renderer::SpriteRendererReference},
+};
 
 // Immediate mode context for a frame
 pub struct Frame {
@@ -12,15 +16,21 @@ pub struct Frame {
     sprites: Vec<SpriteInstance>,
     lines: Vec<LineGeometry>,
     input_state: InputState,
+    pub assets: FrameAssets,
+}
+
+pub struct FrameAssets {
+    pub sprites: SpriteRendererReference,
 }
 
 impl Frame {
-    pub fn new(camera: &Camera, input: &InputState) -> Self {
+    pub fn new(camera: &Camera, input: &InputState, sprites: SpriteRendererReference) -> Self {
         Self {
             input_state: input.clone(),
             camera: *camera,
             sprites: Vec::new(),
             lines: Vec::new(),
+            assets: FrameAssets { sprites },
         }
     }
 

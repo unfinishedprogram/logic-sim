@@ -67,7 +67,11 @@ impl<'a> App<'a> {
     }
 
     fn update(&mut self) -> Frame {
-        let mut frame = Frame::new(&self.game_state.camera, &self.input);
+        let mut frame = Frame::new(
+            &self.game_state.camera,
+            &self.input,
+            self.game_state.sprites.clone(),
+        );
         self.input.update();
         self.game_state.update(&mut frame);
         frame

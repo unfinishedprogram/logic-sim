@@ -30,28 +30,16 @@ impl GameState {
     }
 
     pub fn draw(&self, frame: &mut Frame) {
-        for line in self.circuit.connection_instances() {
-            for line in line.as_line_geometries(10, 0.05) {
-                frame.draw_line(line);
-            }
-        }
-
         self.text_object.draw(frame, &self.font);
-
-        for instance in self.circuit.sprite_instances(&self.sprites) {
-            frame.draw_sprite_instance(instance);
-        }
+        self.circuit.draw(frame);
 
         {
             let sprite = self.sprites.get_sprite("dot", "dot").unwrap();
             for dot in self.circuit.connection_dots() {
                 let position = self.circuit.io_position(dot);
-                let hovering = position.distance(frame.input().mouse_world_position) < 0.0;
-
-                let color = match (dot, hovering) {
-                    (IOSpecifier::Input(_), false) => Vec4::new(1.0, 0.0, 0.0, 1.0),
-                    (IOSpecifier::Output(_), false) => Vec4::new(0.0, 1.0, 0.0, 1.0),
-                    (_, true) => Vec4::new(0.0, 0.0, 1.0, 1.0),
+                let color = match dot {
+                    IOSpecifier::Input(_) => Vec4::new(1.0, 0.0, 0.0, 1.0),
+                    IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
                 };
 
                 let sprite_instance = sprite.instantiate_with_color(position, 1.0, color);

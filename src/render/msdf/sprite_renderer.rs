@@ -239,6 +239,7 @@ impl SpriteRenderer {
     }
 }
 
+#[derive(Clone)]
 pub struct SpriteRendererReference {
     pub sheets: HashMap<String, HashMap<String, SpriteHandle>>,
 }

@@ -16,7 +16,7 @@ use crate::{
 pub struct GameState {
     pub text_object: TextObject,
     pub camera: Camera,
-    sprites: SpriteRendererReference,
+    pub sprites: SpriteRendererReference,
     pub font: MsdfFontReference,
     circuit: Circuit,
     pub hot: Option<HitTestResult>,
