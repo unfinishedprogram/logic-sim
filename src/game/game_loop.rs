@@ -55,17 +55,6 @@ impl GameState {
                 frame.draw_sprite_instance(sprite_instance);
             }
         }
-
-        let sprite = self
-            .sprites
-            .get_sprite("dot", "dot")
-            .unwrap()
-            .instantiate_with_color(
-                frame.input().mouse_world_position,
-                1.0,
-                Vec4::new(1.0, 1.0, 1.0, 1.0),
-            );
-        frame.draw_sprite_instance(sprite);
     }
 
     fn handle_inputs(&mut self, input_state: &InputState) {
