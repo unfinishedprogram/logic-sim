@@ -20,4 +20,12 @@ impl Bounds {
             b: self.b + offset,
         }
     }
+
+    pub fn from_center_and_size(center: Vec2, size: Vec2) -> Self {
+        let half_size = size / 2.0;
+        Self {
+            a: center - half_size,
+            b: center + half_size,
+        }
+    }
 }

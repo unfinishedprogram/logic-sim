@@ -19,6 +19,8 @@ pub struct GameState {
     sprites: SpriteRendererReference,
     pub font: MsdfFontReference,
     circuit: Circuit,
+    pub hot: Option<HitTestResult>,
+    pub active: Option<HitTestResult>,
 }
 
 impl GameState {
@@ -35,16 +37,8 @@ impl GameState {
             font,
             sprites,
             circuit: Circuit::test_circuit(),
-        }
-    }
-}
-
-impl GameState {
-    pub fn on_click(&mut self, position: Vec2) {
-        let hit = self.circuit.hit_test(position);
-
-        if let HitTestResult::Element(idx) = hit {
-            self.circuit.remove_gate(idx);
+            hot: None,
+            active: None,
         }
     }
 }

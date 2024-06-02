@@ -45,14 +45,11 @@ impl Circuit {
         let mut beziers = vec![];
 
         for connection in self.connections.iter() {
-            let from = self.elements[connection.from.element_idx]
-                .gate
-                .output_offset()
-                + self.elements[connection.from.element_idx].position;
-            let to = self.elements[connection.to.element_idx]
-                .gate
-                .input_offsets()[connection.to.input_idx]
-                + self.elements[connection.to.element_idx].position;
+            let from_elm = &self[connection.from.0];
+            let from = from_elm.gate.output_offset() + from_elm.position;
+
+            let to_elm = &self[connection.to.0];
+            let to = to_elm.gate.input_offsets()[connection.to.1 .0] + to_elm.position;
 
             beziers.push(CubicBezier::between_points(from, to));
         }

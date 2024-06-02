@@ -1,7 +1,7 @@
 use glam::{Vec2, Vec4};
 
 use crate::{
-    logic::circuit::ConnectionDotRefType,
+    logic::{circuit::ConnectionDotRefType, hit_test::HitTestResult},
     render::{frame::Frame, msdf::sprite::sprite_sheet::SpriteInstance},
 };
 
@@ -60,9 +60,13 @@ impl GameState {
     fn handle_inputs(&mut self, input_state: &InputState) {
         self.camera_move(input_state);
 
+        let hovering = self.circuit.hit_test(input_state.mouse_world_position);
+
         if input_state.left_mouse.pressed {
-            self.on_click(input_state.mouse_world_position);
+            self.active = hovering;
         }
+
+        self.hot = hovering;
     }
 
     fn camera_move(&mut self, input_state: &InputState) {

@@ -98,21 +98,12 @@ impl ApplicationHandler for App<'_> {
             WindowEvent::RedrawRequested => {
                 self.frame_time.tick();
 
-                let mut frame = self.update();
+                let frame = self.update();
 
                 self.game_state.text_object.content = format!(
                     "Frame_MS: {:}",
                     self.frame_time.running_average().as_millis_f64()
                 );
-
-                for i in 0..100 {
-                    TextObject {
-                        content: format!("Text Object {}", i).repeat(50),
-                        position: Vec2::new(0.0, i as f32 * 0.05),
-                        scale: 0.05,
-                    }
-                    .draw(&mut frame, &self.game_state.font)
-                }
 
                 self.render_state.render(frame);
 
