@@ -19,7 +19,7 @@ impl Frame {
         }
     }
 }
-// Implement for any case where Frame implements IndexMut<Handle<T>>, and the Output is T
+
 impl<'a, T> Response<'a, T>
 where
     Frame: IndexMut<Handle<T>, Output = T>,
