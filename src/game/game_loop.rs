@@ -1,7 +1,7 @@
 use glam::{Vec2, Vec4};
 
 use crate::{
-    logic::{circuit::ConnectionDotRefType, hit_test::HitTestResult},
+    logic::circuit::connection::IOSpecifier,
     render::{frame::Frame, msdf::sprite::sprite_sheet::SpriteInstance},
 };
 
@@ -43,15 +43,16 @@ impl GameState {
         {
             let sprite = self.sprites.get_sprite("dot", "dot").unwrap();
             for dot in self.circuit.connection_dots() {
-                let hovering = dot.position.distance(frame.input().mouse_world_position) < 0.0;
+                let position = self.circuit.io_position(dot);
+                let hovering = position.distance(frame.input().mouse_world_position) < 0.0;
 
-                let color = match (dot.ty, hovering) {
-                    (ConnectionDotRefType::Input, false) => Vec4::new(1.0, 0.0, 0.0, 1.0),
-                    (ConnectionDotRefType::Output, false) => Vec4::new(0.0, 1.0, 0.0, 1.0),
+                let color = match (dot, hovering) {
+                    (IOSpecifier::Input(_), false) => Vec4::new(1.0, 0.0, 0.0, 1.0),
+                    (IOSpecifier::Output(_), false) => Vec4::new(0.0, 1.0, 0.0, 1.0),
                     (_, true) => Vec4::new(0.0, 0.0, 1.0, 1.0),
                 };
 
-                let sprite_instance = sprite.instantiate_with_color(dot.position, 1.0, color);
+                let sprite_instance = sprite.instantiate_with_color(position, 1.0, color);
                 frame.draw_sprite_instance(sprite_instance);
             }
         }

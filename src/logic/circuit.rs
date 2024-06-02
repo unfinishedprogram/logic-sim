@@ -7,7 +7,9 @@ use crate::util::bounds::Bounds;
 
 pub mod connection;
 mod render;
-use connection::{Connection, ElementIdx, InputIdx, InputSpecifier, OutputIdx, OutputSpecifier};
+use connection::{
+    Connection, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx, OutputSpecifier,
+};
 
 #[derive(Default)]
 pub struct Circuit {
@@ -19,17 +21,6 @@ pub struct Circuit {
 pub struct CircuitElement {
     gate: Gate,
     position: Vec2,
-}
-
-pub enum ConnectionDotRefType {
-    Input,
-    Output,
-}
-pub struct ConnectionDotRef {
-    pub position: Vec2,
-    pub ty: ConnectionDotRefType,
-    pub element_idx: usize,
-    pub connection_idx: usize,
 }
 
 impl Circuit {
@@ -119,42 +110,38 @@ impl Circuit {
         None
     }
 
-    pub fn connection_dots(&self) -> impl Iterator<Item = ConnectionDotRef> + '_ {
+    pub fn connection_dots(&self) -> impl Iterator<Item = IOSpecifier> + '_ {
         self.elements
             .iter()
             .enumerate()
+            .map(|(element_idx, element)| (ElementIdx(element_idx), element))
             .flat_map(|(element_idx, element)| {
                 element
                     .gate
                     .input_offsets()
                     .iter()
-                    .map(move |offset| (*offset, ConnectionDotRefType::Input))
-                    .chain(once((
-                        element.gate.output_offset(),
-                        ConnectionDotRefType::Output,
-                    )))
                     .enumerate()
-                    .map(move |(connection_idx, (offset, ty))| ConnectionDotRef {
-                        position: element.position + offset,
-                        ty,
-                        element_idx,
-                        connection_idx,
+                    .map(move |(input_idx, _)| {
+                        IOSpecifier::Input(InputSpecifier(element_idx, InputIdx(input_idx)))
                     })
+                    .chain(once(IOSpecifier::Output(OutputSpecifier(
+                        element_idx,
+                        OutputIdx(0),
+                    ))))
             })
     }
 
-    pub fn input_position(&self, spec: InputSpecifier) -> Vec2 {
-        let input_offset = self[spec.0].gate.input_offsets()[spec.1 .0];
-        let element_position = self[spec.0].position;
+    pub fn io_position(&self, spec: impl Into<IOSpecifier>) -> Vec2 {
+        let spec = spec.into();
+        let element = &self[spec.element()];
+        let offset = match spec {
+            IOSpecifier::Input(InputSpecifier(_, input_idx)) => {
+                element.gate.input_offsets()[input_idx.0]
+            }
+            IOSpecifier::Output(_) => element.gate.output_offset(),
+        };
 
-        input_offset + element_position
-    }
-
-    pub fn output_position(&self, spec: OutputSpecifier) -> Vec2 {
-        let output_offset = self[spec.0].gate.output_offset();
-        let element_position = self[spec.0].position;
-
-        output_offset + element_position
+        element.position + offset
     }
 }
 

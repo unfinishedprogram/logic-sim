@@ -46,3 +46,24 @@ pub struct ElementIdx(pub usize);
 pub struct InputIdx(pub usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct OutputIdx(pub usize);
+
+impl IOSpecifier {
+    pub fn element(&self) -> ElementIdx {
+        match self {
+            IOSpecifier::Input(InputSpecifier(element, _)) => *element,
+            IOSpecifier::Output(OutputSpecifier(element, _)) => *element,
+        }
+    }
+}
+
+impl From<OutputSpecifier> for IOSpecifier {
+    fn from(output: OutputSpecifier) -> Self {
+        IOSpecifier::Output(output)
+    }
+}
+
+impl From<InputSpecifier> for IOSpecifier {
+    fn from(input: InputSpecifier) -> Self {
+        IOSpecifier::Input(input)
+    }
+}
