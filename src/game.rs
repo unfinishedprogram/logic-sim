@@ -41,4 +41,8 @@ impl GameState {
             active: None,
         }
     }
+
+    pub fn debug_text(&self) -> String {
+        format!("Hot: {:?}\nActive: {:?}", self.hot, self.active)
+    }
 }

@@ -21,8 +21,10 @@ impl GameState {
         self.handle_inputs(frame.input());
 
         self.text_object.position = frame.camera().top_left();
-        self.text_object.scale = self.camera.size.length() / 30.0;
+        self.text_object.scale = self.camera.size.length() / 50.0;
         self.text_object.position += Vec2::new(0.0, self.text_object.scale);
+
+        self.text_object.content = self.debug_text();
 
         self.draw(frame);
     }
@@ -85,6 +87,10 @@ impl GameState {
                 self.circuit.delete_connections(spec)
             }
             _ => {}
+        }
+
+        if input_state.left_mouse.released {
+            self.active = None;
         }
 
         self.hot = hovering;
