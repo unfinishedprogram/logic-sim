@@ -1,9 +1,6 @@
 use std::ops::{Index, IndexMut};
 
-use crate::{
-    render::{line::LineGeometry, msdf::sprite::sprite_sheet::SpriteInstance},
-    util::handle::Handle,
-};
+use crate::{render::msdf::sprite::sprite_sheet::SpriteInstance, util::handle::Handle};
 
 use super::Frame;
 
@@ -18,13 +15,5 @@ impl Index<Handle<SpriteInstance>> for Frame {
 
     fn index(&self, handle: Handle<SpriteInstance>) -> &Self::Output {
         &self.sprites[handle.index]
-    }
-}
-
-impl Index<Handle<LineGeometry>> for Frame {
-    type Output = LineGeometry;
-
-    fn index(&self, handle: Handle<LineGeometry>) -> &Self::Output {
-        &self.lines[handle.index]
     }
 }

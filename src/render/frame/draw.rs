@@ -1,9 +1,10 @@
 use glam::{Vec2, Vec4};
+use lyon::tessellation::VertexBuffers;
 
 use crate::{
     render::{
-        line::LineGeometry,
         msdf::{sprite::sprite_sheet::SpriteInstance, sprite_renderer::SpriteHandle},
+        vertex::VertexUV,
     },
     util::handle::Handle,
 };
@@ -31,8 +32,7 @@ impl Frame {
         self.response(Handle::new(instance_index))
     }
 
-    #[inline]
-    pub fn draw_line(&mut self, line: LineGeometry) {
-        self.lines.push(line);
+    pub fn line_geo_buffers(&mut self) -> &mut VertexBuffers<VertexUV, u32> {
+        &mut self.lines
     }
 }

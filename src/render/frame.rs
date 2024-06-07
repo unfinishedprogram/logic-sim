@@ -2,19 +2,21 @@ pub mod draw;
 pub mod handle;
 pub mod response;
 
+use lyon::tessellation::VertexBuffers;
+
 use crate::game::input::InputState;
 
 use super::{
     camera::Camera,
-    line::LineGeometry,
     msdf::{sprite::sprite_sheet::SpriteInstance, sprite_renderer::SpriteRendererReference},
+    vertex::VertexUV,
 };
 
 // Immediate mode context for a frame
 pub struct Frame {
     camera: Camera,
     sprites: Vec<SpriteInstance>,
-    lines: Vec<LineGeometry>,
+    lines: VertexBuffers<VertexUV, u32>,
     input_state: InputState,
     pub assets: FrameAssets,
 }
@@ -29,7 +31,7 @@ impl Frame {
             input_state: input.clone(),
             camera: *camera,
             sprites: Vec::new(),
-            lines: Vec::new(),
+            lines: VertexBuffers::new(),
             assets: FrameAssets { sprites },
         }
     }
@@ -42,7 +44,7 @@ impl Frame {
         &self.sprites
     }
 
-    pub fn lines(&self) -> &[LineGeometry] {
+    pub fn lines(&self) -> &VertexBuffers<VertexUV, u32> {
         &self.lines
     }
 

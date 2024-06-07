@@ -1,6 +1,11 @@
-use glam::{Vec2, Vec4};
+use crate::render::vertex::VertexUV;
 
-use super::geometry::LineGeometry;
+use glam::{Vec2, Vec4};
+use lyon::{
+    math::point,
+    path::Path,
+    tessellation::{BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, VertexBuffers},
+};
 
 pub struct CubicBezier {
     pub start: Vec2,
@@ -24,72 +29,30 @@ impl CubicBezier {
         }
     }
 
-    pub fn as_line_geometries(
-        &self,
-        mut resolution: usize,
-        width: f32,
-        color: Vec4,
-    ) -> Vec<LineGeometry> {
-        if resolution < 2 {
-            resolution = 2;
-        }
+    pub fn tesselate(&self, width: f32, color: Vec4, buffers: &mut VertexBuffers<VertexUV, u32>) {
+        let mut path = Path::builder();
+        path.begin(point(self.start.x, self.start.y));
+        let ctrl1 = point(self.control1.x, self.control1.y);
+        let ctrl2 = point(self.control2.x, self.control2.y);
+        let end = point(self.end.x, self.end.y);
+        path.cubic_bezier_to(ctrl1, ctrl2, end);
+        path.end(false);
+        let path = path.build();
 
-        let samples: Vec<(Vec2, Vec2)> = (0..resolution)
-            .map(|i| {
-                let t = i as f32 / (resolution - 1) as f32;
-                self.sample_pair(t, width)
-            })
-            .collect();
+        let mut tessellator = StrokeTessellator::new();
 
-        samples
-            .array_windows::<2>()
-            .map(|[left, right]| {
-                LineGeometry::from_corner_points([left.0, left.1, right.0, right.1]).of_color(color)
-            })
-            .collect()
-    }
+        let options = StrokeOptions::default()
+            .with_line_width(width)
+            .with_tolerance(0.05);
 
-    // Samples a pair of points, which are equidistant to the curve at point t
-    fn sample_pair(&self, t: f32, width: f32) -> (Vec2, Vec2) {
-        let p = self.sample(t);
-        let n = self.normal(t);
-
-        let offset = n * width / 2.0;
-
-        (p + offset, p - offset)
-    }
-
-    fn sample(&self, t: f32) -> Vec2 {
-        let t2 = t * t;
-        let t3 = t2 * t;
-        let u = 1.0 - t;
-        let u2 = u * u;
-        let u3 = u2 * u;
-
-        let mut p = u3 * self.start;
-        p += 3.0 * u2 * t * self.control1;
-        p += 3.0 * u * t2 * self.control2;
-        p += t3 * self.end;
-
-        p
-    }
-
-    fn derivative(&self, t: f32) -> Vec2 {
-        let t2 = t * t;
-        let u = 1.0 - t;
-        let u2 = u * u;
-
-        let mut p = 3.0 * u2 * (self.control1 - self.start);
-        p += 6.0 * u * t * (self.control2 - self.control1);
-        p += 3.0 * t2 * (self.end - self.control2);
-
-        p
-    }
-
-    fn normal(&self, t: f32) -> Vec2 {
-        let d = self.derivative(t);
-        let n = Vec2::new(-d.y, d.x);
-
-        n.normalize()
+        tessellator
+            .tessellate_path(
+                &path,
+                &options,
+                &mut BuffersBuilder::new(buffers, |vertex: StrokeVertex| {
+                    VertexUV::new(vertex.position().x, vertex.position().y, 0.0, 0.0, color)
+                }),
+            )
+            .unwrap();
     }
 }

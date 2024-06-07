@@ -1,6 +1,7 @@
 use wgpu::{
     include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages, ColorTargetState,
-    Device, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModule,
+    Device, IndexFormat, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor,
+    ShaderModule,
 };
 
 use crate::render::{
@@ -10,19 +11,21 @@ use crate::render::{
     BaseRenderState,
 };
 
-use super::geometry::LineGeometry;
-
 pub struct LineRenderer {
     render_pipeline: RenderPipeline,
     vertex_buffer: Buffer,
+    index_buffer: Buffer,
     camera_binding: CameraBinding,
-    quad_count: usize,
+    vert_count: usize,
+    index_count: usize,
 }
 
 impl LineRenderer {
     pub fn create(base: &BaseRenderState) -> Self {
         let shader_module = Self::shader_module(&base.device);
         let vertex_buffer = Self::vertex_buffer(&base.device);
+        let index_buffer = Self::index_buffer(&base.device);
+
         let camera_binding = CameraBinding::create(&base.device);
 
         let render_pipeline = Self::create_render_pipeline(base, &shader_module, &camera_binding);
@@ -30,34 +33,45 @@ impl LineRenderer {
         Self {
             render_pipeline,
             vertex_buffer,
+            index_buffer,
             camera_binding,
-            quad_count: 0,
+            vert_count: 0,
+            index_count: 0,
         }
     }
 
     pub fn render<'pass, 'a: 'pass>(&'a self, rpass: &mut RenderPass<'pass>) {
         rpass.set_pipeline(&self.render_pipeline);
         rpass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+        rpass.set_index_buffer(self.index_buffer.slice(..), IndexFormat::Uint32);
+
         rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
-        rpass.draw(0..(self.quad_count * 6) as u32, 0..1);
+
+        rpass.draw_indexed(0..self.index_count as u32, 0, 0..1);
     }
 
-    // Loads sprite instances to be rendered
-    pub fn upload_lines(&mut self, queue: &wgpu::Queue, lines: &[LineGeometry]) {
-        let vertices = lines
-            .iter()
-            .flat_map(|quad| quad.vertices)
-            .collect::<Vec<VertexUV>>();
-
-        self.quad_count = lines.len();
-        queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
+    // Loads line instances to be rendered
+    pub fn upload_geometry(&mut self, queue: &wgpu::Queue, indicies: &[u32], verts: &[VertexUV]) {
+        self.vert_count = verts.len();
+        self.index_count = indicies.len();
+        queue.write_buffer(&self.index_buffer, 0, bytemuck::cast_slice(indicies));
+        queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(verts));
     }
 
     fn vertex_buffer(device: &Device) -> Buffer {
         device.create_buffer(&BufferDescriptor {
-            label: Some("Sprite Renderer Vertex Buffer"),
+            label: Some("Line Renderer Vertex Buffer"),
             size: 8096 * 8096,
             usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        })
+    }
+
+    fn index_buffer(device: &Device) -> Buffer {
+        device.create_buffer(&BufferDescriptor {
+            label: Some("Line Renderer Index Buffer"),
+            size: 8096 * 512,
+            usage: BufferUsages::INDEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         })
     }
