@@ -102,7 +102,7 @@ impl SpriteRenderer {
     fn index_buffer(device: &Device) -> Buffer {
         device.create_buffer(&BufferDescriptor {
             label: Some("Sprite Renderer Index Buffer"),
-            size: 8096 * 512,
+            size: 8192 * 512,
             usage: BufferUsages::INDEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         })
@@ -111,7 +111,7 @@ impl SpriteRenderer {
     fn vertex_buffer(device: &Device) -> Buffer {
         device.create_buffer(&BufferDescriptor {
             label: Some("Sprite Renderer Vertex Buffer"),
-            size: 8096 * 8096,
+            size: 8192 * 8192,
             usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         })
