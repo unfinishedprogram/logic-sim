@@ -3,27 +3,25 @@ use glam::Vec4;
 use super::{super::gate::Gate, Circuit, CircuitElement};
 use crate::render::{frame::Frame, line::cubic_bezier::CubicBezier};
 
-const GATE_SHEET: &str = "gates";
-
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
     match gate {
         Gate::Input(_) => None,
-        Gate::And => Some("AND"),
-        Gate::Or => Some("OR"),
-        Gate::Not => Some("NOT"),
-        Gate::Buf => Some("BUF"),
-        Gate::Xor => Some("XOR"),
-        Gate::Nand => Some("NAND"),
-        Gate::Nor => Some("NOR"),
-        Gate::Xnor => Some("XNOR"),
+        Gate::And => Some("and"),
+        Gate::Or => Some("or"),
+        Gate::Not => Some("not"),
+        Gate::Buf => Some("buf"),
+        Gate::Xor => Some("xor"),
+        Gate::Nand => Some("nand"),
+        Gate::Nor => Some("nor"),
+        Gate::Xnor => Some("xnor"),
     }
 }
 
 impl CircuitElement {
     pub fn draw(&self, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate).unwrap();
-        let sprite_handle = *frame.assets.sprites.get_sprite(GATE_SHEET, sprite).unwrap();
-        frame.draw_sprite(sprite_handle, self.position, 1.0);
+        let vector_handle = *frame.assets.vectors.get_vector(sprite).unwrap();
+        frame.draw_vector(vector_handle, self.position);
     }
 }
 

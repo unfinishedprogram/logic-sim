@@ -5,9 +5,11 @@ pub mod geometry;
 mod img_texture;
 pub mod line;
 pub mod msdf;
+pub mod vector;
 pub mod vertex;
 use frame::Frame;
 use msdf::text::MsdfFontReference;
+use vector::VectorRenderer;
 use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
@@ -22,6 +24,7 @@ pub struct RenderState<'window> {
     // Render pipelines
     pub line_renderer: LineRenderer,
     pub sprite_renderer: SpriteRenderer,
+    pub vector_renderer: VectorRenderer,
 }
 
 pub struct BaseRenderState<'window> {
@@ -66,12 +69,22 @@ impl<'window> RenderState<'window> {
         );
 
         let line_renderer = line::LineRenderer::create(&base);
+        let mut vector_renderer = vector::VectorRenderer::create(&base);
+
+        let gate_assets = ["and", "buf", "nand", "nor", "not", "or", "xor", "xnor"];
+
+        for name in gate_assets {
+            vector_renderer
+                .load_svg(&format!("assets/objects/gates/{}.svg", name), Some(name))
+                .unwrap();
+        }
 
         Self {
             base,
             sprite_renderer,
             msdf_font_ref,
             line_renderer,
+            vector_renderer,
         }
     }
 
@@ -79,6 +92,7 @@ impl<'window> RenderState<'window> {
         let camera = frame.camera();
         let lines = frame.lines();
         let sprites = frame.sprites();
+        let vector_instances = frame.vector_instances();
 
         let surface = self
             .base
@@ -111,14 +125,20 @@ impl<'window> RenderState<'window> {
 
             self.line_renderer.update_camera(&self.base.queue, camera);
             self.sprite_renderer.update_camera(&self.base.queue, camera);
+            self.vector_renderer.update_camera(&self.base.queue, camera);
 
             self.line_renderer
                 .upload_geometry(&self.base.queue, &lines.indices, &lines.vertices);
+
             self.sprite_renderer
                 .upload_sprites(&self.base.queue, sprites);
 
+            self.vector_renderer
+                .upload_instances(&self.base.queue, vector_instances);
+
             self.line_renderer.render(&mut rpass);
             self.sprite_renderer.render(&mut rpass);
+            self.vector_renderer.render(&mut rpass);
         }
 
         self.base.queue.submit(Some(encoder.finish()));

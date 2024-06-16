@@ -17,6 +17,7 @@ serde_json = "1.0.116"
 serde = { version = "1.0.200", features = ["derive"] }
 rand = "0.8.5"
 lyon = "1.0.1"
+usvg = "0.42.0"
 
 [profile.release]
 debug = true

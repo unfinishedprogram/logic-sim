@@ -4,6 +4,7 @@ use lyon::tessellation::VertexBuffers;
 use crate::{
     render::{
         msdf::{sprite::sprite_sheet::SpriteInstance, sprite_renderer::SpriteHandle},
+        vector::{self, VectorObject},
         vertex::VertexUV,
     },
     util::handle::Handle,
@@ -34,5 +35,13 @@ impl Frame {
 
     pub fn line_geo_buffers(&mut self) -> &mut VertexBuffers<VertexUV, u32> {
         &mut self.lines
+    }
+
+    pub fn draw_vector(&mut self, vector_handle: Handle<VectorObject>, position: Vec2) {
+        self.vector_instances.push(vector::Instance {
+            id: vector_handle,
+            transform: position,
+            color: Vec4::splat(1.0),
+        })
     }
 }

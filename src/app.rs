@@ -71,6 +71,7 @@ impl<'a> App<'a> {
             &self.game_state.camera,
             &self.input,
             self.game_state.sprites.clone(),
+            self.render_state.vector_renderer.reference(),
         );
         self.input.update();
         self.game_state.update(&mut frame);
