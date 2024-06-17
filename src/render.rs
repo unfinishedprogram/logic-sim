@@ -48,13 +48,6 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let gates_sprite_sheet = SpriteSheet::create(
-            &base.device,
-            &base.queue,
-            &serde_json::from_str(include_str!("../assets/gates/manifest.json")).unwrap(),
-            include_bytes!("../assets/gates/spritesheet-msdf.png"),
-        );
-
         let dot_sprite_sheet = SpriteSheet::create(
             &base.device,
             &base.queue,
@@ -64,10 +57,8 @@ impl<'window> RenderState<'window> {
 
         let msdf_font_ref = msdf_font.reference(0);
 
-        let sprite_renderer = SpriteRenderer::create(
-            &base,
-            vec![msdf_font.sprite_sheet, gates_sprite_sheet, dot_sprite_sheet],
-        );
+        let sprite_renderer =
+            SpriteRenderer::create(&base, vec![msdf_font.sprite_sheet, dot_sprite_sheet]);
 
         let line_renderer = line::LineRenderer::create(&base);
         let mut vector_renderer = vector::VectorRenderer::create(&base);
