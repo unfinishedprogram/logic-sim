@@ -93,9 +93,10 @@ impl LineRenderer {
         shader: &'a ShaderModule,
         targets: &'a [Option<ColorTargetState>],
         buffers: &'a [wgpu::VertexBufferLayout<'a>],
+        multisample: wgpu::MultisampleState,
     ) -> RenderPipelineDescriptor<'a> {
         wgpu::RenderPipelineDescriptor {
-            label: None,
+            label: Some("LineRenderer Pipeline"),
             layout: Some(layout),
             vertex: wgpu::VertexState {
                 module: shader,
@@ -109,7 +110,7 @@ impl LineRenderer {
             }),
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
-            multisample: wgpu::MultisampleState::default(),
+            multisample,
             multiview: None,
         }
     }
@@ -131,7 +132,13 @@ impl LineRenderer {
 
         let targets = [Some(target)];
         let buffers = [VertexUV::buffer_layout_descriptor()];
-        let descriptor = &Self::pipeline_descriptor(&layout, shader_module, &targets, &buffers);
+        let descriptor = &Self::pipeline_descriptor(
+            &layout,
+            shader_module,
+            &targets,
+            &buffers,
+            base.msaa_config,
+        );
 
         base.device.create_render_pipeline(descriptor)
     }

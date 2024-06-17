@@ -34,6 +34,7 @@ pub struct BaseRenderState<'window> {
     device: Device,
     pub queue: Queue,
     swapchain_format: wgpu::TextureFormat,
+    msaa_config: wgpu::MultisampleState,
 }
 
 impl<'window> RenderState<'window> {
@@ -100,9 +101,12 @@ impl<'window> RenderState<'window> {
             .get_current_texture()
             .expect("Failed to acquire next swap chain texture");
 
-        let view = surface
+        let frame_view = surface
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
+
+        let view = self.create_multisampled_frame_buffer(4);
+
         let mut encoder = self
             .base
             .device
@@ -113,7 +117,7 @@ impl<'window> RenderState<'window> {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
-                    resolve_target: None,
+                    resolve_target: Some(&frame_view),
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(Color::TRANSPARENT),
                         store: wgpu::StoreOp::Store,
@@ -149,6 +153,30 @@ impl<'window> RenderState<'window> {
 
     pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
         self.base.resize(window, new_size);
+    }
+
+    fn create_multisampled_frame_buffer(&self, sample_count: u32) -> wgpu::TextureView {
+        let extend = wgpu::Extent3d {
+            width: self.base.surface_config.width,
+            height: self.base.surface_config.height,
+            depth_or_array_layers: 1,
+        };
+
+        let descriptor = &wgpu::TextureDescriptor {
+            label: Some("MSAA Frame Buffer"),
+            size: extend,
+            mip_level_count: 1,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.base.swapchain_format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[self.base.swapchain_format],
+        };
+
+        self.base
+            .device
+            .create_texture(descriptor)
+            .create_view(&wgpu::TextureViewDescriptor::default())
     }
 }
 
@@ -198,6 +226,12 @@ impl<'window> BaseRenderState<'window> {
         let swapchain_capabilities = surface.get_capabilities(&adapter);
         let swapchain_format = swapchain_capabilities.formats[0];
 
+        let msaa_config = wgpu::MultisampleState {
+            count: 4,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
+        };
+
         Self {
             surface,
             surface_config,
@@ -205,6 +239,7 @@ impl<'window> BaseRenderState<'window> {
             device,
             queue,
             swapchain_format,
+            msaa_config,
         }
     }
 

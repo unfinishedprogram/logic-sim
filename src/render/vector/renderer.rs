@@ -170,6 +170,7 @@ impl VectorRenderer {
         shader: &'a ShaderModule,
         targets: &'a [Option<ColorTargetState>],
         buffers: &'a [wgpu::VertexBufferLayout<'a>],
+        multisample: wgpu::MultisampleState,
     ) -> RenderPipelineDescriptor<'a> {
         wgpu::RenderPipelineDescriptor {
             label: None,
@@ -186,7 +187,7 @@ impl VectorRenderer {
             }),
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
-            multisample: wgpu::MultisampleState::default(),
+            multisample,
             multiview: None,
         }
     }
@@ -211,7 +212,13 @@ impl VectorRenderer {
             vec2_buffer_descriptor(),
             RawInstance::buffer_layout_descriptor(),
         ];
-        let descriptor = &Self::pipeline_descriptor(&layout, shader_module, &targets, &buffers);
+        let descriptor = &Self::pipeline_descriptor(
+            &layout,
+            shader_module,
+            &targets,
+            &buffers,
+            base.msaa_config,
+        );
 
         base.device.create_render_pipeline(descriptor)
     }
