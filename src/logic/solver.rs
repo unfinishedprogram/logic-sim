@@ -19,7 +19,7 @@ impl SolverState {
         self.previous_results = self.output_results;
         self.output_results = vec![false; self.previous_results.len()];
 
-        let mut gate_inputs = vec![vec![false; 2]; circuit.elements.len()];
+        let mut gate_inputs = vec![[false; 2]; circuit.elements.len()];
 
         for connection in &circuit.connections {
             let from = connection.from.0;
@@ -34,7 +34,7 @@ impl SolverState {
         self
     }
 
-    fn eval_gate(&mut self, circuit: &Circuit, gate_inputs: &[Vec<bool>], gate: ElementIdx) {
+    fn eval_gate(&mut self, circuit: &Circuit, gate_inputs: &[[bool; 2]], gate: ElementIdx) {
         let inputs = &gate_inputs[gate.0];
         let result = circuit[gate].gate.eval(inputs);
         self.output_results[gate.0] = result;
