@@ -70,7 +70,7 @@ impl LineRenderer {
     fn index_buffer(device: &Device) -> Buffer {
         device.create_buffer(&BufferDescriptor {
             label: Some("Line Renderer Index Buffer"),
-            size: 8192 * 512,
+            size: 8192 * 8192,
             usage: BufferUsages::INDEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         })

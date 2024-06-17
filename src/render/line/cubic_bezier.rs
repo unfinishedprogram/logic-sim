@@ -43,7 +43,7 @@ impl CubicBezier {
 
         let options = StrokeOptions::default()
             .with_line_width(width)
-            .with_tolerance(0.05);
+            .with_tolerance(0.01);
 
         tessellator
             .tessellate_path(
