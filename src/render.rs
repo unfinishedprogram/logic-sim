@@ -99,6 +99,7 @@ impl<'window> RenderState<'window> {
             .surface
             .get_current_texture()
             .expect("Failed to acquire next swap chain texture");
+
         let view = surface
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 use wgpu::{
     include_wgsl, vertex_attr_array, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages,
     ColorTargetState, Device, IndexFormat, PipelineLayout, RenderPass, RenderPipeline,
@@ -10,8 +10,7 @@ use wgpu::{
 use crate::{
     render::{
         bindable::Bindable,
-        camera::{Camera, CameraBinding},
-        vertex::VertexUV,
+        camera::{Camera, CameraUniform},
         BaseRenderState,
     },
     util::handle::Handle,
@@ -34,7 +33,7 @@ pub struct VectorRenderer {
     vertex_buffer: Buffer,
     index_buffer: Buffer,
     instance_buffer: Buffer,
-    camera_binding: CameraBinding,
+    camera_binding: CameraUniform,
 
     vector_objects: Vec<(VectorObjectMeta, VectorObject)>,
     vector_lookup: HashMap<String, Handle<VectorObject>>,
@@ -56,7 +55,7 @@ impl VectorRenderer {
         let index_buffer = Self::index_buffer(&base.device);
         let instance_buffer = Self::instance_buffer(&base.device);
 
-        let camera_binding = CameraBinding::create(&base.device);
+        let camera_binding = CameraUniform::create(&base.device);
 
         let render_pipeline = Self::create_render_pipeline(base, &shader_module, &camera_binding);
 
@@ -172,12 +171,6 @@ impl VectorRenderer {
         targets: &'a [Option<ColorTargetState>],
         buffers: &'a [wgpu::VertexBufferLayout<'a>],
     ) -> RenderPipelineDescriptor<'a> {
-        let multisample = wgpu::MultisampleState {
-            count: 4,
-            mask: !0,
-            alpha_to_coverage_enabled: false,
-        };
-
         wgpu::RenderPipelineDescriptor {
             label: None,
             layout: Some(layout),
@@ -193,7 +186,7 @@ impl VectorRenderer {
             }),
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
-            multisample,
+            multisample: wgpu::MultisampleState::default(),
             multiview: None,
         }
     }
@@ -201,7 +194,7 @@ impl VectorRenderer {
     fn create_render_pipeline(
         base: &BaseRenderState,
         shader_module: &ShaderModule,
-        camera: &CameraBinding,
+        camera: &CameraUniform,
     ) -> RenderPipeline {
         let bind_group_layouts: Vec<&BindGroupLayout> = vec![camera.bind_group_layout()];
 
@@ -248,9 +241,9 @@ impl VectorRenderer {
 
         VectorObjectMeta {
             vertex_range: (previous_meta.vertex_range.end
-                ..previous_meta.vertex_range.end + vertex_offset as u32),
+                ..previous_meta.vertex_range.end + vertex_offset),
             index_range: (previous_meta.index_range.end
-                ..previous_meta.index_range.end + index_offset as u32),
+                ..previous_meta.index_range.end + index_offset),
             instance_range: 0..0,
         }
     }

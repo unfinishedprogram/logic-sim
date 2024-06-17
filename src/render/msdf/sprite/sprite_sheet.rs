@@ -13,9 +13,9 @@ use crate::render::{
 pub struct SpriteSheet {
     pub name: &'static str,
     pub bind_group: wgpu::BindGroup,
-    pub texture: ImageTexture,
     pub sprites: HashMap<String, usize>,
     pub sprites_vec: Vec<Sprite>,
+    _texture: ImageTexture,
 }
 
 #[derive(Clone, Copy)]
@@ -141,7 +141,7 @@ impl SpriteSheet {
 
         Self {
             bind_group,
-            texture,
+            _texture: texture,
             sprites,
             sprites_vec,
             name: manifest.name,

@@ -6,7 +6,7 @@ use wgpu::{
 
 use crate::render::{
     bindable::Bindable,
-    camera::{Camera, CameraBinding},
+    camera::{Camera, CameraUniform},
     vertex::VertexUV,
     BaseRenderState,
 };
@@ -15,7 +15,7 @@ pub struct LineRenderer {
     render_pipeline: RenderPipeline,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
-    camera_binding: CameraBinding,
+    camera_binding: CameraUniform,
     vert_count: usize,
     index_count: usize,
 }
@@ -26,7 +26,7 @@ impl LineRenderer {
         let vertex_buffer = Self::vertex_buffer(&base.device);
         let index_buffer = Self::index_buffer(&base.device);
 
-        let camera_binding = CameraBinding::create(&base.device);
+        let camera_binding = CameraUniform::create(&base.device);
 
         let render_pipeline = Self::create_render_pipeline(base, &shader_module, &camera_binding);
 
@@ -117,7 +117,7 @@ impl LineRenderer {
     fn create_render_pipeline(
         base: &BaseRenderState,
         shader_module: &ShaderModule,
-        camera: &CameraBinding,
+        camera: &CameraUniform,
     ) -> RenderPipeline {
         let bind_group_layouts: Vec<&BindGroupLayout> = vec![camera.bind_group_layout()];
 

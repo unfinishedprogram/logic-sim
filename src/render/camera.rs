@@ -14,12 +14,6 @@ pub struct Camera {
     pub size: Vec2,
 }
 
-pub struct CameraBinding {
-    bind_group: BindGroup,
-    bind_group_layout: BindGroupLayout,
-    buffer: Buffer,
-}
-
 impl Camera {
     pub fn new() -> Self {
         Self {
@@ -50,7 +44,13 @@ impl Camera {
     }
 }
 
-impl CameraBinding {
+pub struct CameraUniform {
+    bind_group: BindGroup,
+    bind_group_layout: BindGroupLayout,
+    buffer: Buffer,
+}
+
+impl CameraUniform {
     pub fn create(device: &Device) -> Self {
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("camera_bind_group_layout"),
@@ -93,12 +93,18 @@ impl CameraBinding {
     }
 }
 
-impl Bindable for CameraBinding {
+impl Bindable for CameraUniform {
     fn bind_group_layout(&self) -> &BindGroupLayout {
         &self.bind_group_layout
     }
 
     fn bind_group(&self) -> &BindGroup {
         &self.bind_group
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self::new()
     }
 }

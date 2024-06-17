@@ -25,12 +25,13 @@ pub struct Atlas {
     #[serde(rename = "distanceRange")]
     pub distance_range: f32,
     #[serde(rename = "distanceRangeMiddle")]
-    pub distance_range_middle: f32,
-    pub size: f32,
+    pub _distance_range_middle: f32,
+    #[serde(rename = "size")]
+    pub _size: f32,
     pub width: f32,
     pub height: f32,
     #[serde(rename = "yOrigin")]
-    pub y_origin: String,
+    pub _y_origin: String,
 }
 
 impl From<&Bounds> for (Vec2, Vec2) {

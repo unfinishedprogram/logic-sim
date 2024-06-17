@@ -4,11 +4,11 @@ use wgpu::{BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, Texture
 use super::bindable::Bindable;
 
 pub struct ImageTexture {
-    pub texture: Texture,
     pub sampler: Sampler,
     pub texture_view: TextureView,
     pub bind_group_layout: BindGroupLayout,
     pub bind_group: BindGroup,
+    _texture: Texture,
 }
 
 pub fn texture_size_of_image(image: &DynamicImage) -> Extent3d {
@@ -90,7 +90,7 @@ impl ImageTexture {
             // All textures are stored as 3D, we represent our 2D texture
             // by setting depth to 1.
             size: texture_size,
-            mip_level_count: 1, // We'll talk about this a little later
+            mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             // Most images are stored using sRGB, so we need to reflect that here.
@@ -138,7 +138,7 @@ impl ImageTexture {
             Self::create_bind_group(device, &bind_group_layout, &sampler, &texture_view);
 
         Self {
-            texture,
+            _texture: texture,
             sampler,
             texture_view,
             bind_group_layout,

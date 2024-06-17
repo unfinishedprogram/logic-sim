@@ -1,9 +1,5 @@
 use super::{
-    circuit::{
-        self,
-        connection::{ElementIdx, IOSpecifier},
-        Circuit,
-    },
+    circuit::{connection::ElementIdx, Circuit},
     gate::Gate,
 };
 
@@ -59,16 +55,4 @@ impl Gate {
             Gate::Xnor => inputs[0] == inputs[1],
         }
     }
-}
-
-pub fn get_circuit_io(circuit: &circuit::Circuit) -> Vec<IOSpecifier> {
-    circuit
-        .connection_dots()
-        .filter(|dot| {
-            circuit.connections.iter().any(|c| match dot {
-                IOSpecifier::Input(input) => c.to == *input,
-                IOSpecifier::Output(output) => c.from == *output,
-            })
-        })
-        .collect()
 }
