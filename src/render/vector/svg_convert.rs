@@ -1,7 +1,7 @@
 use lyon::math::Point;
 use lyon::path::PathEvent;
-use lyon::tessellation;
 use lyon::tessellation::StrokeOptions;
+use lyon::tessellation::{self, FillOptions};
 use usvg::tiny_skia_path;
 
 const FALLBACK_COLOR: usvg::Color = usvg::Color {
@@ -138,6 +138,22 @@ pub fn convert_stroke(
         .with_line_width(s.width().get())
         .with_line_cap(linecap)
         .with_line_join(linejoin);
+
+    (color, opt)
+}
+
+pub fn convert_fill(f: &usvg::Fill, base_options: FillOptions) -> (usvg::Color, FillOptions) {
+    let color = match f.paint() {
+        usvg::Paint::Color(c) => *c,
+        usvg::Paint::LinearGradient(_) => todo!(),
+        usvg::Paint::RadialGradient(_) => todo!(),
+        usvg::Paint::Pattern(_) => todo!(),
+    };
+
+    let opt = base_options.with_fill_rule(match f.rule() {
+        usvg::FillRule::NonZero => tessellation::FillRule::NonZero,
+        usvg::FillRule::EvenOdd => tessellation::FillRule::EvenOdd,
+    });
 
     (color, opt)
 }

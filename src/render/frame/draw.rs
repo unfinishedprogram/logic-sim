@@ -38,10 +38,19 @@ impl Frame {
     }
 
     pub fn draw_vector(&mut self, vector_handle: Handle<VectorObject>, position: Vec2) {
+        self.draw_vector_with_color(vector_handle, position, Vec4::splat(1.0));
+    }
+
+    pub fn draw_vector_with_color(
+        &mut self,
+        vector_handle: Handle<VectorObject>,
+        position: Vec2,
+        color: Vec4,
+    ) {
         self.vector_instances.push(vector::Instance {
             id: vector_handle,
             transform: position,
-            color: Vec4::splat(1.0),
+            color,
         })
     }
 }

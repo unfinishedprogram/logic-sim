@@ -40,7 +40,8 @@ impl GameState {
         self.circuit.draw(frame);
 
         {
-            let sprite = self.sprites.get_sprite("dot", "dot").unwrap();
+            let dot_object = *frame.assets.vectors.get_vector("dot").unwrap();
+
             for dot in self.circuit.connection_dots() {
                 let position = self.circuit.io_position(dot);
                 let color = match dot {
@@ -48,8 +49,7 @@ impl GameState {
                     IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
                 };
 
-                let sprite_instance = sprite.instantiate_with_color(position, 1.0, color);
-                frame.draw_sprite_instance(sprite_instance);
+                frame.draw_vector_with_color(dot_object, position, color);
             }
         }
     }

@@ -2,27 +2,46 @@ use std::fs;
 
 use glam::Vec2;
 use lyon::tessellation::{
-    BuffersBuilder, StrokeOptions, StrokeTessellator, TessellationError, VertexBuffers,
+    BuffersBuilder, FillOptions, FillTessellator, StrokeOptions, StrokeTessellator,
+    TessellationError, VertexBuffers,
 };
+use usvg::Rect;
 
-use super::svg_convert::{convert_path, convert_stroke};
+const TOLERANCE: f32 = 0.01;
+
+use super::svg_convert::{convert_fill, convert_path, convert_stroke};
 
 #[derive(Debug)]
 pub struct VectorObject {
     pub name: String,
     pub vertex_buffers: VertexBuffers<Vec2, u32>,
+    pub hit_box: Rect,
+}
+
+pub struct TesselationOptions {
+    pub fill: FillOptions,
+    pub stroke: StrokeOptions,
 }
 
 impl VectorObject {
     pub fn load_svg_from_str(text: &str, name: &str) -> Result<VectorObject, Error> {
         let svg = usvg::Tree::from_str(text, &usvg::Options::default())?;
 
-        let options = StrokeOptions::default().with_tolerance(0.01);
+        let options = TesselationOptions {
+            fill: FillOptions::default().with_tolerance(TOLERANCE),
+            stroke: StrokeOptions::default().with_tolerance(TOLERANCE),
+        };
 
-        let center_offset = Vec2::new(svg.size().width() * -0.5, svg.size().height() * -0.5);
-        let scale = Vec2::new(1.0 / svg.size().width(), 1.0 / svg.size().height());
+        let center_offset = -Vec2::new(svg.size().width(), svg.size().height()) / 2.0;
+        let scale = Vec2::new(1.0, 1.0) / 32.0;
 
         let mut vertex_buffers = VertexBuffers::new();
+
+        let hit_box = svg
+            .node_by_id("hit_box")
+            .map(|it| it.abs_bounding_box())
+            .unwrap_or(svg.root().abs_bounding_box());
+
         Self::tesselate(
             svg.root(),
             &mut vertex_buffers,
@@ -34,6 +53,7 @@ impl VectorObject {
         Ok(VectorObject {
             name: name.to_string(),
             vertex_buffers,
+            hit_box,
         })
     }
 
@@ -45,7 +65,7 @@ impl VectorObject {
     fn tesselate(
         svg: &usvg::Group,
         buffers: &mut VertexBuffers<Vec2, u32>,
-        options: &StrokeOptions,
+        options: &TesselationOptions,
         offset: Vec2,
         scale: Vec2,
     ) -> Result<(), TessellationError> {
@@ -55,7 +75,8 @@ impl VectorObject {
                     Self::tesselate(group, buffers, options, offset, scale)?
                 }
                 usvg::Node::Path(path) => {
-                    Self::tesselate_path(path, buffers, options, offset, scale)?
+                    Self::tesselate_path_stroke(path, buffers, options, offset, scale)?;
+                    Self::tesselate_path_fill(path, buffers, options, offset, scale)?
                 }
                 usvg::Node::Image(_) => unimplemented!("Image nodes"),
                 usvg::Node::Text(_) => unimplemented!("Text nodes"),
@@ -65,25 +86,47 @@ impl VectorObject {
         Ok(())
     }
 
-    fn tesselate_path(
+    fn tesselate_path_stroke(
         p: &usvg::Path,
         buffers: &mut VertexBuffers<Vec2, u32>,
-        options: &StrokeOptions,
+        options: &TesselationOptions,
         offset: Vec2,
         scale: Vec2,
     ) -> Result<(), TessellationError> {
-        // let mut buffers_builder = BuffersBuilder::new(buffers, |pos: Vec2| pos);
-        let mut tessellator = StrokeTessellator::new();
+        let Some(stroke) = p.stroke() else {
+            return Ok(());
+        };
 
-        let mut options = *options;
-        if let Some(s) = p.stroke() {
-            options = convert_stroke(s, options).1
-        }
+        let mut tessellator = StrokeTessellator::new();
+        let options = convert_stroke(stroke, options.stroke).1;
 
         tessellator.tessellate(
             convert_path(p),
             &options,
             &mut BuffersBuilder::new(buffers, |vertex: lyon::tessellation::StrokeVertex| {
+                (Vec2::new(vertex.position().x, vertex.position().y) + offset) * scale
+            }),
+        )
+    }
+
+    fn tesselate_path_fill(
+        p: &usvg::Path,
+        buffers: &mut VertexBuffers<Vec2, u32>,
+        options: &TesselationOptions,
+        offset: Vec2,
+        scale: Vec2,
+    ) -> Result<(), TessellationError> {
+        let Some(fill) = p.fill() else {
+            return Ok(());
+        };
+
+        let mut tessellator = FillTessellator::new();
+        let options = convert_fill(fill, options.fill).1;
+
+        tessellator.tessellate(
+            convert_path(p),
+            &options,
+            &mut BuffersBuilder::new(buffers, |vertex: lyon::tessellation::FillVertex| {
                 (Vec2::new(vertex.position().x, vertex.position().y) + offset) * scale
             }),
         )

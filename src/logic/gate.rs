@@ -3,6 +3,7 @@ use crate::util::bounds::Bounds;
 use super::circuit::connection::Connectable;
 use glam::Vec2;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Gate {
     Input(bool),
     And,

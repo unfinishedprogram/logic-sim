@@ -56,13 +56,16 @@ impl Circuit {
 
     pub fn add_random_component(&mut self) {
         let position = vec2(rand::random::<f32>() * 100.0, rand::random::<f32>() * 100.0);
-        let gate = match rand::random::<u8>() % 4 {
-            0 => Gate::And,
-            1 => Gate::Or,
-            2 => Gate::Not,
-            3 => Gate::Buf,
-            _ => Gate::Xor,
-        };
+        let gates = [
+            Gate::And,
+            Gate::Or,
+            Gate::Not,
+            Gate::Buf,
+            Gate::Xor,
+            Gate::Xnor,
+            Gate::Nand,
+        ];
+        let gate = gates[rand::random::<usize>() % gates.len()];
 
         self.add_gate(gate, position);
     }

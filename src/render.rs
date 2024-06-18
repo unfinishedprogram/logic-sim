@@ -15,7 +15,7 @@ use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
     line::LineRenderer,
-    msdf::{sprite::sprite_sheet::SpriteSheet, sprite_renderer::SpriteRenderer, text::MsdfFont},
+    msdf::{sprite_renderer::SpriteRenderer, text::MsdfFont},
 };
 
 pub struct RenderState<'window> {
@@ -48,17 +48,9 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let dot_sprite_sheet = SpriteSheet::create(
-            &base.device,
-            &base.queue,
-            &serde_json::from_str(include_str!("../assets/dot/manifest.json")).unwrap(),
-            include_bytes!("../assets/dot/spritesheet-msdf.png"),
-        );
-
         let msdf_font_ref = msdf_font.reference(0);
 
-        let sprite_renderer =
-            SpriteRenderer::create(&base, vec![msdf_font.sprite_sheet, dot_sprite_sheet]);
+        let sprite_renderer = SpriteRenderer::create(&base, vec![msdf_font.sprite_sheet]);
 
         let line_renderer = line::LineRenderer::create(&base);
         let mut vector_renderer = vector::VectorRenderer::create(&base);
@@ -70,6 +62,10 @@ impl<'window> RenderState<'window> {
                 .load_svg(&format!("assets/objects/gates/{}.svg", name), Some(name))
                 .unwrap();
         }
+
+        vector_renderer
+            .load_svg("assets/objects/gates/dot.svg", Some("dot"))
+            .unwrap();
 
         Self {
             base,
