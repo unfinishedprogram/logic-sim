@@ -1,6 +1,6 @@
 use glam::Vec4;
 
-use super::{super::gate::Gate, Circuit, CircuitElement};
+use super::{super::gate::Gate, connection::IOSpecifier, Circuit, CircuitElement};
 use crate::render::{frame::Frame, line::cubic_bezier::CubicBezier};
 
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
@@ -47,6 +47,20 @@ impl Circuit {
                 Vec4::new(0.0, color, 0.0, 1.0),
                 frame.line_geo_buffers(),
             );
+        }
+
+        {
+            let dot_object = *frame.assets.vectors.get_vector("dot").unwrap();
+
+            for dot in self.connection_dots() {
+                let position = self.io_position(dot);
+                let color = match dot {
+                    IOSpecifier::Input(_) => Vec4::new(1.0, 0.0, 0.0, 1.0),
+                    IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
+                };
+
+                frame.draw_vector_with_color(dot_object, position, color);
+            }
         }
     }
 }

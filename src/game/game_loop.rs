@@ -1,4 +1,4 @@
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 
 use crate::{
     logic::{circuit::connection::IOSpecifier, hit_test::HitTestResult},
@@ -38,20 +38,6 @@ impl GameState {
     pub fn draw(&self, frame: &mut Frame) {
         self.text_object.draw(frame, &self.font);
         self.circuit.draw(frame);
-
-        {
-            let dot_object = *frame.assets.vectors.get_vector("dot").unwrap();
-
-            for dot in self.circuit.connection_dots() {
-                let position = self.circuit.io_position(dot);
-                let color = match dot {
-                    IOSpecifier::Input(_) => Vec4::new(1.0, 0.0, 0.0, 1.0),
-                    IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
-                };
-
-                frame.draw_vector_with_color(dot_object, position, color);
-            }
-        }
     }
 
     fn handle_inputs(&mut self, input_state: &InputState) {
