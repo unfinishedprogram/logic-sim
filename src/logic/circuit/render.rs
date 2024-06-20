@@ -53,6 +53,27 @@ impl Circuit {
             );
         }
 
+        // Draw connection preview while being made
+        if let Some(source_point) = match game_input.active {
+            Some(HitTestResult::IO(IOSpecifier::Input(input))) => {
+                let from_elm = &self[input.0];
+                Some(from_elm.gate.input_offsets()[input.1 .0] + from_elm.position)
+            }
+            Some(HitTestResult::IO(IOSpecifier::Output(output))) => {
+                let from_elm = &self[output.0];
+                Some(from_elm.gate.output_offset() + from_elm.position)
+            }
+            _ => None,
+        } {
+            let to = frame.input().mouse_world_position;
+            let line = CubicBezier::between_points(source_point, to);
+            line.tesselate(
+                0.05,
+                Vec4::new(1.0, 1.0, 1.0, 1.0),
+                frame.line_geo_buffers(),
+            );
+        }
+
         {
             let dot_object = VectorInstance::new(*frame.assets.vectors.get_vector("dot").unwrap());
 
