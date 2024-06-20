@@ -1,11 +1,10 @@
-use glam::Vec4;
-
+use super::Response;
 use crate::render::msdf::sprite_renderer::SpriteInstance;
 
-use super::Response;
+use glam::Vec4;
 
 impl<'a> Response<'a, SpriteInstance> {
-    pub fn on_click(mut self, on_click: impl FnOnce(Self) -> Self) -> Self {
+    pub fn on_click(self, on_click: impl FnOnce(Self) -> Self) -> Self {
         let mouse_position = self.frame.input().mouse_world_position;
         let is_colliding = self.item().is_colliding(mouse_position);
         if is_colliding {
@@ -16,7 +15,7 @@ impl<'a> Response<'a, SpriteInstance> {
     }
 
     pub fn color(mut self, color: Vec4) -> Self {
-        self.item().color = color;
+        self.item_mut().color = color;
         self
     }
 }

@@ -1,6 +1,7 @@
 use std::ops::IndexMut;
 
 mod sprite_instance;
+mod vector_instance;
 
 use crate::util::handle::Handle;
 
@@ -24,7 +25,11 @@ impl<'a, T> Response<'a, T>
 where
     RenderQueue: IndexMut<Handle<T>, Output = T>,
 {
-    pub fn item(&mut self) -> &mut T {
+    pub fn item_mut(&mut self) -> &mut T {
         &mut self.frame.render_queue[self.handle]
+    }
+
+    pub fn item(&self) -> &T {
+        &self.frame.render_queue[self.handle]
     }
 }

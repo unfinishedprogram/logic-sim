@@ -13,11 +13,11 @@ use crate::{
         camera::{Camera, CameraUniform},
         BaseRenderState,
     },
-    util::handle::Handle,
+    util::{bounds::Bounds, handle::Handle},
 };
 
 use super::{
-    instance::{VectorInstance, RawInstance},
+    instance::{RawInstance, VectorInstance},
     svg_geometry::{Error, SVGGeometry},
 };
 
@@ -274,8 +274,14 @@ impl VectorRenderer {
     }
 
     pub fn reference(&self) -> VectorRendererReference {
+        let mut hit_boxes = HashMap::new();
+        for obj in self.vector_lookup.values() {
+            hit_boxes.insert(*obj, self.vector_objects[obj.index].1.hit_box.into());
+        }
+
         VectorRendererReference {
             vectors: self.vector_lookup.clone(),
+            hit_boxes,
         }
     }
 }
@@ -283,6 +289,7 @@ impl VectorRenderer {
 #[derive(Clone)]
 pub struct VectorRendererReference {
     pub vectors: HashMap<String, Handle<SVGGeometry>>,
+    pub hit_boxes: HashMap<Handle<SVGGeometry>, Bounds>,
 }
 
 impl VectorRendererReference {

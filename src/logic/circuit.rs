@@ -43,12 +43,15 @@ impl Circuit {
         circuit.add_connection(b.to(InputSpecifier(xor, InputIdx(1))));
         circuit.add_connection(b.to(InputSpecifier(and, InputIdx(1))));
 
-        for _ in 0..10000 {
-            circuit.add_random_component()
-        }
+        // Benchmarking
+        if false {
+            for _ in 0..10000 {
+                circuit.add_random_component()
+            }
 
-        for _ in 0..10000 {
-            circuit.add_random_connection()
+            for _ in 0..10000 {
+                circuit.add_random_connection()
+            }
         }
 
         circuit
