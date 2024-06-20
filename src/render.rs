@@ -10,7 +10,7 @@ pub mod vertex;
 use frame::Frame;
 use msdf::text::MsdfFontReference;
 use vector::VectorRenderer;
-use wgpu::{Adapter, Color, Device, Queue, Surface, SurfaceConfiguration};
+use wgpu::{Color, Device, Queue, Surface, SurfaceConfiguration};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
@@ -30,7 +30,6 @@ pub struct RenderState<'window> {
 pub struct BaseRenderState<'window> {
     surface: Surface<'window>,
     pub surface_config: SurfaceConfiguration,
-    adapter: Adapter,
     device: Device,
     pub queue: Queue,
     swapchain_format: wgpu::TextureFormat,
@@ -48,7 +47,7 @@ impl<'window> RenderState<'window> {
             include_bytes!("../assets/custom.png"),
         );
 
-        let msdf_font_ref = msdf_font.reference(0);
+        let msdf_font_ref = msdf_font.reference();
 
         let sprite_renderer = SpriteRenderer::create(&base, vec![msdf_font.sprite_sheet]);
 
@@ -222,7 +221,6 @@ impl<'window> BaseRenderState<'window> {
         Self {
             surface,
             surface_config,
-            adapter,
             device,
             queue,
             swapchain_format,

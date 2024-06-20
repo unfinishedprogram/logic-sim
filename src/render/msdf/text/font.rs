@@ -11,10 +11,12 @@ pub struct MsdfFont {
     pub sprite_sheet: SpriteSheet,
 }
 
+const ASCII_RANGE: usize = 128;
+
 #[derive(Clone)]
 pub struct MsdfFontReference {
     unicode_lookup: HashMap<char, SpriteHandle>,
-    ascii_lookup: [SpriteHandle; 256],
+    ascii_lookup: [SpriteHandle; ASCII_RANGE],
     advance_lookup: HashMap<char, f32>,
 }
 
@@ -33,21 +35,21 @@ impl MsdfFontReference {
 }
 
 impl MsdfFont {
-    pub fn reference(&self, sheet_idx: usize) -> MsdfFontReference {
+    pub fn reference(&self) -> MsdfFontReference {
         let unicode_lookup = self
             .sprite_sheet
             .sprites
             .iter()
-            .map(|(k, v)| (k.chars().next().unwrap(), SpriteHandle::new(sheet_idx, *v)))
+            .map(|(k, v)| (k.chars().next().unwrap(), SpriteHandle::new(0, *v)))
             .collect();
 
-        let mut ascii_lookup = [SpriteHandle::new(sheet_idx, 0); 256];
+        let mut ascii_lookup = [SpriteHandle::new(0, 0); ASCII_RANGE];
 
         for (name, sprite) in &self.sprite_sheet.sprites {
             if name.len() == 1 {
                 let c = name.chars().next().unwrap();
                 if c.is_ascii() {
-                    ascii_lookup[c as usize] = SpriteHandle::new(sheet_idx, *sprite);
+                    ascii_lookup[c as usize] = SpriteHandle::new(0, *sprite);
                 }
             }
         }
