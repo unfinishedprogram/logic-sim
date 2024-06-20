@@ -77,9 +77,10 @@ impl<'window> RenderState<'window> {
 
     pub fn render(&mut self, frame: Frame) {
         let camera = frame.camera();
-        let lines = frame.lines();
-        let sprites = frame.sprites();
-        let vector_instances = frame.vector_instances();
+
+        let lines = frame.render_queue().lines();
+        let sprites = frame.render_queue().sprites();
+        let vector_instances = frame.render_queue().vector_instances();
 
         let surface = self
             .base

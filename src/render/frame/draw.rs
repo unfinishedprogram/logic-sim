@@ -28,16 +28,16 @@ impl Frame {
     }
 
     pub fn draw_sprite_instance(&mut self, sprite: SpriteInstance) -> Response<SpriteInstance> {
-        let instance_index = self.sprites.len();
-        self.sprites.push(sprite);
+        let instance_index = self.render_queue.sprites.len();
+        self.render_queue.sprites.push(sprite);
         self.response(Handle::new(instance_index))
     }
 
     pub fn line_geo_buffers(&mut self) -> &mut VertexBuffers<VertexUV, u32> {
-        &mut self.lines
+        &mut self.render_queue.lines
     }
 
     pub fn draw_vector(&mut self, instance: vector::Instance) {
-        self.vector_instances.push(instance)
+        self.render_queue.vector_instances.push(instance)
     }
 }
