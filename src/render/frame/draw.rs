@@ -4,7 +4,7 @@ use lyon::tessellation::VertexBuffers;
 use crate::{
     render::{
         msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
-        vector,
+        vector::VectorInstance,
         vertex::VertexUV,
     },
     util::handle::Handle,
@@ -37,7 +37,7 @@ impl Frame {
         &mut self.render_queue.lines
     }
 
-    pub fn draw_vector(&mut self, instance: vector::Instance) {
+    pub fn draw_vector(&mut self, instance: VectorInstance) {
         self.render_queue.vector_instances.push(instance)
     }
 }

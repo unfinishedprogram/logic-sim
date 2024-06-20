@@ -7,14 +7,14 @@ use crate::util::handle::Handle;
 use super::svg_geometry::SVGGeometry;
 
 #[derive(Clone, Copy)]
-pub struct Instance {
+pub struct VectorInstance {
     pub id: Handle<SVGGeometry>,
     pub transform: Vec2,
     pub scale: Vec2,
     pub color: Vec4,
 }
 
-impl Instance {
+impl VectorInstance {
     #[inline(always)]
     pub fn new(id: Handle<SVGGeometry>) -> Self {
         Self {
@@ -52,8 +52,8 @@ pub struct RawInstance {
     pub color: Vec4,
 }
 
-impl From<Instance> for RawInstance {
-    fn from(value: Instance) -> Self {
+impl From<VectorInstance> for RawInstance {
+    fn from(value: VectorInstance) -> Self {
         Self {
             transform: value.transform,
             scale: value.scale,

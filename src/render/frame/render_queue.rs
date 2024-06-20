@@ -3,14 +3,14 @@ mod handles;
 use lyon::tessellation::VertexBuffers;
 
 use crate::{
-    render::{msdf::sprite_renderer::SpriteInstance, vector, vertex::VertexUV},
+    render::{msdf::sprite_renderer::SpriteInstance, vector::VectorInstance, vertex::VertexUV},
     util::handle::Handle,
 };
 
 pub struct RenderQueue {
     pub sprites: Vec<SpriteInstance>,
     pub lines: VertexBuffers<VertexUV, u32>,
-    pub vector_instances: Vec<vector::Instance>,
+    pub vector_instances: Vec<VectorInstance>,
 }
 
 impl RenderQueue {
@@ -28,7 +28,7 @@ impl RenderQueue {
         Handle::new(index)
     }
 
-    pub fn enqueue_vector(&mut self, instance: vector::Instance) -> Handle<vector::Instance> {
+    pub fn enqueue_vector(&mut self, instance: VectorInstance) -> Handle<VectorInstance> {
         let index = self.vector_instances.len();
         self.vector_instances.push(instance);
         Handle::new(index)
@@ -42,7 +42,7 @@ impl RenderQueue {
         &self.lines
     }
 
-    pub fn vector_instances(&self) -> &[vector::Instance] {
+    pub fn vector_instances(&self) -> &[VectorInstance] {
         &self.vector_instances
     }
 }

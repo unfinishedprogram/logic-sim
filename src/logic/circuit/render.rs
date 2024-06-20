@@ -3,7 +3,7 @@ use glam::{Vec2, Vec4};
 use super::{super::gate::Gate, connection::IOSpecifier, Circuit, CircuitElement};
 use crate::{
     logic::hit_test::HitTestResult,
-    render::{frame::Frame, line::cubic_bezier::CubicBezier, vector},
+    render::{frame::Frame, line::cubic_bezier::CubicBezier, vector::VectorInstance},
 };
 
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
@@ -24,7 +24,7 @@ impl CircuitElement {
     pub fn draw(&self, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate).unwrap();
         let vector_handle = *frame.assets.vectors.get_vector(sprite).unwrap();
-        frame.draw_vector(vector::Instance::new(vector_handle).with_transform(self.position));
+        frame.draw_vector(VectorInstance::new(vector_handle).with_transform(self.position));
     }
 }
 
@@ -53,8 +53,7 @@ impl Circuit {
         }
 
         {
-            let dot_object =
-                vector::Instance::new(*frame.assets.vectors.get_vector("dot").unwrap());
+            let dot_object = VectorInstance::new(*frame.assets.vectors.get_vector("dot").unwrap());
 
             for dot in self.connection_dots() {
                 let position = self.io_position(dot);

@@ -17,7 +17,7 @@ use crate::{
 };
 
 use super::{
-    instance::{Instance, RawInstance},
+    instance::{VectorInstance, RawInstance},
     svg_geometry::{Error, SVGGeometry},
 };
 
@@ -37,7 +37,7 @@ pub struct VectorRenderer {
 
     vector_objects: Vec<(VectorObjectMeta, SVGGeometry)>,
     vector_lookup: HashMap<String, Handle<SVGGeometry>>,
-    render_queue: Vec<Vec<Instance>>,
+    render_queue: Vec<Vec<VectorInstance>>,
 }
 
 fn vec2_buffer_descriptor() -> wgpu::VertexBufferLayout<'static> {
@@ -103,7 +103,7 @@ impl VectorRenderer {
     }
 
     // Loads vector instances to be rendered
-    pub fn upload_instances(&mut self, queue: &wgpu::Queue, instances: &[Instance]) {
+    pub fn upload_instances(&mut self, queue: &wgpu::Queue, instances: &[VectorInstance]) {
         self.update_geometry(queue);
 
         let mut sorted: Vec<Vec<RawInstance>> = vec![vec![]; self.vector_objects.len()];
@@ -269,7 +269,7 @@ impl VectorRenderer {
         handle
     }
 
-    pub fn render_instance(&mut self, instance: Instance) {
+    pub fn render_instance(&mut self, instance: VectorInstance) {
         self.render_queue[instance.id.index].push(instance);
     }
 
