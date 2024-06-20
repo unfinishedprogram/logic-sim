@@ -2,6 +2,7 @@ use glam::{Vec2, Vec4};
 
 use super::{super::gate::Gate, connection::IOSpecifier, Circuit, CircuitElement};
 use crate::{
+    game::GameInput,
     logic::hit_test::HitTestResult,
     render::{frame::Frame, line::cubic_bezier::CubicBezier, vector::VectorInstance},
 };
@@ -29,7 +30,7 @@ impl CircuitElement {
 }
 
 impl Circuit {
-    pub fn draw(&self, frame: &mut Frame, hot: &Option<HitTestResult>) {
+    pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
         for element in &self.elements {
             element.draw(frame);
         }
@@ -62,8 +63,8 @@ impl Circuit {
                     IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
                 };
 
-                let scale = match hot {
-                    Some(HitTestResult::IO(hot_dot)) if *hot_dot == dot => Vec2::splat(1.2),
+                let scale = match game_input.hot {
+                    Some(HitTestResult::IO(hot_dot)) if hot_dot == dot => Vec2::splat(1.2),
                     _ => Vec2::splat(1.0),
                 };
 

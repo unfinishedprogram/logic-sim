@@ -1,3 +1,4 @@
+mod elements;
 pub mod game_loop;
 pub mod input;
 use glam::Vec2;
@@ -20,9 +21,16 @@ pub struct GameState {
     pub sprites: SpriteRendererReference,
     pub font: MsdfFontReference,
     circuit: Circuit,
+
+    pub input: GameInput,
+
+    pub stopwatch: Stopwatch,
+}
+
+#[derive(Default)]
+pub struct GameInput {
     pub hot: Option<HitTestResult>,
     pub active: Option<HitTestResult>,
-    pub stopwatch: Stopwatch,
 }
 
 impl GameState {
@@ -39,8 +47,7 @@ impl GameState {
             font,
             sprites,
             circuit: Circuit::test_circuit(),
-            hot: None,
-            active: None,
+            input: GameInput::default(),
             stopwatch: Stopwatch::default(),
         }
     }
@@ -48,8 +55,8 @@ impl GameState {
     pub fn debug_text(&self) -> String {
         format!(
             "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms",
-            self.hot,
-            self.active,
+            self.input.hot,
+            self.input.hot,
             self.stopwatch.running_average().as_millis_f32()
         )
     }

@@ -5,7 +5,7 @@ use crate::{
     render::{frame::Frame, msdf::sprite_renderer::SpriteInstance},
 };
 
-use super::{input::InputState, GameState};
+use super::{input::InputState, GameInput, GameState};
 
 impl SpriteInstance {
     pub fn is_colliding(&self, position: Vec2) -> bool {
@@ -37,7 +37,7 @@ impl GameState {
 
     pub fn draw(&self, frame: &mut Frame) {
         self.text_object.draw(frame, &self.font);
-        self.circuit.draw(frame, &self.hot);
+        self.circuit.draw(frame, &self.input);
     }
 
     fn handle_inputs(&mut self, input_state: &InputState) {
@@ -46,34 +46,37 @@ impl GameState {
         let hovering = self.circuit.hit_test(input_state.mouse_world_position);
 
         if input_state.left_mouse.pressed {
-            self.active = hovering;
+            self.input.active = hovering;
         }
 
-        match (self.active, hovering) {
-            (Some(HitTestResult::Element(elm)), _) if input_state.left_mouse.down => {
+        match self.input {
+            GameInput {
+                active: Some(HitTestResult::Element(elm)),
+                ..
+            } if input_state.left_mouse.down => {
                 self.circuit[elm].position += input_state.mouse_world_position_delta;
             }
-            (
-                Some(HitTestResult::IO(IOSpecifier::Output(output))),
-                Some(HitTestResult::IO(IOSpecifier::Input(input))),
-            )
-            | (
-                Some(HitTestResult::IO(IOSpecifier::Input(input))),
-                Some(HitTestResult::IO(IOSpecifier::Output(output))),
-            ) if input_state.left_mouse.released => {
+            GameInput {
+                hot: Some(HitTestResult::IO(IOSpecifier::Output(output))),
+                active: Some(HitTestResult::IO(IOSpecifier::Input(input))),
+            }
+            | GameInput {
+                hot: Some(HitTestResult::IO(IOSpecifier::Input(input))),
+                active: Some(HitTestResult::IO(IOSpecifier::Output(output))),
+            } if input_state.left_mouse.released => {
                 self.circuit.add_connection(output.to(input));
             }
-            (_, Some(HitTestResult::IO(spec))) if input_state.right_mouse.pressed => {
-                self.circuit.delete_connections(spec)
-            }
+            GameInput {
+                hot: Some(HitTestResult::IO(spec)),
+                ..
+            } if input_state.right_mouse.pressed => self.circuit.delete_connections(spec),
             _ => {}
         }
 
         if input_state.left_mouse.released {
-            self.active = None;
+            self.input.active = None;
         }
-
-        self.hot = hovering;
+        self.input.hot = hovering;
     }
 
     fn camera_move(&mut self, input_state: &InputState) {
