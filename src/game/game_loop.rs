@@ -2,7 +2,7 @@ use glam::Vec2;
 
 use crate::{
     logic::{circuit::connection::IOSpecifier, hit_test::HitTestResult},
-    render::{frame::Frame, msdf::sprite::sprite_sheet::SpriteInstance},
+    render::{frame::Frame, msdf::sprite_renderer::SpriteInstance},
 };
 
 use super::{input::InputState, GameState};

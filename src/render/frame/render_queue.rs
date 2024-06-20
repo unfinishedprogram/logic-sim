@@ -3,7 +3,7 @@ mod handles;
 use lyon::tessellation::VertexBuffers;
 
 use crate::{
-    render::{msdf::sprite::sprite_sheet::SpriteInstance, vector, vertex::VertexUV},
+    render::{msdf::sprite_renderer::SpriteInstance, vector, vertex::VertexUV},
     util::handle::Handle,
 };
 

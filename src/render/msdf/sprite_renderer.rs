@@ -1,6 +1,11 @@
-mod sprite_handle;
+mod handle;
+mod instance;
+pub mod sheet;
 
-pub use sprite_handle::SpriteHandle;
+pub use handle::SpriteHandle;
+pub use instance::SpriteInstance;
+use sheet::Sprite;
+pub use sheet::SpriteSheet;
 
 use std::{
     collections::HashMap,
@@ -18,8 +23,6 @@ use crate::render::{
     vertex::VertexUV,
     BaseRenderState,
 };
-
-use super::sprite::sprite_sheet::{Sprite, SpriteInstance, SpriteSheet};
 
 pub struct SpriteRenderer {
     render_pipeline: RenderPipeline,

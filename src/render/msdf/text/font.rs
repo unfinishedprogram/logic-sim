@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use wgpu::{Device, Queue};
 
-use crate::render::msdf::{sprite::sprite_sheet::SpriteSheet, sprite_renderer::SpriteHandle};
+use crate::render::msdf::sprite_renderer::{SpriteHandle, SpriteSheet};
 
 use super::Manifest;
 

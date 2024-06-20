@@ -1,6 +1,6 @@
 use glam::Vec4;
 
-use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
+use crate::render::msdf::sprite_renderer::SpriteInstance;
 
 use super::Response;
 

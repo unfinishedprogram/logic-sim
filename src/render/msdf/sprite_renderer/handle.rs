@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4};
 
-use crate::render::msdf::sprite::sprite_sheet::SpriteInstance;
+use super::SpriteInstance;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpriteSheetHandle {

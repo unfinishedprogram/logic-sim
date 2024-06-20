@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 use crate::{
-    render::{msdf::sprite::sprite_sheet::SpriteInstance, vector},
+    render::{msdf::sprite_renderer::SpriteInstance, vector},
     util::handle::Handle,
 };
 

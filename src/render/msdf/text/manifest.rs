@@ -1,7 +1,9 @@
 use glam::Vec2;
 use serde::Deserialize;
 
-use crate::render::msdf::sprite::sprite_sheet::{self, Bounds};
+use crate::render::msdf::sprite_renderer::{self};
+
+use crate::render::msdf::sprite_renderer::sheet as sprite_sheet;
 
 #[derive(Deserialize, Clone)]
 pub struct Manifest {
@@ -15,9 +17,9 @@ pub struct Glyph {
     pub unicode: u32,
     pub advance: f32,
     #[serde(rename = "planeBounds")]
-    pub plane_bounds: Option<Bounds>,
+    pub plane_bounds: Option<sprite_sheet::Bounds>,
     #[serde(rename = "atlasBounds")]
-    pub atlas_bounds: Option<Bounds>,
+    pub atlas_bounds: Option<sprite_sheet::Bounds>,
 }
 
 #[derive(Deserialize, Clone)]
@@ -34,8 +36,8 @@ pub struct Atlas {
     pub _y_origin: String,
 }
 
-impl From<&Bounds> for (Vec2, Vec2) {
-    fn from(val: &Bounds) -> Self {
+impl From<&sprite_sheet::Bounds> for (Vec2, Vec2) {
+    fn from(val: &sprite_sheet::Bounds) -> Self {
         (
             Vec2::new(val.left, val.top),
             Vec2::new(val.right, val.bottom),
@@ -43,7 +45,7 @@ impl From<&Bounds> for (Vec2, Vec2) {
     }
 }
 
-impl From<Atlas> for sprite_sheet::Atlas {
+impl From<Atlas> for sprite_renderer::sheet::Atlas {
     fn from(val: Atlas) -> Self {
         sprite_sheet::Atlas {
             distance_range: val.distance_range,

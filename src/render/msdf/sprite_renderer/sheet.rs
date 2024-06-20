@@ -1,14 +1,13 @@
 use std::collections::HashMap;
 
 use bytemuck::{Pod, Zeroable};
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 use serde::Deserialize;
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
-use crate::render::{
-    geometry::TexturedQuad, img_texture::ImageTexture, msdf::sprite_renderer::SpriteHandle,
-    vertex::VertexUV,
-};
+use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV};
+
+use super::SpriteInstance;
 
 pub struct SpriteSheet {
     pub name: &'static str,
@@ -16,14 +15,6 @@ pub struct SpriteSheet {
     pub sprites: HashMap<String, usize>,
     pub sprites_vec: Vec<Sprite>,
     _texture: ImageTexture,
-}
-
-#[derive(Clone, Copy)]
-pub struct SpriteInstance {
-    pub sprite_handle: SpriteHandle,
-    pub position: Vec2,
-    pub scale: f32,
-    pub color: Vec4,
 }
 
 pub struct Sprite {

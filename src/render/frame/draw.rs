@@ -3,7 +3,7 @@ use lyon::tessellation::VertexBuffers;
 
 use crate::{
     render::{
-        msdf::{sprite::sprite_sheet::SpriteInstance, sprite_renderer::SpriteHandle},
+        msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
         vector,
         vertex::VertexUV,
     },
