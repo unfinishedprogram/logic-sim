@@ -18,7 +18,7 @@ use crate::{
 
 use super::{
     instance::{Instance, RawInstance},
-    vector_object::{Error, VectorObject},
+    svg_geometry::{Error, SVGGeometry},
 };
 
 #[derive(Default, Clone, Debug)]
@@ -35,8 +35,8 @@ pub struct VectorRenderer {
     instance_buffer: Buffer,
     camera_binding: CameraUniform,
 
-    vector_objects: Vec<(VectorObjectMeta, VectorObject)>,
-    vector_lookup: HashMap<String, Handle<VectorObject>>,
+    vector_objects: Vec<(VectorObjectMeta, SVGGeometry)>,
+    vector_lookup: HashMap<String, Handle<SVGGeometry>>,
     render_queue: Vec<Vec<Instance>>,
 }
 
@@ -231,12 +231,12 @@ impl VectorRenderer {
         &mut self,
         path: &str,
         name: Option<&str>,
-    ) -> Result<Handle<VectorObject>, Error> {
-        let obj = VectorObject::load_svg_form_path(path, name)?;
+    ) -> Result<Handle<SVGGeometry>, Error> {
+        let obj = SVGGeometry::load_svg_form_path(path, name)?;
         Ok(self.add_vector_object(obj))
     }
 
-    fn next_vector_object_meta(&self, obj: &VectorObject) -> VectorObjectMeta {
+    fn next_vector_object_meta(&self, obj: &SVGGeometry) -> VectorObjectMeta {
         let previous_meta = self
             .vector_objects
             .last()
@@ -255,7 +255,7 @@ impl VectorRenderer {
         }
     }
 
-    fn add_vector_object(&mut self, vector_object: VectorObject) -> Handle<VectorObject> {
+    fn add_vector_object(&mut self, vector_object: SVGGeometry) -> Handle<SVGGeometry> {
         let handle = Handle::new(self.vector_objects.len());
 
         self.vector_lookup
@@ -282,11 +282,11 @@ impl VectorRenderer {
 
 #[derive(Clone)]
 pub struct VectorRendererReference {
-    pub vectors: HashMap<String, Handle<VectorObject>>,
+    pub vectors: HashMap<String, Handle<SVGGeometry>>,
 }
 
 impl VectorRendererReference {
-    pub fn get_vector(&self, name: &str) -> Option<&Handle<VectorObject>> {
+    pub fn get_vector(&self, name: &str) -> Option<&Handle<SVGGeometry>> {
         self.vectors.get(name)
     }
 }

@@ -4,11 +4,11 @@ use wgpu::vertex_attr_array;
 
 use crate::util::handle::Handle;
 
-use super::vector_object::VectorObject;
+use super::svg_geometry::SVGGeometry;
 
 #[derive(Clone, Copy)]
 pub struct Instance {
-    pub id: Handle<VectorObject>,
+    pub id: Handle<SVGGeometry>,
     pub transform: Vec2,
     pub scale: Vec2,
     pub color: Vec4,
@@ -16,7 +16,7 @@ pub struct Instance {
 
 impl Instance {
     #[inline(always)]
-    pub fn new(id: Handle<VectorObject>) -> Self {
+    pub fn new(id: Handle<SVGGeometry>) -> Self {
         Self {
             id,
             transform: Vec2::ZERO,

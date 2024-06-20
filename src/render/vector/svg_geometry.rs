@@ -12,7 +12,7 @@ const TOLERANCE: f32 = 0.01;
 use super::svg_convert::{convert_fill, convert_path, convert_stroke};
 
 #[derive(Debug)]
-pub struct VectorObject {
+pub struct SVGGeometry {
     pub name: String,
     pub vertex_buffers: VertexBuffers<Vec2, u32>,
     pub hit_box: Rect,
@@ -23,8 +23,8 @@ pub struct TesselationOptions {
     pub stroke: StrokeOptions,
 }
 
-impl VectorObject {
-    pub fn load_svg_from_str(text: &str, name: &str) -> Result<VectorObject, Error> {
+impl SVGGeometry {
+    pub fn load_svg_from_str(text: &str, name: &str) -> Result<SVGGeometry, Error> {
         let svg = usvg::Tree::from_str(text, &usvg::Options::default())?;
 
         let options = TesselationOptions {
@@ -50,14 +50,14 @@ impl VectorObject {
             scale,
         )?;
 
-        Ok(VectorObject {
+        Ok(SVGGeometry {
             name: name.to_string(),
             vertex_buffers,
             hit_box,
         })
     }
 
-    pub fn load_svg_form_path(path: &str, name: Option<&str>) -> Result<VectorObject, Error> {
+    pub fn load_svg_form_path(path: &str, name: Option<&str>) -> Result<SVGGeometry, Error> {
         let svg_text = fs::read_to_string(path)?;
         Self::load_svg_from_str(&svg_text, name.unwrap_or(path))
     }
