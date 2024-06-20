@@ -18,8 +18,9 @@ struct VertexOutput {
 struct VertexInput {
     @builtin(vertex_index) in_vertex_index: u32,
     @location(0) vert_pos_2d: vec2<f32>,
-    @location(1) position: vec4<f32>,
-    @location(2) color: vec4<f32>,
+    @location(1) position: vec2<f32>,
+    @location(2) scale: vec2<f32>,
+    @location(3) color: vec4<f32>,
 }
 
 @vertex
@@ -27,7 +28,9 @@ fn vs_main(
     in: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;
-    out.clip_pos = vec4f((in.vert_pos_2d - camera.center + in.position.xy) / camera.size, 0.0, 1.0) * vec4f(1.0, -1.0, 1.0, 1.0);
+    let pos_2d = ((in.vert_pos_2d * in.scale) - camera.center + in.position) / camera.size;
+
+    out.clip_pos = vec4f(pos_2d, 0.0, 1.0) * vec4f(1.0, -1.0, 1.0, 1.0);
     out.color = in.color;
     return out;
 }

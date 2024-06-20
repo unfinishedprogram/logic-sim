@@ -1,7 +1,10 @@
-use glam::Vec4;
+use glam::{Vec2, Vec4};
 
 use super::{super::gate::Gate, connection::IOSpecifier, Circuit, CircuitElement};
-use crate::render::{frame::Frame, line::cubic_bezier::CubicBezier};
+use crate::{
+    logic::hit_test::HitTestResult,
+    render::{frame::Frame, line::cubic_bezier::CubicBezier, vector},
+};
 
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
     match gate {
@@ -21,12 +24,12 @@ impl CircuitElement {
     pub fn draw(&self, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate).unwrap();
         let vector_handle = *frame.assets.vectors.get_vector(sprite).unwrap();
-        frame.draw_vector(vector_handle, self.position);
+        frame.draw_vector(vector::Instance::new(vector_handle).with_transform(self.position));
     }
 }
 
 impl Circuit {
-    pub fn draw(&self, frame: &mut Frame) {
+    pub fn draw(&self, frame: &mut Frame, hot: &Option<HitTestResult>) {
         for element in &self.elements {
             element.draw(frame);
         }
@@ -50,7 +53,8 @@ impl Circuit {
         }
 
         {
-            let dot_object = *frame.assets.vectors.get_vector("dot").unwrap();
+            let dot_object =
+                vector::Instance::new(*frame.assets.vectors.get_vector("dot").unwrap());
 
             for dot in self.connection_dots() {
                 let position = self.io_position(dot);
@@ -59,7 +63,17 @@ impl Circuit {
                     IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
                 };
 
-                frame.draw_vector_with_color(dot_object, position, color);
+                let scale = match hot {
+                    Some(HitTestResult::IO(hot_dot)) if *hot_dot == dot => Vec2::splat(1.2),
+                    _ => Vec2::splat(1.0),
+                };
+
+                frame.draw_vector(
+                    dot_object
+                        .with_color(color)
+                        .with_transform(position)
+                        .with_scale(scale),
+                );
             }
         }
     }

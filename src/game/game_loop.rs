@@ -37,7 +37,7 @@ impl GameState {
 
     pub fn draw(&self, frame: &mut Frame) {
         self.text_object.draw(frame, &self.font);
-        self.circuit.draw(frame);
+        self.circuit.draw(frame, &self.hot);
     }
 
     fn handle_inputs(&mut self, input_state: &InputState) {
