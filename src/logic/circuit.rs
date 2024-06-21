@@ -6,7 +6,10 @@ use std::{
 use glam::{vec2, Vec2};
 
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
-use crate::util::bounds::Bounds;
+use crate::{
+    game::{input::InputState, GameInput},
+    util::bounds::Bounds,
+};
 
 pub mod connection;
 mod render;
@@ -57,7 +60,7 @@ impl Circuit {
         circuit
     }
 
-    pub fn add_random_component(&mut self) {
+    fn add_random_component(&mut self) {
         let position = vec2(rand::random::<f32>() * 100.0, rand::random::<f32>() * 100.0);
         let gates = [
             Gate::And,
@@ -73,7 +76,7 @@ impl Circuit {
         self.add_gate(gate, position);
     }
 
-    pub fn add_random_connection(&mut self) {
+    fn add_random_connection(&mut self) {
         let from = OutputSpecifier(
             ElementIdx(rand::random::<usize>() % self.elements.len()),
             OutputIdx(0),
@@ -168,7 +171,7 @@ impl Circuit {
         None
     }
 
-    pub fn connection_dots(&self) -> impl Iterator<Item = IOSpecifier> + '_ {
+    fn connection_dots(&self) -> impl Iterator<Item = IOSpecifier> + '_ {
         self.elements
             .iter()
             .enumerate()
@@ -189,7 +192,7 @@ impl Circuit {
             })
     }
 
-    pub fn io_position(&self, spec: impl Into<IOSpecifier>) -> Vec2 {
+    fn io_position(&self, spec: impl Into<IOSpecifier>) -> Vec2 {
         let spec = spec.into();
         let element = &self[spec.element()];
         let offset = match spec {
@@ -200,6 +203,32 @@ impl Circuit {
         };
 
         element.position + offset
+    }
+
+    pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &GameInput) {
+        match game_input {
+            GameInput {
+                active: Some(HitTestResult::Element(elm)),
+                ..
+            } if input_state.left_mouse.down => {
+                self[*elm].position += input_state.mouse_world_position_delta;
+            }
+            GameInput {
+                hot: Some(HitTestResult::IO(IOSpecifier::Output(output))),
+                active: Some(HitTestResult::IO(IOSpecifier::Input(input))),
+            }
+            | GameInput {
+                hot: Some(HitTestResult::IO(IOSpecifier::Input(input))),
+                active: Some(HitTestResult::IO(IOSpecifier::Output(output))),
+            } if input_state.left_mouse.released => {
+                self.add_connection(output.to(*input));
+            }
+            GameInput {
+                hot: Some(HitTestResult::IO(spec)),
+                ..
+            } if input_state.right_mouse.pressed => self.delete_connections(*spec),
+            _ => {}
+        }
     }
 }
 

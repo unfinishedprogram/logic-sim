@@ -1,11 +1,8 @@
 use glam::Vec2;
 
-use crate::{
-    logic::{circuit::connection::IOSpecifier, hit_test::HitTestResult},
-    render::{frame::Frame, msdf::sprite_renderer::SpriteInstance},
-};
+use crate::render::{frame::Frame, msdf::sprite_renderer::SpriteInstance};
 
-use super::{input::InputState, GameInput, GameState};
+use super::{input::InputState, GameState};
 
 impl SpriteInstance {
     pub fn is_colliding(&self, position: Vec2) -> bool {
@@ -49,29 +46,7 @@ impl GameState {
             self.input.active = hovering;
         }
 
-        match self.input {
-            GameInput {
-                active: Some(HitTestResult::Element(elm)),
-                ..
-            } if input_state.left_mouse.down => {
-                self.circuit[elm].position += input_state.mouse_world_position_delta;
-            }
-            GameInput {
-                hot: Some(HitTestResult::IO(IOSpecifier::Output(output))),
-                active: Some(HitTestResult::IO(IOSpecifier::Input(input))),
-            }
-            | GameInput {
-                hot: Some(HitTestResult::IO(IOSpecifier::Input(input))),
-                active: Some(HitTestResult::IO(IOSpecifier::Output(output))),
-            } if input_state.left_mouse.released => {
-                self.circuit.add_connection(output.to(input));
-            }
-            GameInput {
-                hot: Some(HitTestResult::IO(spec)),
-                ..
-            } if input_state.right_mouse.pressed => self.circuit.delete_connections(spec),
-            _ => {}
-        }
+        self.circuit.handle_inputs(input_state, &self.input);
 
         if input_state.left_mouse.released {
             self.input.active = None;
