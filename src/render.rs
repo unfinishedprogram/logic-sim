@@ -8,10 +8,14 @@ pub mod line;
 pub mod msdf;
 pub mod vector;
 pub mod vertex;
+use std::any::type_name;
+
 use frame::Frame;
 use msdf::text::MsdfFontReference;
 use vector::VectorRenderer;
-use wgpu::{Color, Device, Queue, Surface, SurfaceConfiguration};
+use wgpu::{
+    Color, Device, Queue, ShaderModule, ShaderModuleDescriptor, Surface, SurfaceConfiguration,
+};
 use winit::{dpi::PhysicalSize, window::Window};
 
 use self::{
@@ -236,5 +240,37 @@ impl<'window> BaseRenderState<'window> {
         self.surface_config.height = new_size.height.max(1);
 
         self.surface.configure(&self.device, &self.surface_config);
+    }
+
+    // Helpers
+    pub fn create_shader_module(&self, desc: ShaderModuleDescriptor<'_>) -> ShaderModule {
+        self.device.create_shader_module(desc)
+    }
+
+    pub fn create_vertex_buffer<T>(&self, size: u64) -> wgpu::Buffer {
+        self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some(&format!("{}: Vertex Buffer", type_name::<T>())),
+            size,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        })
+    }
+
+    pub fn create_instance_buffer<T>(&self, size: u64) -> wgpu::Buffer {
+        self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some(&format!("{}: Instance Buffer", type_name::<T>())),
+            size,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        })
+    }
+
+    pub fn create_index_buffer<T>(&self, size: u64) -> wgpu::Buffer {
+        self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some(&format!("{}: Index Buffer", type_name::<T>())),
+            size,
+            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        })
     }
 }

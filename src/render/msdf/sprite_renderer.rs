@@ -8,14 +8,13 @@ use sheet::Sprite;
 pub use sheet::SpriteSheet;
 
 use std::{
-    any::type_name,
     collections::HashMap,
     ops::{Index, Range},
 };
 
 use wgpu::{
-    include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages, ColorTargetState,
-    Device, PipelineLayout, RenderPass, RenderPipeline, ShaderModule,
+    include_wgsl, BindGroupLayout, Buffer, ColorTargetState, Device, PipelineLayout, RenderPass,
+    RenderPipeline, ShaderModule,
 };
 
 use crate::render::{
@@ -51,9 +50,10 @@ impl Index<SpriteHandle> for SpriteRenderer {
 
 impl SpriteRenderer {
     pub fn create(base: &BaseRenderState, sprite_sheets: Vec<SpriteSheet>) -> Self {
-        let shader_module = Self::shader_module(&base.device);
-        let vertex_buffer = Self::vertex_buffer(&base.device);
-        let index_buffer = Self::index_buffer(&base.device);
+        let shader_module = base.create_shader_module(include_wgsl!("shader.wgsl"));
+        let vertex_buffer = base.create_vertex_buffer::<Self>(8192 * 8192);
+        let index_buffer = base.create_index_buffer::<Self>(8192 * 512);
+
         let camera_binding = CameraUniform::create(&base.device);
 
         let render_pipeline = Self::create_render_pipeline(base, &shader_module, &camera_binding);
@@ -102,29 +102,6 @@ impl SpriteRenderer {
             .collect();
 
         SpriteRendererReference { sheets }
-    }
-
-    fn index_buffer(device: &Device) -> Buffer {
-        device.create_buffer(&BufferDescriptor {
-            label: Some("Sprite Renderer Index Buffer"),
-            size: 8192 * 512,
-            usage: BufferUsages::INDEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        })
-    }
-
-    fn vertex_buffer(device: &Device) -> Buffer {
-        type_name::<Self>();
-        device.create_buffer(&BufferDescriptor {
-            label: Some("Sprite Renderer Vertex Buffer"),
-            size: 8192 * 8192,
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        })
-    }
-
-    fn shader_module(device: &Device) -> ShaderModule {
-        device.create_shader_module(include_wgsl!("shader.wgsl"))
     }
 
     fn pipeline_layout(device: &Device, bind_group_layouts: &[&BindGroupLayout]) -> PipelineLayout {

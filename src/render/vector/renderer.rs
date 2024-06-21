@@ -2,9 +2,8 @@ use std::collections::HashMap;
 
 use glam::Vec2;
 use wgpu::{
-    include_wgsl, vertex_attr_array, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages,
-    ColorTargetState, Device, IndexFormat, PipelineLayout, RenderPass, RenderPipeline,
-    ShaderModule,
+    include_wgsl, vertex_attr_array, BindGroupLayout, Buffer, ColorTargetState, Device,
+    IndexFormat, PipelineLayout, RenderPass, RenderPipeline, ShaderModule,
 };
 
 use crate::{
@@ -50,10 +49,11 @@ fn vec2_buffer_descriptor() -> wgpu::VertexBufferLayout<'static> {
 
 impl VectorRenderer {
     pub fn create(base: &BaseRenderState) -> Self {
-        let shader_module = Self::shader_module(&base.device);
-        let vertex_buffer = Self::vertex_buffer(&base.device);
-        let index_buffer = Self::index_buffer(&base.device);
-        let instance_buffer = Self::instance_buffer(&base.device);
+        let shader_module = base.create_shader_module(include_wgsl!("shader.wgsl"));
+
+        let vertex_buffer = base.create_vertex_buffer::<Self>(8192 * 8192);
+        let index_buffer = base.create_index_buffer::<Self>(8192 * 512);
+        let instance_buffer = base.create_instance_buffer::<Self>(8192 * 512);
 
         let camera_binding = CameraUniform::create(&base.device);
 
@@ -124,37 +124,6 @@ impl VectorRenderer {
         };
 
         queue.write_buffer(&self.instance_buffer, 0, &instance_data);
-    }
-
-    fn vertex_buffer(device: &Device) -> Buffer {
-        device.create_buffer(&BufferDescriptor {
-            label: Some("Vector Renderer Vertex Buffer"),
-            size: 8192 * 8192,
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        })
-    }
-
-    fn index_buffer(device: &Device) -> Buffer {
-        device.create_buffer(&BufferDescriptor {
-            label: Some("Vector Renderer Index Buffer"),
-            size: 8192 * 512,
-            usage: BufferUsages::INDEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        })
-    }
-
-    fn instance_buffer(device: &Device) -> Buffer {
-        device.create_buffer(&BufferDescriptor {
-            label: Some("Vector Renderer Instance Buffer"),
-            size: 8192 * 8192,
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        })
-    }
-
-    fn shader_module(device: &Device) -> ShaderModule {
-        device.create_shader_module(include_wgsl!("shader.wgsl"))
     }
 
     fn pipeline_layout(device: &Device, bind_group_layouts: &[&BindGroupLayout]) -> PipelineLayout {
