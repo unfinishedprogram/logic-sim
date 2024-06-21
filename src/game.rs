@@ -1,4 +1,3 @@
-mod elements;
 pub mod game_loop;
 pub mod input;
 use glam::Vec2;
