@@ -23,13 +23,6 @@ pub struct App<'a> {
     frame_time: Stopwatch,
 }
 
-pub fn mouse_world_position(mouse_position: Vec2, screen_size: Vec2, camera: &Camera) -> Vec2 {
-    let screen_pos_pixels = mouse_position;
-    let screen_pos = screen_pos_pixels / screen_size;
-    let screen_clip_pos = (screen_pos - 0.5) * 2.0;
-    (screen_clip_pos * camera.size) + camera.center
-}
-
 impl<'a> App<'a> {
     pub async fn create(window: &'a Window) -> Self {
         window.set_transparent(true);
@@ -157,13 +150,18 @@ impl ApplicationHandler for App<'_> {
                 event,
                 is_synthetic: _,
             } => {
-                if let keyboard::Key::Named(key) = event.logical_key {
-                    if key == NamedKey::Escape {
-                        event_loop.exit()
-                    }
+                if matches!(event.logical_key, keyboard::Key::Named(NamedKey::Escape)) {
+                    event_loop.exit()
                 }
             }
             _ => {}
         };
     }
+}
+
+pub fn mouse_world_position(mouse_position: Vec2, screen_size: Vec2, camera: &Camera) -> Vec2 {
+    let screen_pos_pixels = mouse_position;
+    let screen_pos = screen_pos_pixels / screen_size;
+    let screen_clip_pos = (screen_pos - 0.5) * 2.0;
+    (screen_clip_pos * camera.size) + camera.center
 }

@@ -8,18 +8,20 @@ use sheet::Sprite;
 pub use sheet::SpriteSheet;
 
 use std::{
+    any::type_name,
     collections::HashMap,
     ops::{Index, Range},
 };
 
 use wgpu::{
     include_wgsl, BindGroupLayout, Buffer, BufferDescriptor, BufferUsages, ColorTargetState,
-    Device, PipelineLayout, RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModule,
+    Device, PipelineLayout, RenderPass, RenderPipeline, ShaderModule,
 };
 
 use crate::render::{
     bindable::Bindable,
     camera::{Camera, CameraUniform},
+    helpers,
     vertex::VertexUV,
     BaseRenderState,
 };
@@ -112,6 +114,7 @@ impl SpriteRenderer {
     }
 
     fn vertex_buffer(device: &Device) -> Buffer {
+        type_name::<Self>();
         device.create_buffer(&BufferDescriptor {
             label: Some("Sprite Renderer Vertex Buffer"),
             size: 8192 * 8192,
@@ -189,33 +192,6 @@ impl SpriteRenderer {
         queue.write_buffer(&self.index_buffer, 0, bytemuck::cast_slice(&indices));
     }
 
-    fn pipeline_descriptor<'a>(
-        layout: &'a PipelineLayout,
-        shader: &'a ShaderModule,
-        targets: &'a [Option<ColorTargetState>],
-        buffers: &'a [wgpu::VertexBufferLayout<'a>],
-        multisample: wgpu::MultisampleState,
-    ) -> RenderPipelineDescriptor<'a> {
-        wgpu::RenderPipelineDescriptor {
-            label: Some("SpriteRenderer Pipeline"),
-            layout: Some(layout),
-            vertex: wgpu::VertexState {
-                module: shader,
-                entry_point: "vs_main",
-                buffers,
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: shader,
-                entry_point: "fs_main",
-                targets,
-            }),
-            primitive: wgpu::PrimitiveState::default(),
-            depth_stencil: None,
-            multisample,
-            multiview: None,
-        }
-    }
-
     fn create_render_pipeline(
         base: &BaseRenderState,
         shader_module: &ShaderModule,
@@ -237,7 +213,7 @@ impl SpriteRenderer {
 
         let targets = [Some(target)];
         let buffers = [VertexUV::buffer_layout_descriptor()];
-        let descriptor = &Self::pipeline_descriptor(
+        let descriptor = &helpers::generic_pipeline_descriptor(
             &layout,
             shader_module,
             &targets,
