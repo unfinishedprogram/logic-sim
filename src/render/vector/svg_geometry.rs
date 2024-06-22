@@ -1,4 +1,4 @@
-use std::fs;
+use std::{default, fs};
 
 use glam::Vec2;
 use lyon::tessellation::{
@@ -23,13 +23,29 @@ pub struct TesselationOptions {
     pub stroke: StrokeOptions,
 }
 
+#[derive(Clone, Copy)]
+pub struct SVGLoadOptions {
+    pub stroke_width: f32,
+}
+impl Default for SVGLoadOptions {
+    fn default() -> Self {
+        Self { stroke_width: 1.0 }
+    }
+}
+
 impl SVGGeometry {
-    pub fn load_svg_from_str(text: &str, name: &str) -> Result<SVGGeometry, Error> {
+    pub fn load_svg_from_str(
+        text: &str,
+        options: SVGLoadOptions,
+        name: &str,
+    ) -> Result<SVGGeometry, Error> {
         let svg = usvg::Tree::from_str(text, &usvg::Options::default())?;
 
         let options = TesselationOptions {
             fill: FillOptions::default().with_tolerance(TOLERANCE),
-            stroke: StrokeOptions::default().with_tolerance(TOLERANCE),
+            stroke: StrokeOptions::default()
+                .with_tolerance(TOLERANCE)
+                .with_line_width(options.stroke_width),
         };
 
         let center_offset = -Vec2::new(svg.size().width(), svg.size().height()) / 2.0;
@@ -57,9 +73,13 @@ impl SVGGeometry {
         })
     }
 
-    pub fn load_svg_form_path(path: &str, name: Option<&str>) -> Result<SVGGeometry, Error> {
+    pub fn load_svg_from_path(
+        path: &str,
+        options: SVGLoadOptions,
+        name: Option<&str>,
+    ) -> Result<SVGGeometry, Error> {
         let svg_text = fs::read_to_string(path)?;
-        Self::load_svg_from_str(&svg_text, name.unwrap_or(path))
+        Self::load_svg_from_str(&svg_text, options, name.unwrap_or(path))
     }
 
     fn tesselate(

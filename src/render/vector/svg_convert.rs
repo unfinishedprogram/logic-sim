@@ -135,7 +135,7 @@ pub fn convert_stroke(
     };
 
     let opt = base_options
-        .with_line_width(s.width().get())
+        .with_line_width(base_options.line_width * s.width().get())
         .with_line_cap(linecap)
         .with_line_join(linejoin);
 

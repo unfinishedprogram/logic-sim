@@ -1,6 +1,10 @@
 use glam::{Vec2, Vec4};
 
-use super::{super::gate::Gate, connection::IOSpecifier, Circuit, CircuitElement};
+use super::{
+    super::gate::Gate,
+    connection::{ElementIdx, IOSpecifier},
+    Circuit, CircuitElement,
+};
 use crate::{
     game::GameInput,
     logic::hit_test::HitTestResult,
@@ -22,17 +26,34 @@ pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
 }
 
 impl CircuitElement {
-    pub fn draw(&self, frame: &mut Frame) {
+    pub fn draw(&self, active: bool, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate).unwrap();
         let vector_handle = *frame.assets.vectors.get_vector(sprite).unwrap();
         frame.draw_vector(VectorInstance::new(vector_handle).with_transform(self.position));
+
+        if active {
+            let outlined = format!("{}_outline", sprite);
+            let vector_handle = *frame.assets.vectors.get_vector(&outlined).unwrap();
+            frame.draw_vector(
+                VectorInstance::new(vector_handle)
+                    .with_transform(self.position)
+                    .with_color(Vec4::new(0.2, 0.2, 1.0, 1.0)),
+            );
+        }
     }
 }
 
 impl Circuit {
     pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
-        for element in &self.elements {
-            element.draw(frame);
+        for (idx, element) in self.elements.iter().enumerate() {
+            element.draw(
+                if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
+                    hot_idx == idx
+                } else {
+                    false
+                },
+                frame,
+            );
         }
 
         for connection in self.connections.iter() {

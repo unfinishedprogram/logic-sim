@@ -17,7 +17,7 @@ use crate::{
 
 use super::{
     instance::{RawInstance, VectorInstance},
-    svg_geometry::{Error, SVGGeometry},
+    svg_geometry::{Error, SVGGeometry, SVGLoadOptions},
 };
 
 #[derive(Default, Clone, Debug)]
@@ -174,7 +174,14 @@ impl VectorRenderer {
         path: &str,
         name: Option<&str>,
     ) -> Result<Handle<SVGGeometry>, Error> {
-        let obj = SVGGeometry::load_svg_form_path(path, name)?;
+        let obj = SVGGeometry::load_svg_from_path(path, SVGLoadOptions::default(), name)?;
+        let obj_outline = SVGGeometry::load_svg_from_path(
+            path,
+            SVGLoadOptions { stroke_width: 1.2 },
+            Some(&format!("{}_outline", name.unwrap())),
+        )?;
+
+        self.add_vector_object(obj_outline);
         Ok(self.add_vector_object(obj))
     }
 
