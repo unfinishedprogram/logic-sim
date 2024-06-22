@@ -3,15 +3,16 @@ use std::{
     ops::{Index, IndexMut},
 };
 
+use element::CircuitElement;
 use glam::{vec2, Vec2};
 
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::{
-    game::{input::InputState, GameInput},
+    game::{clickable::Clickable, input::InputState, GameInput},
     util::bounds::Bounds,
 };
-
 pub mod connection;
+mod element;
 mod render;
 use connection::{
     Connection, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx, OutputSpecifier,
@@ -23,11 +24,6 @@ pub struct Circuit {
     pub(crate) elements: Vec<CircuitElement>,
     pub(crate) connections: Vec<Connection>,
     pub(crate) solver: SolverState,
-}
-
-pub struct CircuitElement {
-    pub gate: Gate,
-    pub position: Vec2,
 }
 
 impl Circuit {
@@ -161,9 +157,7 @@ impl Circuit {
         }
 
         for (element_idx, element) in self.elements.iter().enumerate() {
-            let bounds: Bounds = element.gate.bounds().translate(element.position);
-
-            if bounds.contains(position) {
+            if element.hit_test(position) {
                 return Some(HitTestResult::Element(ElementIdx(element_idx)));
             }
         }

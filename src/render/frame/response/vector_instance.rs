@@ -6,7 +6,7 @@ use crate::render::vector::VectorInstance;
 impl<'a> Response<'a, VectorInstance> {
     pub fn on_click(self, on_click: impl FnOnce(Self) -> Self) -> Self {
         let bounds = self.frame.assets.vectors.hit_boxes[&self.item().id]
-            .scale(self.item().scale)
+            .scale(self.item().scale / 2.0)
             .translate(self.item().transform);
 
         let mouse_position = self.frame.input().mouse_world_position;

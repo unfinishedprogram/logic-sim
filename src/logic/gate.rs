@@ -37,7 +37,9 @@ impl Gate {
     }
 
     pub fn bounds(&self) -> Bounds {
-        Bounds::new(Vec2::new(-0.5, -0.5), Vec2::new(0.5, 0.5))
+        let size = 0.25;
+        let offset = Vec2::splat(size);
+        Bounds::new(-offset, offset)
     }
 }
 

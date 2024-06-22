@@ -1,17 +1,6 @@
-use glam::Vec2;
-
-use crate::render::{frame::Frame, msdf::sprite_renderer::SpriteInstance};
-
 use super::{input::InputState, GameState};
-
-impl SpriteInstance {
-    pub fn is_colliding(&self, position: Vec2) -> bool {
-        let min = self.position - Vec2::splat(0.5) * self.scale;
-        let max = self.position + Vec2::splat(0.5) * self.scale;
-
-        position.x >= min.x && position.x <= max.x && position.y >= min.y && position.y <= max.y
-    }
-}
+use crate::render::frame::Frame;
+use glam::Vec2;
 
 impl GameState {
     pub fn update(&mut self, frame: &mut Frame) {

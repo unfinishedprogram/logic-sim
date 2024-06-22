@@ -1,3 +1,4 @@
+pub mod clickable;
 pub mod game_loop;
 pub mod input;
 use glam::Vec2;
@@ -55,7 +56,7 @@ impl GameState {
         format!(
             "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms",
             self.input.hot,
-            self.input.hot,
+            self.input.active,
             self.stopwatch.running_average().as_millis_f32()
         )
     }
