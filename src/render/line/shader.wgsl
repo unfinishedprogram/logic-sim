@@ -6,11 +6,6 @@ struct Camera {
 @group(0) @binding(0)
 var<uniform> camera: Camera;
 
-@group(1) @binding(0)
-var t_diffuse: texture_2d<f32>;
-@group(1) @binding(1)
-var s_diffuse: sampler;
-
 struct VertexOutput {
     @builtin(position) clip_pos: vec4f,
     @location(0) tex_coords: vec2<f32>,
@@ -30,7 +25,6 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.clip_pos = vec4f((in.vert_pos_2d - camera.center) / camera.size, 0.0, 1.0) * vec4f(1.0, -1.0, 1.0, 1.0);
-    out.tex_coords = in.uv_pos_2d;
     out.color = in.color;
     return out;
 }

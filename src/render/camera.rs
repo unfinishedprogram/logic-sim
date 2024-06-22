@@ -51,9 +51,9 @@ pub struct CameraUniform {
 }
 
 impl CameraUniform {
-    pub fn create(device: &Device) -> Self {
-        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("camera_bind_group_layout"),
+    const BG_LAYOUT_DESCRIPTOR: wgpu::BindGroupLayoutDescriptor<'static> =
+        wgpu::BindGroupLayoutDescriptor {
+            label: Some("Camera Bind Group Layout"),
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStages::VERTEX,
@@ -64,13 +64,20 @@ impl CameraUniform {
                 },
                 count: None,
             }],
-        });
+        };
 
-        let buffer = device.create_buffer_init(&BufferInitDescriptor {
-            label: Some("camera_buffer"),
-            contents: bytemuck::cast_slice(&[Camera::new()]),
-            usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
-        });
+    const BUF_INIT_DESC: BufferInitDescriptor<'static> = BufferInitDescriptor {
+        label: Some("Camera Buffer"),
+        contents: &[0; size_of::<Camera>()],
+        // This ugly bitflag -> u32 -> bitflag conversion is needed for this to be const
+        usage: BufferUsages::from_bits_retain(
+            BufferUsages::UNIFORM.bits() | BufferUsages::COPY_DST.bits(),
+        ),
+    };
+
+    pub fn create(device: &Device) -> Self {
+        let bind_group_layout = device.create_bind_group_layout(&Self::BG_LAYOUT_DESCRIPTOR);
+        let buffer = device.create_buffer_init(&Self::BUF_INIT_DESC);
 
         let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &bind_group_layout,
