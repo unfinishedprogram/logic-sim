@@ -6,6 +6,7 @@ use super::{
     Circuit, CircuitElement,
 };
 use crate::{
+    assets,
     game::GameInput,
     logic::hit_test::HitTestResult,
     render::{frame::Frame, line::cubic_bezier::CubicBezier, vector::VectorInstance},
@@ -14,22 +15,21 @@ use crate::{
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
     match gate {
         Gate::Input(_) => None,
-        Gate::And => Some(include_str!("../../../assets/objects/gates/and.svg")),
-        Gate::Or => Some(include_str!("../../../assets/objects/gates/or.svg")),
-        Gate::Not => Some(include_str!("../../../assets/objects/gates/not.svg")),
-        Gate::Buf => Some(include_str!("../../../assets/objects/gates/buf.svg")),
-        Gate::Xor => Some(include_str!("../../../assets/objects/gates/xor.svg")),
-        Gate::Nand => Some(include_str!("../../../assets/objects/gates/nand.svg")),
-        Gate::Nor => Some(include_str!("../../../assets/objects/gates/nor.svg")),
-        Gate::Xnor => Some(include_str!("../../../assets/objects/gates/xnor.svg")),
+        Gate::And => Some(assets::svg::gates::AND),
+        Gate::Or => Some(assets::svg::gates::OR),
+        Gate::Not => Some(assets::svg::gates::NOT),
+        Gate::Buf => Some(assets::svg::gates::BUF),
+        Gate::Xor => Some(assets::svg::gates::XOR),
+        Gate::Nand => Some(assets::svg::gates::NAND),
+        Gate::Nor => Some(assets::svg::gates::NOR),
+        Gate::Xnor => Some(assets::svg::gates::XNOR),
     }
 }
 
 impl CircuitElement {
     pub fn draw(&self, active: bool, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate).unwrap();
-        let vector_handle = frame.assets.vectors.get_vector(sprite).unwrap();
-        frame.draw_vector(VectorInstance::new(vector_handle).with_transform(self.position));
+        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, Vec2::ONE)
 
         // if active {
         //     let outlined = format!("{}_outline", sprite);
@@ -96,7 +96,7 @@ impl Circuit {
         }
 
         {
-            let dot_source = include_str!("../../../assets/objects/gates/dot.svg");
+            let dot_source = assets::svg::DOT;
 
             for dot in self.connection_dots() {
                 let position = self.io_position(dot);

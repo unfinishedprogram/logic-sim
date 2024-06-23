@@ -57,19 +57,7 @@ impl<'window> RenderState<'window> {
         let sprite_renderer = SpriteRenderer::create(&base, vec![msdf_font.sprite_sheet]);
 
         let line_renderer = line::LineRenderer::create(&base);
-        let mut vector_renderer = vector::VectorRenderer::create(&base);
-
-        let gate_assets = ["and", "buf", "nand", "nor", "not", "or", "xor", "xnor"];
-
-        for name in gate_assets {
-            vector_renderer
-                .load_svg(&format!("assets/objects/gates/{}.svg", name))
-                .unwrap();
-        }
-
-        vector_renderer
-            .load_svg("assets/objects/gates/dot.svg")
-            .unwrap();
+        let vector_renderer = vector::VectorRenderer::create(&base);
 
         Self {
             base,

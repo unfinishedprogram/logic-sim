@@ -4,6 +4,7 @@
 #![feature(mapped_lock_guards)]
 
 mod app;
+mod assets;
 mod game;
 pub mod logic;
 mod render;

@@ -23,8 +23,8 @@ pub struct LineRenderer {
 impl LineRenderer {
     pub fn create(base: &BaseRenderState) -> Self {
         let shader_module = base.create_shader_module(include_wgsl!("shader.wgsl"));
-        let index_buffer = base.create_index_buffer::<Self>(8192);
-        let vertex_buffer = base.create_vertex_buffer::<Self>(8192);
+        let index_buffer = base.create_index_buffer::<Self>(8192 * 8192);
+        let vertex_buffer = base.create_vertex_buffer::<Self>(8192 * 8192);
 
         let camera_binding = CameraUniform::create(&base.device);
 
