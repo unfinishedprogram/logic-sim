@@ -14,32 +14,32 @@ use crate::{
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
     match gate {
         Gate::Input(_) => None,
-        Gate::And => Some("and"),
-        Gate::Or => Some("or"),
-        Gate::Not => Some("not"),
-        Gate::Buf => Some("buf"),
-        Gate::Xor => Some("xor"),
-        Gate::Nand => Some("nand"),
-        Gate::Nor => Some("nor"),
-        Gate::Xnor => Some("xnor"),
+        Gate::And => Some(include_str!("../../../assets/objects/gates/and.svg")),
+        Gate::Or => Some(include_str!("../../../assets/objects/gates/or.svg")),
+        Gate::Not => Some(include_str!("../../../assets/objects/gates/not.svg")),
+        Gate::Buf => Some(include_str!("../../../assets/objects/gates/buf.svg")),
+        Gate::Xor => Some(include_str!("../../../assets/objects/gates/xor.svg")),
+        Gate::Nand => Some(include_str!("../../../assets/objects/gates/nand.svg")),
+        Gate::Nor => Some(include_str!("../../../assets/objects/gates/nor.svg")),
+        Gate::Xnor => Some(include_str!("../../../assets/objects/gates/xnor.svg")),
     }
 }
 
 impl CircuitElement {
     pub fn draw(&self, active: bool, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate).unwrap();
-        let vector_handle = *frame.assets.vectors.get_vector(sprite).unwrap();
+        let vector_handle = frame.assets.vectors.get_vector(sprite).unwrap();
         frame.draw_vector(VectorInstance::new(vector_handle).with_transform(self.position));
 
-        if active {
-            let outlined = format!("{}_outline", sprite);
-            let vector_handle = *frame.assets.vectors.get_vector(&outlined).unwrap();
-            frame.draw_vector(
-                VectorInstance::new(vector_handle)
-                    .with_transform(self.position)
-                    .with_color(Vec4::new(0.2, 0.2, 1.0, 1.0)),
-            );
-        }
+        // if active {
+        //     let outlined = format!("{}_outline", sprite);
+        //     let vector_handle = *frame.assets.vectors.get_vector(&outlined).unwrap();
+        //     frame.draw_vector(
+        //         VectorInstance::new(vector_handle)
+        //             .with_transform(self.position)
+        //             .with_color(Vec4::new(0.2, 0.2, 1.0, 1.0)),
+        //     );
+        // }
     }
 }
 
@@ -96,7 +96,7 @@ impl Circuit {
         }
 
         {
-            let dot_object = VectorInstance::new(*frame.assets.vectors.get_vector("dot").unwrap());
+            let dot_source = include_str!("../../../assets/objects/gates/dot.svg");
 
             for dot in self.connection_dots() {
                 let position = self.io_position(dot);
@@ -110,12 +110,7 @@ impl Circuit {
                     _ => Vec2::splat(1.0),
                 };
 
-                frame.draw_vector(
-                    dot_object
-                        .with_color(color)
-                        .with_transform(position)
-                        .with_scale(scale),
-                );
+                frame.draw_vector_lazy(dot_source, position, color, scale);
             }
         }
     }

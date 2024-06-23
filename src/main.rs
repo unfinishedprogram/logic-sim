@@ -1,6 +1,7 @@
 #![feature(slice_as_chunks)]
 #![feature(array_windows)]
 #![feature(duration_millis_float)]
+#![feature(mapped_lock_guards)]
 
 mod app;
 mod game;

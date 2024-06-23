@@ -3,7 +3,7 @@ use lyon::tessellation::VertexBuffers;
 
 use crate::render::{
     msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
-    vector::VectorInstance,
+    vector::{lazy_instance::LazyVectorInstance, VectorInstance},
     vertex::VertexUV,
 };
 
@@ -36,5 +36,22 @@ impl Frame {
     pub fn draw_vector(&mut self, instance: VectorInstance) -> Response<VectorInstance> {
         let handle = self.render_queue.enqueue_vector(instance);
         self.response(handle)
+    }
+
+    pub fn draw_vector_lazy(
+        &mut self,
+        source: &'static str,
+        transform: Vec2,
+        color: Vec4,
+        scale: Vec2,
+    ) {
+        let instance = LazyVectorInstance {
+            source,
+            transform,
+            color,
+            scale,
+        };
+
+        self.render_queue.enqueue_vector_lazy(instance);
     }
 }

@@ -169,19 +169,9 @@ impl VectorRenderer {
         self.camera_binding.update(queue, camera);
     }
 
-    pub fn load_svg(
-        &mut self,
-        path: &str,
-        name: Option<&str>,
-    ) -> Result<Handle<SVGGeometry>, Error> {
-        let obj = SVGGeometry::load_svg_from_path(path, SVGLoadOptions::default(), name)?;
-        let obj_outline = SVGGeometry::load_svg_from_path(
-            path,
-            SVGLoadOptions { stroke_width: 1.2 },
-            Some(&format!("{}_outline", name.unwrap())),
-        )?;
+    pub fn load_svg(&mut self, path: &str) -> Result<Handle<SVGGeometry>, Error> {
+        let obj = SVGGeometry::load_svg_from_path(path, SVGLoadOptions::default())?;
 
-        self.add_vector_object(obj_outline);
         Ok(self.add_vector_object(obj))
     }
 
@@ -204,11 +194,11 @@ impl VectorRenderer {
         }
     }
 
-    fn add_vector_object(&mut self, vector_object: SVGGeometry) -> Handle<SVGGeometry> {
+    pub fn add_vector_object(&mut self, vector_object: SVGGeometry) -> Handle<SVGGeometry> {
         let handle = Handle::new(self.vector_objects.len());
 
         self.vector_lookup
-            .insert(vector_object.name.clone(), handle);
+            .insert(vector_object.source.clone(), handle);
 
         self.render_queue.push(vec![]);
 
@@ -242,7 +232,7 @@ pub struct VectorRendererReference {
 }
 
 impl VectorRendererReference {
-    pub fn get_vector(&self, name: &str) -> Option<&Handle<SVGGeometry>> {
-        self.vectors.get(name)
+    pub fn get_vector(&self, name: &str) -> Option<Handle<SVGGeometry>> {
+        self.vectors.get(name).copied()
     }
 }

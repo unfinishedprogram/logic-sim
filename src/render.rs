@@ -63,12 +63,12 @@ impl<'window> RenderState<'window> {
 
         for name in gate_assets {
             vector_renderer
-                .load_svg(&format!("assets/objects/gates/{}.svg", name), Some(name))
+                .load_svg(&format!("assets/objects/gates/{}.svg", name))
                 .unwrap();
         }
 
         vector_renderer
-            .load_svg("assets/objects/gates/dot.svg", Some("dot"))
+            .load_svg("assets/objects/gates/dot.svg")
             .unwrap();
 
         Self {
@@ -86,6 +86,7 @@ impl<'window> RenderState<'window> {
         let lines = frame.render_queue().lines();
         let sprites = frame.render_queue().sprites();
         let vector_instances = frame.render_queue().vector_instances();
+        let lazy_vector_instances = frame.render_queue().lazy_vector_instances();
 
         let surface = self
             .base
@@ -130,8 +131,17 @@ impl<'window> RenderState<'window> {
             self.sprite_renderer
                 .upload_sprites(&self.base.queue, sprites);
 
-            self.vector_renderer
-                .upload_instances(&self.base.queue, vector_instances);
+            {
+                let mut converted = lazy_vector_instances
+                    .iter()
+                    .map(|instance| self.vector_renderer.convert_lazy_instance(instance))
+                    .collect::<Vec<_>>();
+
+                converted.extend(vector_instances);
+
+                self.vector_renderer
+                    .upload_instances(&self.base.queue, &converted);
+            }
 
             self.line_renderer.render(&mut rpass);
             self.sprite_renderer.render(&mut rpass);

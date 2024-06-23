@@ -2,9 +2,8 @@ use bytemuck::{Pod, Zeroable};
 use glam::{Vec2, Vec4};
 use wgpu::vertex_attr_array;
 
-use crate::util::handle::Handle;
-
 use super::svg_geometry::SVGGeometry;
+use crate::util::handle::Handle;
 
 #[derive(Clone, Copy)]
 pub struct VectorInstance {

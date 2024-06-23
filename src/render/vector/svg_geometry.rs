@@ -1,4 +1,4 @@
-use std::{default, fs};
+use std::fs;
 
 use glam::Vec2;
 use lyon::tessellation::{
@@ -11,9 +11,9 @@ const TOLERANCE: f32 = 0.01;
 
 use super::svg_convert::{convert_fill, convert_path, convert_stroke};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SVGGeometry {
-    pub name: String,
+    pub source: String,
     pub vertex_buffers: VertexBuffers<Vec2, u32>,
     pub hit_box: Rect,
 }
@@ -34,12 +34,8 @@ impl Default for SVGLoadOptions {
 }
 
 impl SVGGeometry {
-    pub fn load_svg_from_str(
-        text: &str,
-        options: SVGLoadOptions,
-        name: &str,
-    ) -> Result<SVGGeometry, Error> {
-        let svg = usvg::Tree::from_str(text, &usvg::Options::default())?;
+    pub fn load_svg_from_str(source: &str, options: SVGLoadOptions) -> Result<SVGGeometry, Error> {
+        let svg = usvg::Tree::from_str(source, &usvg::Options::default())?;
 
         let options = TesselationOptions {
             fill: FillOptions::default().with_tolerance(TOLERANCE),
@@ -67,19 +63,15 @@ impl SVGGeometry {
         )?;
 
         Ok(SVGGeometry {
-            name: name.to_string(),
             vertex_buffers,
             hit_box,
+            source: source.to_string(),
         })
     }
 
-    pub fn load_svg_from_path(
-        path: &str,
-        options: SVGLoadOptions,
-        name: Option<&str>,
-    ) -> Result<SVGGeometry, Error> {
+    pub fn load_svg_from_path(path: &str, options: SVGLoadOptions) -> Result<SVGGeometry, Error> {
         let svg_text = fs::read_to_string(path)?;
-        Self::load_svg_from_str(&svg_text, options, name.unwrap_or(path))
+        Self::load_svg_from_str(&svg_text, options)
     }
 
     fn tesselate(
