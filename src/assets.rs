@@ -12,3 +12,12 @@ pub mod svg {
         pub const XNOR: &str = include_str!("../assets/objects/gates/xnor.svg");
     }
 }
+
+pub mod fonts {
+    pub mod msdf {
+        pub mod custom {
+            pub const IMAGE: &[u8] = include_bytes!("../assets/custom.png");
+            pub const MANIFEST: &str = include_str!("../assets/custom-msdf.json");
+        }
+    }
+}

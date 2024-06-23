@@ -10,6 +10,7 @@ pub mod vector;
 pub mod vertex;
 use std::any::type_name;
 
+use crate::assets;
 use frame::Frame;
 use msdf::text::MsdfFontReference;
 use vector::VectorRenderer;
@@ -48,8 +49,8 @@ impl<'window> RenderState<'window> {
         let msdf_font = MsdfFont::create(
             &base.device,
             &base.queue,
-            include_str!("../assets/custom-msdf.json"),
-            include_bytes!("../assets/custom.png"),
+            assets::fonts::msdf::custom::MANIFEST,
+            assets::fonts::msdf::custom::IMAGE,
         );
 
         let msdf_font_ref = msdf_font.reference();

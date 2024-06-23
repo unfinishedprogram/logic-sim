@@ -9,7 +9,7 @@ use crate::{
     assets,
     game::GameInput,
     logic::hit_test::HitTestResult,
-    render::{frame::Frame, line::cubic_bezier::CubicBezier, vector::VectorInstance},
+    render::{frame::Frame, line::cubic_bezier::CubicBezier},
 };
 
 pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
