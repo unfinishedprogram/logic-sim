@@ -99,8 +99,8 @@ impl Circuit {
             for dot in self.connection_dots() {
                 let position = self.io_position(dot);
                 let dot_source = match dot {
-                    IOSpecifier::Input(_) => assets::svg::DOT_INPUT,
-                    IOSpecifier::Output(_) => assets::svg::DOT_OUTPUT,
+                    IOSpecifier::Input(_) => &assets::svg::DOT_INPUT,
+                    IOSpecifier::Output(_) => &assets::svg::DOT_OUTPUT,
                 };
 
                 let scale = match game_input.hot {

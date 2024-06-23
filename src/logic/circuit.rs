@@ -43,7 +43,7 @@ impl Circuit {
         circuit.add_connection(b.to(InputSpecifier(and, InputIdx(1))));
 
         // Benchmarking
-        if true {
+        if false {
             for _ in 0..10000 {
                 circuit.add_random_component()
             }

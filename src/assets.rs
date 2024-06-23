@@ -1,6 +1,17 @@
+macro_rules! asset {
+    ($name:ident: $path:literal, ( $($args:tt)* )) => {
+        pub static $name: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+            format!(
+                include_str!($path),
+                $($args)*
+            )
+        });
+    };
+}
+
 pub mod svg {
-    pub const DOT_INPUT: &str = include_str!("../assets/objects/gates/dot_input.svg");
-    pub const DOT_OUTPUT: &str = include_str!("../assets/objects/gates/dot_output.svg");
+    asset!(DOT_INPUT: "../assets/objects/dot.svg", (color = "red", radius = "2"));
+    asset!(DOT_OUTPUT: "../assets/objects/dot.svg", (color = "green", radius = "2"));
 
     pub mod gates {
         pub const AND: &str = include_str!("../assets/objects/gates/and.svg");
