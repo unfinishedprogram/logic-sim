@@ -17,7 +17,7 @@ use crate::{
 
 use super::{
     instance::{RawInstance, VectorInstance},
-    svg_geometry::{Error, SVGGeometry, SVGLoadOptions},
+    svg_geometry::SVGGeometry,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -167,12 +167,6 @@ impl VectorRenderer {
 
     pub fn update_camera(&self, queue: &wgpu::Queue, camera: &Camera) {
         self.camera_binding.update(queue, camera);
-    }
-
-    pub fn load_svg(&mut self, path: &str) -> Result<Handle<SVGGeometry>, Error> {
-        let obj = SVGGeometry::load_svg_from_path(path, SVGLoadOptions::default())?;
-
-        Ok(self.add_vector_object(obj))
     }
 
     fn next_vector_object_meta(&self, obj: &SVGGeometry) -> VectorObjectMeta {

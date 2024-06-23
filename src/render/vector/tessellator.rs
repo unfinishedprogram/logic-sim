@@ -1,48 +1,66 @@
-use super::svg_geometry::{self, SVGGeometry};
+use super::svg_geometry::{self, SVGGeometry, TesselationOptions};
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock, MappedMutexGuard, Mutex, MutexGuard},
 };
 
-pub static GLOBAL_TESSELLATOR: LazyLock<Tessellator> = LazyLock::new(|| Tessellator {
-    settings: TessellationSettings { tolerance: 0.01 },
-    vectors: Arc::new(Mutex::new(HashMap::new())),
-});
+pub static GLOBAL_TESSELLATOR: LazyLock<Tessellator> =
+    LazyLock::new(|| Tessellator(Arc::new(Mutex::new(TessellatorInner::default()))));
 
 #[derive(Clone, Copy)]
 pub struct TessellationSettings {
     pub tolerance: f32,
 }
 
-pub struct Tessellator {
+pub struct Tessellator(Arc<Mutex<TessellatorInner>>);
+
+#[derive(Default)]
+struct TessellatorInner {
     settings: TessellationSettings,
-    vectors: Arc<Mutex<HashMap<String, SVGGeometry>>>,
+    vectors: HashMap<String, SVGGeometry>,
+}
+
+impl Default for TessellationSettings {
+    fn default() -> Self {
+        Self { tolerance: 0.01 }
+    }
+}
+
+impl From<TessellationSettings> for TesselationOptions {
+    fn from(val: TessellationSettings) -> Self {
+        TesselationOptions {
+            fill: lyon::tessellation::FillOptions::default().with_tolerance(val.tolerance),
+            stroke: lyon::tessellation::StrokeOptions::default().with_tolerance(val.tolerance),
+        }
+    }
 }
 
 impl Tessellator {
-    fn tesselate(source: &str) -> SVGGeometry {
-        svg_geometry::SVGGeometry::load_svg_from_str(
-            source,
-            svg_geometry::SVGLoadOptions::default(),
-        )
-        .unwrap()
+    fn tesselate(source: &str, settings: TessellationSettings) -> SVGGeometry {
+        svg_geometry::SVGGeometry::load_svg_from_str(source, settings.into()).unwrap()
     }
 
     // Internal API to facilitate extracting individual fields without copy of entire SVGGeometry
     fn lazy_tesselate(&self, source: &str) -> MappedMutexGuard<SVGGeometry> {
-        let mut vectors = self.vectors.lock().unwrap();
+        let mut inner = self.0.lock().unwrap();
 
         {
-            if !vectors.contains_key(source) {
-                let geometry = Self::tesselate(source);
-                vectors.insert(source.to_string(), geometry);
+            if !inner.vectors.contains_key(source) {
+                let geometry = Self::tesselate(source, inner.settings);
+                inner.vectors.insert(source.to_string(), geometry);
             }
         }
 
-        return MutexGuard::map(vectors, |it| it.get_mut(source).unwrap());
+        return MutexGuard::map(inner, |it| it.vectors.get_mut(source).unwrap());
     }
 
     pub fn get_geometry(&self, source: &str) -> SVGGeometry {
         self.lazy_tesselate(source).clone()
+    }
+
+    pub fn set_settings(&self, settings: TessellationSettings) {
+        let mut inner = self.0.lock().unwrap();
+        inner.vectors.clear();
+        inner.settings = settings;
     }
 }

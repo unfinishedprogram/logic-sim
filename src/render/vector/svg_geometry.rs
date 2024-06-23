@@ -7,8 +7,6 @@ use lyon::tessellation::{
 };
 use usvg::Rect;
 
-const TOLERANCE: f32 = 0.01;
-
 use super::svg_convert::{convert_fill, convert_path, convert_stroke};
 
 #[derive(Clone, Debug)]
@@ -23,26 +21,12 @@ pub struct TesselationOptions {
     pub stroke: StrokeOptions,
 }
 
-#[derive(Clone, Copy)]
-pub struct SVGLoadOptions {
-    pub stroke_width: f32,
-}
-impl Default for SVGLoadOptions {
-    fn default() -> Self {
-        Self { stroke_width: 1.0 }
-    }
-}
-
 impl SVGGeometry {
-    pub fn load_svg_from_str(source: &str, options: SVGLoadOptions) -> Result<SVGGeometry, Error> {
+    pub fn load_svg_from_str(
+        source: &str,
+        options: TesselationOptions,
+    ) -> Result<SVGGeometry, Error> {
         let svg = usvg::Tree::from_str(source, &usvg::Options::default())?;
-
-        let options = TesselationOptions {
-            fill: FillOptions::default().with_tolerance(TOLERANCE),
-            stroke: StrokeOptions::default()
-                .with_tolerance(TOLERANCE)
-                .with_line_width(options.stroke_width),
-        };
 
         let center_offset = -Vec2::new(svg.size().width(), svg.size().height()) / 2.0;
         let scale = Vec2::new(1.0, 1.0) / 32.0;
@@ -69,7 +53,10 @@ impl SVGGeometry {
         })
     }
 
-    pub fn load_svg_from_path(path: &str, options: SVGLoadOptions) -> Result<SVGGeometry, Error> {
+    pub fn load_svg_from_path(
+        path: &str,
+        options: TesselationOptions,
+    ) -> Result<SVGGeometry, Error> {
         let svg_text = fs::read_to_string(path)?;
         Self::load_svg_from_str(&svg_text, options)
     }
