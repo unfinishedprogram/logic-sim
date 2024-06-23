@@ -1,18 +1,21 @@
 use std::fs;
 
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 use lyon::tessellation::{
     BuffersBuilder, FillOptions, FillTessellator, StrokeOptions, StrokeTessellator,
     TessellationError, VertexBuffers,
 };
 use usvg::Rect;
 
-use super::svg_convert::{convert_fill, convert_path, convert_stroke};
+use super::{
+    svg_convert::{convert_fill, convert_path, convert_stroke},
+    vertex::SVGVertex,
+};
 
 #[derive(Clone, Debug)]
 pub struct SVGGeometry {
     pub source: String,
-    pub vertex_buffers: VertexBuffers<Vec2, u32>,
+    pub vertex_buffers: VertexBuffers<SVGVertex, u32>,
     pub hit_box: Rect,
 }
 
@@ -63,7 +66,7 @@ impl SVGGeometry {
 
     fn tesselate(
         svg: &usvg::Group,
-        buffers: &mut VertexBuffers<Vec2, u32>,
+        buffers: &mut VertexBuffers<SVGVertex, u32>,
         options: &TesselationOptions,
         offset: Vec2,
         scale: Vec2,
@@ -85,9 +88,18 @@ impl SVGGeometry {
         Ok(())
     }
 
+    fn convert_color(c: usvg::Color) -> Vec4 {
+        Vec4::new(
+            c.red as f32 / 255.0,
+            c.green as f32 / 255.0,
+            c.blue as f32 / 255.0,
+            1.0,
+        )
+    }
+
     fn tesselate_path_stroke(
         p: &usvg::Path,
-        buffers: &mut VertexBuffers<Vec2, u32>,
+        buffers: &mut VertexBuffers<SVGVertex, u32>,
         options: &TesselationOptions,
         offset: Vec2,
         scale: Vec2,
@@ -96,6 +108,12 @@ impl SVGGeometry {
             return Ok(());
         };
 
+        let mut color = match stroke.paint() {
+            usvg::Paint::Color(c) => Self::convert_color(*c),
+            _ => return Ok(()),
+        };
+        color *= stroke.opacity().get();
+
         let mut tessellator = StrokeTessellator::new();
         let options = convert_stroke(stroke, options.stroke).1;
 
@@ -103,14 +121,17 @@ impl SVGGeometry {
             convert_path(p),
             &options,
             &mut BuffersBuilder::new(buffers, |vertex: lyon::tessellation::StrokeVertex| {
-                (Vec2::new(vertex.position().x, vertex.position().y) + offset) * scale
+                SVGVertex::new(
+                    (Vec2::new(vertex.position().x, vertex.position().y) + offset) * scale,
+                    color,
+                )
             }),
         )
     }
 
     fn tesselate_path_fill(
         p: &usvg::Path,
-        buffers: &mut VertexBuffers<Vec2, u32>,
+        buffers: &mut VertexBuffers<SVGVertex, u32>,
         options: &TesselationOptions,
         offset: Vec2,
         scale: Vec2,
@@ -119,6 +140,12 @@ impl SVGGeometry {
             return Ok(());
         };
 
+        let mut color = match fill.paint() {
+            usvg::Paint::Color(c) => Self::convert_color(*c),
+            _ => return Ok(()),
+        };
+        color *= fill.opacity().get();
+
         let mut tessellator = FillTessellator::new();
         let options = convert_fill(fill, options.fill).1;
 
@@ -126,7 +153,10 @@ impl SVGGeometry {
             convert_path(p),
             &options,
             &mut BuffersBuilder::new(buffers, |vertex: lyon::tessellation::FillVertex| {
-                (Vec2::new(vertex.position().x, vertex.position().y) + offset) * scale
+                SVGVertex::new(
+                    (Vec2::new(vertex.position().x, vertex.position().y) + offset) * scale,
+                    color,
+                )
             }),
         )
     }

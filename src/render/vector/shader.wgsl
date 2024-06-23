@@ -13,10 +13,14 @@ struct VertexOutput {
 
 struct VertexInput {
     @builtin(vertex_index) in_vertex_index: u32,
-    @location(0) vert_pos_2d: vec2<f32>,
-    @location(1) position: vec2<f32>,
-    @location(2) scale: vec2<f32>,
-    @location(3) color: vec4<f32>,
+
+    // Object Attributes
+    @location(0) color: vec4<f32>,
+    @location(1) vert_pos_2d: vec2<f32>,
+
+    // Instance Attributes
+    @location(2) position: vec2<f32>,
+    @location(3) scale: vec2<f32>,
 }
 
 @vertex

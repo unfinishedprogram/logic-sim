@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use glam::Vec2;
 use wgpu::{
-    include_wgsl, vertex_attr_array, BindGroupLayout, Buffer, ColorTargetState, Device,
-    IndexFormat, PipelineLayout, RenderPass, RenderPipeline, ShaderModule,
+    include_wgsl, BindGroupLayout, Buffer, ColorTargetState, Device, IndexFormat, PipelineLayout,
+    RenderPass, RenderPipeline, ShaderModule,
 };
 
 use crate::{
@@ -18,6 +17,7 @@ use crate::{
 use super::{
     instance::{RawInstance, VectorInstance},
     svg_geometry::SVGGeometry,
+    vertex::SVGVertex,
 };
 
 #[derive(Default, Clone, Debug)]
@@ -37,14 +37,6 @@ pub struct VectorRenderer {
     vector_objects: Vec<(VectorObjectMeta, SVGGeometry)>,
     vector_lookup: HashMap<String, Handle<SVGGeometry>>,
     render_queue: Vec<Vec<VectorInstance>>,
-}
-
-fn vec2_buffer_descriptor() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout {
-        array_stride: std::mem::size_of::<Vec2>() as wgpu::BufferAddress,
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &vertex_attr_array![0 => Float32x2],
-    }
 }
 
 impl VectorRenderer {
@@ -90,7 +82,7 @@ impl VectorRenderer {
     }
 
     fn update_geometry(&mut self, queue: &wgpu::Queue) {
-        let mut vertex_data: Vec<Vec2> = vec![];
+        let mut vertex_data: Vec<SVGVertex> = vec![];
         let mut index_data: Vec<u32> = vec![];
 
         for (_, instance) in self.vector_objects.iter() {
@@ -151,7 +143,7 @@ impl VectorRenderer {
 
         let targets = [Some(target)];
         let buffers = [
-            vec2_buffer_descriptor(),
+            SVGVertex::buffer_layout(),
             RawInstance::buffer_layout_descriptor(),
         ];
         let descriptor = &helpers::generic_pipeline_descriptor(

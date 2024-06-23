@@ -1,5 +1,6 @@
 pub mod svg {
-    pub const DOT: &str = include_str!("../assets/objects/gates/dot.svg");
+    pub const DOT_INPUT: &str = include_str!("../assets/objects/gates/dot_input.svg");
+    pub const DOT_OUTPUT: &str = include_str!("../assets/objects/gates/dot_output.svg");
 
     pub mod gates {
         pub const AND: &str = include_str!("../assets/objects/gates/and.svg");

@@ -63,9 +63,9 @@ impl From<VectorInstance> for RawInstance {
 
 impl RawInstance {
     const VERTEX_ATTRIBUTES: [wgpu::VertexAttribute; 3] = vertex_attr_array![
-        1 => Float32x2,
         2 => Float32x2,
-        3 => Float32x4
+        3 => Float32x2,
+        4 => Float32x4
     ];
 
     pub fn buffer_layout_descriptor() -> wgpu::VertexBufferLayout<'static> {

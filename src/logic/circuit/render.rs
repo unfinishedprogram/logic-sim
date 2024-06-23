@@ -96,13 +96,11 @@ impl Circuit {
         }
 
         {
-            let dot_source = assets::svg::DOT;
-
             for dot in self.connection_dots() {
                 let position = self.io_position(dot);
-                let color = match dot {
-                    IOSpecifier::Input(_) => Vec4::new(1.0, 0.0, 0.0, 1.0),
-                    IOSpecifier::Output(_) => Vec4::new(0.0, 1.0, 0.0, 1.0),
+                let dot_source = match dot {
+                    IOSpecifier::Input(_) => assets::svg::DOT_INPUT,
+                    IOSpecifier::Output(_) => assets::svg::DOT_OUTPUT,
                 };
 
                 let scale = match game_input.hot {
@@ -110,7 +108,7 @@ impl Circuit {
                     _ => Vec2::splat(1.0),
                 };
 
-                frame.draw_vector_lazy(dot_source, position, color, scale);
+                frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale);
             }
         }
     }

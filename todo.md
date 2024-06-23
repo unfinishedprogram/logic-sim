@@ -1,1 +1,1 @@
-- [ ] Support SVG colors
+- [x] Support SVG colors
