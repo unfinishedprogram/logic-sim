@@ -1,4 +1,4 @@
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 
 use crate::render::frame::Frame;
 
@@ -22,9 +22,7 @@ impl TextObject {
                 continue;
             }
             if let Some(sprite) = font.get(c) {
-                frame
-                    .draw_sprite(sprite, self.position + offset * self.scale, self.scale)
-                    .on_click(|it| it.color(Vec4::new(1.0, 0.0, 0.0, 1.0)));
+                frame.draw_sprite(sprite, self.position + offset * self.scale, self.scale);
             }
 
             offset.x += font.advance(c)

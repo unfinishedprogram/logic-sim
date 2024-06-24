@@ -8,7 +8,7 @@ use glam::{vec2, Vec2};
 
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::{
-    game::{clickable::Clickable, input::InputState, GameInput},
+    game::{input::InputState, GameInput},
     util::bounds::Bounds,
 };
 pub mod connection;
