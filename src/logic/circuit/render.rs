@@ -12,34 +12,41 @@ use crate::{
     render::{frame::Frame, line::cubic_bezier::CubicBezier},
 };
 
-pub fn sprite_of(gate: &Gate) -> Option<&'static str> {
-    match gate {
-        Gate::Input(_) => None,
-        Gate::And => Some(assets::svg::gates::AND),
-        Gate::Or => Some(assets::svg::gates::OR),
-        Gate::Not => Some(assets::svg::gates::NOT),
-        Gate::Buf => Some(assets::svg::gates::BUF),
-        Gate::Xor => Some(assets::svg::gates::XOR),
-        Gate::Nand => Some(assets::svg::gates::NAND),
-        Gate::Nor => Some(assets::svg::gates::NOR),
-        Gate::Xnor => Some(assets::svg::gates::XNOR),
+pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
+    use assets::svg::gates;
+    match (gate, active) {
+        (Gate::Input(_), _) => None,
+
+        (Gate::And, true) => Some(&gates::AND_ACTIVE),
+        (Gate::And, false) => Some(&gates::AND_NORMAL),
+
+        (Gate::Or, true) => Some(&gates::OR_ACTIVE),
+        (Gate::Or, false) => Some(&gates::OR_NORMAL),
+
+        (Gate::Not, true) => Some(&gates::NOT_ACTIVE),
+        (Gate::Not, false) => Some(&gates::NOT_NORMAL),
+
+        (Gate::Xor, true) => Some(&gates::XOR_ACTIVE),
+        (Gate::Xor, false) => Some(&gates::XOR_NORMAL),
+
+        (Gate::Nand, true) => Some(&gates::NAND_ACTIVE),
+        (Gate::Nand, false) => Some(&gates::NAND_NORMAL),
+
+        (Gate::Nor, true) => Some(&gates::NOR_ACTIVE),
+        (Gate::Nor, false) => Some(&gates::NOR_NORMAL),
+
+        (Gate::Xnor, true) => Some(&gates::XNOR_ACTIVE),
+        (Gate::Xnor, false) => Some(&gates::XNOR_NORMAL),
+
+        (Gate::Buf, true) => Some(&gates::BUF_ACTIVE),
+        (Gate::Buf, false) => Some(&gates::BUF_NORMAL),
     }
 }
 
 impl CircuitElement {
     pub fn draw(&self, active: bool, frame: &mut Frame) {
-        let sprite = sprite_of(&self.gate).unwrap();
+        let sprite = sprite_of(&self.gate, active).unwrap();
         frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, Vec2::ONE)
-
-        // if active {
-        //     let outlined = format!("{}_outline", sprite);
-        //     let vector_handle = *frame.assets.vectors.get_vector(&outlined).unwrap();
-        //     frame.draw_vector(
-        //         VectorInstance::new(vector_handle)
-        //             .with_transform(self.position)
-        //             .with_color(Vec4::new(0.2, 0.2, 1.0, 1.0)),
-        //     );
-        // }
     }
 }
 
