@@ -1,4 +1,4 @@
-use crate::render::vertex::VertexUV;
+use crate::{render::vertex::VertexUV, util::bounds::Bounds};
 
 use glam::{Vec2, Vec4};
 use lyon::{
@@ -54,5 +54,48 @@ impl CubicBezier {
                 }),
             )
             .unwrap();
+    }
+
+    pub fn hit_test(&self, point: Vec2, distance: f32) -> bool {
+        // Since we always make our control points, between the start and end points,
+        // we can assume that the maximum bounds of the curve lie between the start and end points
+        let bounds = Bounds::from_points(self.start, self.end).pad(distance);
+
+        if !bounds.contains(point) {
+            return false;
+        }
+
+        // Binary search to find the closest point on the curve
+
+        let mut t = 0.5;
+        let mut step = 0.25;
+
+        for _ in 0..16 {
+            let lower = self.point_at(t - step).distance(point);
+            let higher = self.point_at(t + step).distance(point);
+
+            if lower > higher {
+                t += step;
+            } else {
+                t -= step;
+            }
+            step /= 2.0;
+        }
+
+        self.point_at(t).distance(point) <= distance
+    }
+
+    fn point_at(&self, t: f32) -> Vec2 {
+        let t2 = t * t;
+        let t3 = t2 * t;
+
+        let inv_t = 1.0 - t;
+        let inv_t2 = inv_t * inv_t;
+        let inv_t3 = inv_t2 * inv_t;
+
+        self.start * inv_t3
+            + (self.control1 * 3.0 * inv_t2 * t)
+            + (self.control2 * 3.0 * inv_t * t2)
+            + self.end * t3
     }
 }

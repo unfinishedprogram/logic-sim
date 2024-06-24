@@ -14,6 +14,10 @@ impl Bounds {
         }
     }
 
+    pub fn from_points(a: Vec2, b: Vec2) -> Self {
+        Self::new(a.min(b), a.max(b))
+    }
+
     pub fn contains(&self, point: Vec2) -> bool {
         point.x >= self.top_left.x
             && point.x <= self.bottom_right.x
@@ -47,6 +51,14 @@ impl Bounds {
         Self {
             top_left: center - new_half_size,
             bottom_right: center + new_half_size,
+        }
+    }
+
+    pub fn pad(&self, padding: f32) -> Self {
+        let padding = Vec2::splat(padding);
+        Self {
+            top_left: self.top_left - padding,
+            bottom_right: self.bottom_right + padding,
         }
     }
 }

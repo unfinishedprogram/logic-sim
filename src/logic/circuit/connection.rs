@@ -44,8 +44,12 @@ pub struct ElementIdx(pub usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InputIdx(pub usize);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct OutputIdx(pub usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ConnectionIdx(pub usize);
 
 impl IOSpecifier {
     pub fn element(&self) -> ElementIdx {

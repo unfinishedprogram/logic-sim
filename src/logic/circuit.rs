@@ -9,13 +9,15 @@ use glam::{vec2, Vec2};
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::{
     game::{input::InputState, GameInput},
+    render::line::cubic_bezier::CubicBezier,
     util::bounds::Bounds,
 };
 pub mod connection;
 mod element;
 mod render;
 use connection::{
-    Connection, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx, OutputSpecifier,
+    Connection, ConnectionIdx, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx,
+    OutputSpecifier,
 };
 
 #[derive(Default)]
@@ -119,7 +121,7 @@ impl Circuit {
         self.elements.remove(index);
     }
 
-    pub fn delete_connections(&mut self, spec: impl Into<IOSpecifier>) {
+    pub fn remove_connections(&mut self, spec: impl Into<IOSpecifier>) {
         match spec.into() {
             IOSpecifier::Input(input) => {
                 self.connections.retain(|connection| connection.to != input);
@@ -129,6 +131,10 @@ impl Circuit {
                     .retain(|connection| connection.from != output);
             }
         }
+    }
+
+    pub fn remove_connection(&mut self, idx: ConnectionIdx) {
+        self.connections.remove(idx.0);
     }
 
     pub fn hit_test(&self, position: Vec2) -> Option<HitTestResult> {
@@ -159,6 +165,15 @@ impl Circuit {
         for (element_idx, element) in self.elements.iter().enumerate() {
             if element.hit_test(position) {
                 return Some(HitTestResult::Element(ElementIdx(element_idx)));
+            }
+        }
+
+        for (connection_idx, connection) in self.connections.iter().enumerate() {
+            if self
+                .cubic_bezier_from_connection(connection)
+                .hit_test(position, 0.05)
+            {
+                return Some(HitTestResult::Connection(ConnectionIdx(connection_idx)));
             }
         }
 
@@ -220,9 +235,26 @@ impl Circuit {
             GameInput {
                 hot: Some(HitTestResult::IO(spec)),
                 ..
-            } if input_state.right_mouse.pressed => self.delete_connections(*spec),
+            } if input_state.right_mouse.pressed => self.remove_connections(*spec),
+            GameInput {
+                hot: Some(HitTestResult::Connection(idx_a)),
+                active: Some(HitTestResult::Connection(idx_b)),
+                ..
+            } if idx_a == idx_b && input_state.left_mouse.released => {
+                self.remove_connection(*idx_a)
+            }
             _ => {}
         }
+    }
+
+    pub fn cubic_bezier_from_connection(&self, connection: &Connection) -> CubicBezier {
+        let from_elm = &self[connection.from.0];
+        let from = from_elm.gate.output_offset() + from_elm.position;
+
+        let to_elm = &self[connection.to.0];
+        let to = to_elm.gate.input_offsets()[connection.to.1 .0] + to_elm.position;
+
+        CubicBezier::between_points(from, to)
     }
 }
 
