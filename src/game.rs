@@ -1,4 +1,3 @@
-pub mod clickable;
 pub mod game_loop;
 pub mod input;
 use glam::Vec2;
