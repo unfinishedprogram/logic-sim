@@ -36,10 +36,7 @@ impl SVGGeometry {
 
         let mut vertex_buffers = VertexBuffers::new();
 
-        let hit_box = svg
-            .node_by_id("hit_box")
-            .map(|it| it.abs_bounding_box())
-            .unwrap_or(svg.root().abs_bounding_box());
+        let hit_box = svg.root().abs_bounding_box();
 
         Self::tesselate(
             svg.root(),
