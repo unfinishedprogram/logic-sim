@@ -1,1 +1,6 @@
 - [x] Support SVG colors
+- [ ] Connection hit testing
+- [ ] Multi-Select
+  - [ ] Group Selection
+- [ ] Z-Index for vector rendering
+- [ ] Transparency for SVG rendering
