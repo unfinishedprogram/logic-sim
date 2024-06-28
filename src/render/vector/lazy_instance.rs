@@ -12,21 +12,28 @@ pub struct LazyVectorInstance<'a> {
 }
 
 impl VectorRenderer {
-    pub fn convert_lazy_instance(&mut self, instance: &LazyVectorInstance) -> VectorInstance {
-        let reference = self.reference();
-        let handle = reference.vectors.get(instance.source).copied();
+    pub fn convert_lazy_instances(
+        &mut self,
+        instances: &[LazyVectorInstance],
+    ) -> Vec<VectorInstance> {
+        let mut res = Vec::with_capacity(instances.len());
 
-        let handle = handle.unwrap_or_else(|| {
-            let geometry = GLOBAL_TESSELLATOR.get_geometry(instance.source);
-            self.add_vector_object(geometry)
-        });
+        for instance in instances.iter() {
+            let handle = self.get_vector(instance.source);
 
-        VectorInstance {
-            id: handle,
-            transform: instance.transform,
-            color: instance.color,
-            scale: instance.scale,
-            z_index: instance.z_index,
+            let handle = handle.unwrap_or_else(|| {
+                let geometry = GLOBAL_TESSELLATOR.get_geometry(instance.source);
+                self.add_vector_object(geometry)
+            });
+
+            res.push(VectorInstance {
+                id: handle,
+                transform: instance.transform,
+                color: instance.color,
+                scale: instance.scale,
+                z_index: instance.z_index,
+            });
         }
+        res
     }
 }

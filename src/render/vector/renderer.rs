@@ -192,6 +192,10 @@ impl VectorRenderer {
             hit_boxes,
         }
     }
+
+    pub fn get_vector(&self, name: &str) -> Option<Handle<SVGGeometry>> {
+        self.vector_lookup.get(name).copied()
+    }
 }
 
 #[derive(Clone)]

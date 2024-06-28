@@ -121,11 +121,9 @@ impl<'window> RenderState<'window> {
                 .upload_sprites(&self.base.queue, sprites);
 
             {
-                let mut converted = lazy_vector_instances
-                    .iter()
-                    .map(|instance| self.vector_renderer.convert_lazy_instance(instance))
-                    .collect::<Vec<_>>();
-
+                let mut converted = self
+                    .vector_renderer
+                    .convert_lazy_instances(lazy_vector_instances);
                 converted.extend(vector_instances);
 
                 self.vector_renderer
