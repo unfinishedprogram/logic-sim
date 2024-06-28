@@ -2,7 +2,7 @@ mod bindable;
 pub mod camera;
 pub mod frame;
 pub mod geometry;
-mod helpers;
+pub mod helpers;
 mod img_texture;
 pub mod line;
 pub mod msdf;

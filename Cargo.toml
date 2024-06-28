@@ -18,6 +18,12 @@ serde = { version = "1.0.200", features = ["derive"] }
 rand = "0.8.5"
 lyon = "1.0.1"
 usvg = "0.42.0"
+rayon = "1.10.0"
 
 [profile.release]
 debug = true
+strip = false
+
+[profile.bench]
+debug = true
+strip = false

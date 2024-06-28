@@ -1,4 +1,9 @@
 use glam::{Vec2, Vec4};
+use lyon::tessellation::VertexBuffers;
+use rayon::{
+    iter::{IntoParallelRefIterator, ParallelIterator},
+    option,
+};
 
 use super::{
     super::gate::Gate,
@@ -9,7 +14,12 @@ use crate::{
     assets,
     game::GameInput,
     logic::hit_test::HitTestResult,
-    render::{frame::Frame, line::cubic_bezier::CubicBezier},
+    render::{
+        frame::Frame,
+        helpers::{extend_vertex_buffer, join_buffers},
+        line::cubic_bezier::CubicBezier,
+        vertex::VertexUV,
+    },
 };
 
 pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
@@ -63,16 +73,27 @@ impl Circuit {
             );
         }
 
-        for connection in self.connections.iter() {
-            let line = self.cubic_bezier_from_connection(connection);
-            let color = self.solver.output_results[connection.from.0 .0] as u8 as f32 * 1.0;
+        let fold = |mut vb, conn| {
+            let line = self.cubic_bezier_from_connection(conn);
+            let color = self.solver.output_results[conn.from.0 .0] as u8 as f32;
+            line.tesselate(0.05, Vec4::new(0.0, color, 0.0, 1.0), &mut vb);
+            vb
+        };
 
-            line.tesselate(
-                0.05,
-                Vec4::new(0.0, color, 0.0, 1.0),
-                frame.line_geo_buffers(),
-            );
-        }
+        let buffers = if option_env!("NO_RAYON").is_some() {
+            self.connections
+                .iter()
+                .fold(VertexBuffers::<VertexUV, u32>::new(), fold)
+        } else {
+            join_buffers(
+                self.connections
+                    .par_iter()
+                    .fold_with(VertexBuffers::<VertexUV, u32>::new(), fold)
+                    .collect(),
+            )
+        };
+
+        extend_vertex_buffer(frame.line_geo_buffers(), buffers);
 
         // Draw connection preview while being made
         if let Some(source_point) = match game_input.active {

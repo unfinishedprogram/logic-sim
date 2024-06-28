@@ -1207,6 +1207,7 @@ dependencies = [
  "lyon",
  "pollster",
  "rand",
+ "rayon",
  "serde",
  "serde_json",
  "usvg",
