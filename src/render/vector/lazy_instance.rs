@@ -8,6 +8,7 @@ pub struct LazyVectorInstance<'a> {
     pub transform: Vec2,
     pub color: Vec4,
     pub scale: Vec2,
+    pub z_index: u16,
 }
 
 impl VectorRenderer {
@@ -25,6 +26,7 @@ impl VectorRenderer {
             transform: instance.transform,
             color: instance.color,
             scale: instance.scale,
+            z_index: instance.z_index,
         }
     }
 }

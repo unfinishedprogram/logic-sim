@@ -44,12 +44,14 @@ impl Frame {
         transform: Vec2,
         color: Vec4,
         scale: Vec2,
+        z_index: u16,
     ) {
         let instance = LazyVectorInstance {
             source,
             transform,
             color,
             scale,
+            z_index,
         };
 
         self.render_queue.enqueue_vector_lazy(instance);

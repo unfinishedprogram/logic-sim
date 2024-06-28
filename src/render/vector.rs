@@ -1,3 +1,4 @@
+mod draw_call_ordering;
 mod instance;
 pub mod lazy_instance;
 mod renderer;

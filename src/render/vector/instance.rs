@@ -5,12 +5,15 @@ use wgpu::vertex_attr_array;
 use super::svg_geometry::SVGGeometry;
 use crate::util::handle::Handle;
 
+pub type ZIndex = u16;
+
 #[derive(Clone, Copy)]
 pub struct VectorInstance {
     pub id: Handle<SVGGeometry>,
     pub transform: Vec2,
     pub scale: Vec2,
     pub color: Vec4,
+    pub z_index: ZIndex,
 }
 
 impl VectorInstance {
@@ -21,6 +24,7 @@ impl VectorInstance {
             transform: Vec2::ZERO,
             scale: Vec2::splat(1.0),
             color: Vec4::ONE,
+            z_index: 0,
         }
     }
 

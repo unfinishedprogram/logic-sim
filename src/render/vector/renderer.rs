@@ -15,16 +15,16 @@ use crate::{
 };
 
 use super::{
+    draw_call_ordering::{create_render_request, VectorRenderRequest},
     instance::{RawInstance, VectorInstance},
     svg_geometry::SVGGeometry,
     vertex::SVGVertex,
 };
 
 #[derive(Default, Clone, Debug)]
-struct VectorObjectMeta {
+struct VectorInstanceBufferRanges {
     pub vertex_range: std::ops::Range<u32>,
     pub index_range: std::ops::Range<u32>,
-    pub instance_range: std::ops::Range<u32>,
 }
 
 pub struct VectorRenderer {
@@ -34,9 +34,10 @@ pub struct VectorRenderer {
     instance_buffer: Buffer,
     camera_binding: CameraUniform,
 
-    vector_objects: Vec<(VectorObjectMeta, SVGGeometry)>,
+    vector_objects: Vec<(VectorInstanceBufferRanges, SVGGeometry)>,
     vector_lookup: HashMap<String, Handle<SVGGeometry>>,
-    render_queue: Vec<Vec<VectorInstance>>,
+
+    render_request: VectorRenderRequest,
 }
 
 impl VectorRenderer {
@@ -59,7 +60,7 @@ impl VectorRenderer {
             camera_binding,
             vector_lookup: HashMap::new(),
             vector_objects: vec![],
-            render_queue: vec![],
+            render_request: Default::default(),
         }
     }
 
@@ -72,12 +73,13 @@ impl VectorRenderer {
 
         rpass.set_bind_group(0, self.camera_binding.bind_group(), &[]);
 
-        for (meta, _) in self.vector_objects.iter() {
+        for call in self.render_request.draw_calls.iter() {
+            let meta = &self.vector_objects[call.id.index].0;
             rpass.draw_indexed(
                 meta.index_range.clone(),
                 meta.vertex_range.start as i32,
-                meta.instance_range.clone(),
-            )
+                call.range.clone(),
+            );
         }
     }
 
@@ -95,27 +97,15 @@ impl VectorRenderer {
     }
 
     // Loads vector instances to be rendered
-    pub fn upload_instances(&mut self, queue: &wgpu::Queue, instances: &[VectorInstance]) {
+    pub fn upload_instances(&mut self, queue: &wgpu::Queue, instances: Vec<VectorInstance>) {
         self.update_geometry(queue);
+        self.render_request = create_render_request(instances);
 
-        let mut sorted: Vec<Vec<RawInstance>> = vec![vec![]; self.vector_objects.len()];
-
-        for instance in instances {
-            sorted[instance.id.index].push((*instance).into());
-        }
-
-        let instance_data = {
-            let mut instance_data: Vec<u8> = vec![];
-            let mut offset = 0;
-            for (i, instances) in sorted.iter().enumerate() {
-                instance_data.extend(bytemuck::cast_slice(instances));
-                self.vector_objects[i].0.instance_range = offset..offset + instances.len() as u32;
-                offset += instances.len() as u32;
-            }
-            instance_data
-        };
-
-        queue.write_buffer(&self.instance_buffer, 0, &instance_data);
+        queue.write_buffer(
+            &self.instance_buffer,
+            0,
+            bytemuck::cast_slice(&self.render_request.instances_buf),
+        );
     }
 
     fn pipeline_layout(device: &Device, bind_group_layouts: &[&BindGroupLayout]) -> PipelineLayout {
@@ -161,7 +151,7 @@ impl VectorRenderer {
         self.camera_binding.update(queue, camera);
     }
 
-    fn next_vector_object_meta(&self, obj: &SVGGeometry) -> VectorObjectMeta {
+    fn next_vector_object_meta(&self, obj: &SVGGeometry) -> VectorInstanceBufferRanges {
         let previous_meta = self
             .vector_objects
             .last()
@@ -171,12 +161,11 @@ impl VectorRenderer {
         let vertex_offset = obj.vertex_buffers.vertices.len() as u32;
         let index_offset = obj.vertex_buffers.indices.len() as u32;
 
-        VectorObjectMeta {
+        VectorInstanceBufferRanges {
             vertex_range: (previous_meta.vertex_range.end
                 ..previous_meta.vertex_range.end + vertex_offset),
             index_range: (previous_meta.index_range.end
                 ..previous_meta.index_range.end + index_offset),
-            instance_range: 0..0,
         }
     }
 
@@ -186,16 +175,10 @@ impl VectorRenderer {
         self.vector_lookup
             .insert(vector_object.source.clone(), handle);
 
-        self.render_queue.push(vec![]);
-
         self.vector_objects
             .push((self.next_vector_object_meta(&vector_object), vector_object));
 
         handle
-    }
-
-    pub fn render_instance(&mut self, instance: VectorInstance) {
-        self.render_queue[instance.id.index].push(instance);
     }
 
     pub fn reference(&self) -> VectorRendererReference {

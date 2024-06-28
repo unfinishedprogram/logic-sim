@@ -129,7 +129,7 @@ impl<'window> RenderState<'window> {
                 converted.extend(vector_instances);
 
                 self.vector_renderer
-                    .upload_instances(&self.base.queue, &converted);
+                    .upload_instances(&self.base.queue, converted);
             }
 
             self.line_renderer.render(&mut rpass);

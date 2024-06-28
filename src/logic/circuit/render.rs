@@ -46,7 +46,7 @@ pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
 impl CircuitElement {
     pub fn draw(&self, active: bool, frame: &mut Frame) {
         let sprite = sprite_of(&self.gate, active).unwrap();
-        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, Vec2::ONE)
+        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, Vec2::ONE, active as u16)
     }
 }
 
@@ -108,7 +108,7 @@ impl Circuit {
                     _ => Vec2::splat(1.0),
                 };
 
-                frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale);
+                frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale, 2);
             }
         }
     }
