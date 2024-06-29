@@ -1,8 +1,5 @@
 use std::ops::IndexMut;
 
-mod sprite_instance;
-mod vector_instance;
-
 use crate::util::handle::Handle;
 
 use super::{render_queue::RenderQueue, Frame};
