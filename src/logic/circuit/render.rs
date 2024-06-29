@@ -1,9 +1,6 @@
 use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelIterator},
-    option,
-};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use super::{
     super::gate::Gate,
@@ -62,6 +59,8 @@ impl CircuitElement {
 
 impl Circuit {
     pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
+        let tolerance = f32::max(0.001 * frame.camera().size.x, 0.001);
+
         for (idx, element) in self.elements.iter().enumerate() {
             element.draw(
                 if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
@@ -73,21 +72,33 @@ impl Circuit {
             );
         }
 
-        let fold = |mut vb, conn| {
+        let filter_map = |conn| {
             let line = self.cubic_bezier_from_connection(conn);
-            let color = self.solver.output_results[conn.from.0 .0] as u8 as f32;
-            line.tesselate(0.05, Vec4::new(0.0, color, 0.0, 1.0), &mut vb);
+            if frame.camera().bounds().overlaps(&line.bounds()) {
+                Some((
+                    line,
+                    self.solver.output_results[conn.from.0 .0] as u8 as f32,
+                ))
+            } else {
+                None
+            }
+        };
+
+        let fold = |mut vb, (line, color): (CubicBezier, f32)| {
+            line.tesselate(&mut vb, 0.05, Vec4::new(0.0, color, 0.0, 1.0), tolerance);
             vb
         };
 
         let buffers = if option_env!("NO_RAYON").is_some() {
             self.connections
                 .iter()
+                .filter_map(filter_map)
                 .fold(VertexBuffers::<VertexUV, u32>::new(), fold)
         } else {
             join_buffers(
                 self.connections
                     .par_iter()
+                    .filter_map(filter_map)
                     .fold_with(VertexBuffers::<VertexUV, u32>::new(), fold)
                     .collect(),
             )
@@ -110,9 +121,10 @@ impl Circuit {
             let to = frame.input().mouse_world_position;
             let line = CubicBezier::between_points(source_point, to);
             line.tesselate(
+                frame.line_geo_buffers(),
                 0.05,
                 Vec4::new(1.0, 1.0, 1.0, 1.0),
-                frame.line_geo_buffers(),
+                tolerance,
             );
         }
 

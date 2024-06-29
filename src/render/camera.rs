@@ -5,6 +5,8 @@ use wgpu::{
     BindGroup, BindGroupLayout, Buffer, BufferUsages, Device, Queue,
 };
 
+use crate::util::bounds::Bounds;
+
 use super::bindable::Bindable;
 
 #[repr(C)]
@@ -41,6 +43,10 @@ impl Camera {
 
     pub fn top_left(&self) -> Vec2 {
         self.center - self.size
+    }
+
+    pub fn bounds(&self) -> Bounds {
+        Bounds::from_center_and_size(self.center, self.size * 2.0)
     }
 }
 

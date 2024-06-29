@@ -29,7 +29,13 @@ impl CubicBezier {
         }
     }
 
-    pub fn tesselate(&self, width: f32, color: Vec4, buffers: &mut VertexBuffers<VertexUV, u32>) {
+    pub fn tesselate(
+        &self,
+        buffers: &mut VertexBuffers<VertexUV, u32>,
+        width: f32,
+        color: Vec4,
+        tolerance: f32,
+    ) {
         let mut path = Path::builder();
         path.begin(point(self.start.x, self.start.y));
         let ctrl1 = point(self.control1.x, self.control1.y);
@@ -43,7 +49,7 @@ impl CubicBezier {
 
         let options = StrokeOptions::default()
             .with_line_width(width)
-            .with_tolerance(0.01);
+            .with_tolerance(tolerance);
 
         tessellator
             .tessellate_path(
@@ -97,5 +103,9 @@ impl CubicBezier {
             + (self.control1 * 3.0 * inv_t2 * t)
             + (self.control2 * 3.0 * inv_t * t2)
             + self.end * t3
+    }
+
+    pub fn bounds(&self) -> Bounds {
+        Bounds::from_points(self.start, self.end)
     }
 }

@@ -61,6 +61,13 @@ impl Bounds {
             bottom_right: self.bottom_right + padding,
         }
     }
+
+    pub fn overlaps(&self, other: &Bounds) -> bool {
+        self.top_left.x <= other.bottom_right.x
+            && self.bottom_right.x >= other.top_left.x
+            && self.top_left.y <= other.bottom_right.y
+            && self.bottom_right.y >= other.top_left.y
+    }
 }
 
 impl From<usvg::Rect> for Bounds {
