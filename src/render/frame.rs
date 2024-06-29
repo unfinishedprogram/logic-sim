@@ -1,7 +1,7 @@
 pub mod draw;
 mod render_queue;
 
-use render_queue::RenderQueue;
+pub use render_queue::RenderQueue;
 
 use crate::game::input::InputState;
 
@@ -43,11 +43,21 @@ impl Frame {
         &self.camera
     }
 
+    pub fn ui_camera(&self) -> Camera {
+        let mut cam = Camera::new();
+        cam.translate(-cam.top_left());
+        cam
+    }
+
     pub fn input(&self) -> &InputState {
         &self.input_state
     }
 
     pub fn render_queue(&self) -> &RenderQueue {
         &self.render_queue
+    }
+
+    pub fn ui_render_queue(&self) -> &RenderQueue {
+        &self.ui_render_queue
     }
 }

@@ -17,6 +17,7 @@ use crate::{
 use super::{
     draw_call_ordering::{create_render_request, VectorRenderRequest},
     instance::{RawInstance, VectorInstance},
+    lazy_instance::LazyVectorInstance,
     svg_geometry::SVGGeometry,
     vertex::SVGVertex,
 };
@@ -97,9 +98,17 @@ impl VectorRenderer {
     }
 
     // Loads vector instances to be rendered
-    pub fn upload_instances(&mut self, queue: &wgpu::Queue, instances: Vec<VectorInstance>) {
+    pub fn upload_instances(
+        &mut self,
+        queue: &wgpu::Queue,
+        instances: &[VectorInstance],
+        lazy_instances: &[LazyVectorInstance],
+    ) {
+        let mut converted = self.convert_lazy_instances(lazy_instances);
+        converted.extend(instances);
+
         self.update_geometry(queue);
-        self.render_request = create_render_request(instances);
+        self.render_request = create_render_request(converted);
 
         queue.write_buffer(
             &self.instance_buffer,

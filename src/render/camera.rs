@@ -36,6 +36,10 @@ impl Camera {
         self.size = Vec2::new(scale, scale / ratio);
     }
 
+    pub fn get_aspect_ratio(&self) -> Vec2 {
+        self.size.normalize()
+    }
+
     pub fn set_aspect_ratio(&mut self, aspect: Vec2) {
         let magnitude = self.size.length();
         self.size = aspect.normalize() * magnitude;

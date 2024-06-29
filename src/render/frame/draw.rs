@@ -57,4 +57,12 @@ impl Frame {
 
         self.render_queue.enqueue_vector_lazy(instance);
     }
+
+    pub fn draw_ui_vector(&mut self, instance: VectorInstance) -> Handle<VectorInstance> {
+        self.ui_render_queue.enqueue_vector(instance)
+    }
+
+    pub fn draw_ui_sprite_instance(&mut self, instance: SpriteInstance) -> Handle<SpriteInstance> {
+        self.ui_render_queue.enqueue_sprite(instance)
+    }
 }

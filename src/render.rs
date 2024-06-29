@@ -11,11 +11,12 @@ pub mod vertex;
 use std::any::type_name;
 
 use crate::assets;
-use frame::Frame;
+use camera::Camera;
+use frame::{Frame, RenderQueue};
 use msdf::text::MsdfFontReference;
 use vector::VectorRenderer;
 use wgpu::{
-    Color, Device, Queue, ShaderModule, ShaderModuleDescriptor, Surface, SurfaceConfiguration,
+    Device, Queue, ShaderModule, ShaderModuleDescriptor, Surface, SurfaceConfiguration, TextureView,
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
@@ -56,7 +57,6 @@ impl<'window> RenderState<'window> {
         let msdf_font_ref = msdf_font.reference();
 
         let sprite_renderer = SpriteRenderer::create(&base, vec![msdf_font.sprite_sheet]);
-
         let line_renderer = line::LineRenderer::create(&base);
         let vector_renderer = vector::VectorRenderer::create(&base);
 
@@ -70,65 +70,35 @@ impl<'window> RenderState<'window> {
     }
 
     pub fn render(&mut self, frame: Frame) {
-        let camera = frame.camera();
-
-        let lines = frame.render_queue().lines();
-        let sprites = frame.render_queue().sprites();
-        let vector_instances = frame.render_queue().vector_instances();
-        let lazy_vector_instances = frame.render_queue().lazy_vector_instances();
-
         let surface = self
             .base
             .surface
             .get_current_texture()
             .expect("Failed to acquire next swap chain texture");
-
         let frame_view = surface
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        let view = self.create_multisampled_frame_buffer(4);
+        let msaa_view = self.create_multisampled_frame_buffer(4);
+
+        let attachments = Self::color_attachments(&msaa_view, &frame_view);
+        let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
+
+        self.render_world(&frame, &render_pass_desc);
+        self.render_ui(&frame, &render_pass_desc);
+
+        surface.present();
+    }
+
+    fn render_world(&mut self, frame: &Frame, render_pass_desc: &wgpu::RenderPassDescriptor) {
+        self.upload_resources(frame.camera(), frame.render_queue());
 
         let mut encoder = self
             .base
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
         {
-            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: None,
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: Some(&frame_view),
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(Color::TRANSPARENT),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
-
-            self.line_renderer.update_camera(&self.base.queue, camera);
-            self.sprite_renderer.update_camera(&self.base.queue, camera);
-            self.vector_renderer.update_camera(&self.base.queue, camera);
-
-            self.line_renderer
-                .upload_geometry(&self.base.queue, &lines.indices, &lines.vertices);
-
-            self.sprite_renderer
-                .upload_sprites(&self.base.queue, sprites);
-
-            {
-                let mut converted = self
-                    .vector_renderer
-                    .convert_lazy_instances(lazy_vector_instances);
-                converted.extend(vector_instances);
-
-                self.vector_renderer
-                    .upload_instances(&self.base.queue, converted);
-            }
+            let mut rpass = encoder.begin_render_pass(render_pass_desc);
 
             self.line_renderer.render(&mut rpass);
             self.sprite_renderer.render(&mut rpass);
@@ -136,8 +106,24 @@ impl<'window> RenderState<'window> {
         }
 
         self.base.queue.submit(Some(encoder.finish()));
+    }
 
-        surface.present();
+    fn render_ui(&mut self, frame: &Frame, render_pass_desc: &wgpu::RenderPassDescriptor) {
+        self.upload_resources(&frame.ui_camera(), frame.ui_render_queue());
+
+        let mut encoder = self
+            .base
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+        {
+            let mut rpass = encoder.begin_render_pass(render_pass_desc);
+
+            self.line_renderer.render(&mut rpass);
+            self.sprite_renderer.render(&mut rpass);
+            self.vector_renderer.render(&mut rpass);
+        }
+
+        self.base.queue.submit(Some(encoder.finish()));
     }
 
     pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
@@ -166,6 +152,55 @@ impl<'window> RenderState<'window> {
             .device
             .create_texture(descriptor)
             .create_view(&wgpu::TextureViewDescriptor::default())
+    }
+
+    fn upload_resources(&mut self, camera: &Camera, render_queue: &RenderQueue) {
+        self.line_renderer.update_camera(&self.base.queue, camera);
+        self.sprite_renderer.update_camera(&self.base.queue, camera);
+        self.vector_renderer.update_camera(&self.base.queue, camera);
+
+        let lines = render_queue.lines();
+        let sprites = render_queue.sprites();
+        let vector_instances = render_queue.vector_instances();
+        let lazy_vector_instances = render_queue.lazy_vector_instances();
+
+        self.line_renderer
+            .upload_geometry(&self.base.queue, &lines.indices, &lines.vertices);
+
+        self.sprite_renderer
+            .upload_sprites(&self.base.queue, sprites);
+
+        self.vector_renderer.upload_instances(
+            &self.base.queue,
+            vector_instances,
+            lazy_vector_instances,
+        );
+    }
+
+    fn color_attachments<'a>(
+        msaa_view: &'a TextureView,
+        frame_view: &'a TextureView,
+    ) -> [Option<wgpu::RenderPassColorAttachment<'a>>; 1] {
+        [Some(wgpu::RenderPassColorAttachment {
+            view: msaa_view,
+            resolve_target: Some(frame_view),
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: wgpu::StoreOp::Store,
+            },
+        })]
+    }
+
+    fn frame_render_pass_descriptor<'a>(
+        color_attachments: &'a [Option<wgpu::RenderPassColorAttachment>],
+    ) -> wgpu::RenderPassDescriptor<'a, 'a> {
+        wgpu::RenderPassDescriptor {
+            label: None,
+            color_attachments,
+            depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+        }
     }
 }
 
