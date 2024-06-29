@@ -1,5 +1,9 @@
 use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
+
+#[cfg(feature = "rayon")]
+use crate::render::helpers::join_buffers;
+#[cfg(feature = "rayon")]
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use super::{
@@ -12,9 +16,7 @@ use crate::{
     game::GameInput,
     logic::hit_test::HitTestResult,
     render::{
-        frame::Frame,
-        helpers::{extend_vertex_buffer, join_buffers},
-        line::cubic_bezier::CubicBezier,
+        frame::Frame, helpers::extend_vertex_buffer, line::cubic_bezier::CubicBezier,
         vertex::VertexUV,
     },
 };
@@ -89,12 +91,16 @@ impl Circuit {
             vb
         };
 
-        let buffers = if option_env!("NO_RAYON").is_some() {
+        #[cfg(not(feature = "rayon"))]
+        let buffers = {
             self.connections
                 .iter()
                 .filter_map(filter_map)
                 .fold(VertexBuffers::<VertexUV, u32>::new(), fold)
-        } else {
+        };
+
+        #[cfg(feature = "rayon")]
+        let buffers = {
             join_buffers(
                 self.connections
                     .par_iter()
