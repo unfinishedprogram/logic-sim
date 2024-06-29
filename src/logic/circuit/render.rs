@@ -2,8 +2,6 @@ use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
 
 #[cfg(feature = "rayon")]
-use crate::render::helpers::join_buffers;
-#[cfg(feature = "rayon")]
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use super::{
@@ -16,7 +14,7 @@ use crate::{
     game::GameInput,
     logic::hit_test::HitTestResult,
     render::{
-        frame::Frame, helpers::extend_vertex_buffer, line::cubic_bezier::CubicBezier,
+        frame::Frame, line::cubic_bezier::CubicBezier, vector::vertex_buffers::VertexBufferUtils,
         vertex::VertexUV,
     },
 };
@@ -101,7 +99,7 @@ impl Circuit {
 
         #[cfg(feature = "rayon")]
         let buffers = {
-            join_buffers(
+            VertexBufferUtils::join(
                 self.connections
                     .par_iter()
                     .filter_map(filter_map)
@@ -110,7 +108,7 @@ impl Circuit {
             )
         };
 
-        extend_vertex_buffer(frame.line_geo_buffers(), buffers);
+        frame.line_geo_buffers().extend(buffers);
 
         // Draw connection preview while being made
         if let Some(source_point) = match game_input.active {
