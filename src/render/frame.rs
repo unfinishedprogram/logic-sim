@@ -1,6 +1,5 @@
 pub mod draw;
 mod render_queue;
-pub mod response;
 
 use render_queue::RenderQueue;
 
@@ -16,6 +15,7 @@ pub struct Frame {
     input_state: InputState,
     pub assets: FrameAssets,
     render_queue: RenderQueue,
+    ui_render_queue: RenderQueue,
 }
 
 pub struct FrameAssets {
@@ -35,6 +35,7 @@ impl Frame {
             camera: *camera,
             assets: FrameAssets { sprites, vectors },
             render_queue: RenderQueue::new(),
+            ui_render_queue: RenderQueue::new(),
         }
     }
 

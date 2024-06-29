@@ -1,13 +1,16 @@
 use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
 
-use crate::render::{
-    msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
-    vector::{lazy_instance::LazyVectorInstance, VectorInstance},
-    vertex::VertexUV,
+use crate::{
+    render::{
+        msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
+        vector::{lazy_instance::LazyVectorInstance, VectorInstance},
+        vertex::VertexUV,
+    },
+    util::handle::Handle,
 };
 
-use super::{response::Response, Frame};
+use super::Frame;
 
 impl Frame {
     pub fn draw_sprite(
@@ -15,7 +18,7 @@ impl Frame {
         sprite_handle: SpriteHandle,
         position: Vec2,
         scale: f32,
-    ) -> Response<SpriteInstance> {
+    ) -> Handle<SpriteInstance> {
         self.draw_sprite_instance(SpriteInstance {
             sprite_handle,
             position,
@@ -24,18 +27,16 @@ impl Frame {
         })
     }
 
-    pub fn draw_sprite_instance(&mut self, sprite: SpriteInstance) -> Response<SpriteInstance> {
-        let handle = self.render_queue.enqueue_sprite(sprite);
-        self.response(handle)
+    pub fn draw_sprite_instance(&mut self, sprite: SpriteInstance) -> Handle<SpriteInstance> {
+        self.render_queue.enqueue_sprite(sprite)
     }
 
     pub fn line_geo_buffers(&mut self) -> &mut VertexBuffers<VertexUV, u32> {
         &mut self.render_queue.lines
     }
 
-    pub fn draw_vector(&mut self, instance: VectorInstance) -> Response<VectorInstance> {
-        let handle = self.render_queue.enqueue_vector(instance);
-        self.response(handle)
+    pub fn draw_vector(&mut self, instance: VectorInstance) -> Handle<VectorInstance> {
+        self.render_queue.enqueue_vector(instance)
     }
 
     pub fn draw_vector_lazy(
