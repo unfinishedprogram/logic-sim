@@ -12,10 +12,11 @@ use super::{
 // Immediate mode context for a frame
 pub struct Frame {
     camera: Camera,
+    ui_camera: Camera,
     input_state: InputState,
     pub assets: FrameAssets,
     render_queue: RenderQueue,
-    ui_render_queue: RenderQueue,
+    pub ui_render_queue: RenderQueue,
 }
 
 pub struct FrameAssets {
@@ -25,14 +26,16 @@ pub struct FrameAssets {
 
 impl Frame {
     pub fn new(
-        camera: &Camera,
+        camera: Camera,
+        ui_camera: Camera,
         input: &InputState,
         sprites: SpriteRendererReference,
         vectors: VectorRendererReference,
     ) -> Self {
         Self {
             input_state: input.clone(),
-            camera: *camera,
+            camera,
+            ui_camera,
             assets: FrameAssets { sprites, vectors },
             render_queue: RenderQueue::new(),
             ui_render_queue: RenderQueue::new(),
@@ -43,10 +46,8 @@ impl Frame {
         &self.camera
     }
 
-    pub fn ui_camera(&self) -> Camera {
-        let mut cam = Camera::new();
-        cam.translate(-cam.top_left());
-        cam
+    pub fn ui_camera(&self) -> &Camera {
+        &self.ui_camera
     }
 
     pub fn input(&self) -> &InputState {
@@ -55,9 +56,5 @@ impl Frame {
 
     pub fn render_queue(&self) -> &RenderQueue {
         &self.render_queue
-    }
-
-    pub fn ui_render_queue(&self) -> &RenderQueue {
-        &self.ui_render_queue
     }
 }

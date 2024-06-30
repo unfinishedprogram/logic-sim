@@ -36,7 +36,7 @@ impl GameState {
     pub fn new(font: MsdfFontReference, sprites: SpriteRendererReference) -> Self {
         let text_object = TextObject {
             content: "".to_string(),
-            position: Vec2::new(0.0, -1.0),
+            position: Vec2::new(0.0, 0.0),
             scale: 1.0,
         };
 

@@ -60,8 +60,15 @@ impl<'a> App<'a> {
     }
 
     fn update(&mut self) -> Frame {
+        let ui_scale = 64.0;
+        let ui_cam = Camera {
+            center: self.screen_size() / ui_scale,
+            size: self.screen_size() / ui_scale,
+        };
+
         let mut frame = Frame::new(
-            &self.game_state.camera,
+            self.game_state.camera,
+            ui_cam,
             &self.input,
             self.game_state.sprites.clone(),
             self.render_state.vector_renderer.reference(),

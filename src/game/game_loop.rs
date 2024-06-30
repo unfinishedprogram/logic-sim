@@ -12,17 +12,15 @@ impl GameState {
         let solver = solver.clone().step(&self.circuit);
         self.circuit.solver = solver;
 
-        self.text_object.position = frame.camera().top_left();
-        self.text_object.scale = self.camera.size.length() / 50.0;
-        self.text_object.position += Vec2::new(0.0, self.text_object.scale);
-
         self.text_object.content = self.debug_text();
 
         self.draw(frame);
     }
 
     pub fn draw(&self, frame: &mut Frame) {
-        self.text_object.draw(frame, &self.font);
+        self.text_object
+            .draw(&mut frame.ui_render_queue, &self.font);
+
         self.circuit.draw(frame, &self.input);
     }
 

@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::render::frame::Frame;
+use crate::render::frame::RenderQueue;
 
 use super::MsdfFontReference;
 
@@ -12,17 +12,20 @@ pub struct TextObject {
 }
 
 impl TextObject {
-    pub fn draw(&self, frame: &mut Frame, font: &MsdfFontReference) {
-        let mut offset = Vec2::ZERO;
+    pub fn draw(&self, render_queue: &mut RenderQueue, font: &MsdfFontReference) {
+        let line_height = 1.2;
+        let mut offset = Vec2::new(0.0, line_height);
 
         for c in self.content.chars() {
             if c == '\n' {
                 offset.x = 0.0;
-                offset.y += 1.2;
+                offset.y += line_height;
                 continue;
             }
             if let Some(sprite) = font.get(c) {
-                frame.draw_sprite(sprite, self.position + offset * self.scale, self.scale);
+                render_queue.enqueue_sprite(
+                    sprite.instantiate(self.position + offset * self.scale, self.scale),
+                );
             }
 
             offset.x += font.advance(c)

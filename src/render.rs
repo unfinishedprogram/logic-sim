@@ -109,7 +109,7 @@ impl<'window> RenderState<'window> {
     }
 
     fn render_ui(&mut self, frame: &Frame, render_pass_desc: &wgpu::RenderPassDescriptor) {
-        self.upload_resources(&frame.ui_camera(), frame.ui_render_queue());
+        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
 
         let mut encoder = self
             .base
