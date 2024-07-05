@@ -92,6 +92,8 @@ impl SVGGeometry {
             c.blue as f32 / 255.0,
             1.0,
         )
+        // Convert color spaces
+        .powf(2.2)
     }
 
     fn tesselate_path_stroke(
