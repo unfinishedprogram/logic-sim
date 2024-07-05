@@ -101,8 +101,8 @@ impl<'window> RenderState<'window> {
             let mut rpass = encoder.begin_render_pass(render_pass_desc);
 
             self.line_renderer.render(&mut rpass);
-            self.sprite_renderer.render(&mut rpass);
             self.vector_renderer.render(&mut rpass);
+            self.sprite_renderer.render(&mut rpass);
         }
 
         self.base.queue.submit(Some(encoder.finish()));
@@ -119,8 +119,8 @@ impl<'window> RenderState<'window> {
             let mut rpass = encoder.begin_render_pass(render_pass_desc);
 
             self.line_renderer.render(&mut rpass);
-            self.sprite_renderer.render(&mut rpass);
             self.vector_renderer.render(&mut rpass);
+            self.sprite_renderer.render(&mut rpass);
         }
 
         self.base.queue.submit(Some(encoder.finish()));

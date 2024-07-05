@@ -6,7 +6,9 @@ pub use render_queue::RenderQueue;
 use crate::game::input::InputState;
 
 use super::{
-    camera::Camera, msdf::sprite_renderer::SpriteRendererReference, vector::VectorRendererReference,
+    camera::Camera,
+    msdf::{sprite_renderer::SpriteRendererReference, text::MsdfFontReference},
+    vector::VectorRendererReference,
 };
 
 // Immediate mode context for a frame
@@ -22,21 +24,16 @@ pub struct Frame {
 pub struct FrameAssets {
     pub sprites: SpriteRendererReference,
     pub vectors: VectorRendererReference,
+    pub font: MsdfFontReference,
 }
 
 impl Frame {
-    pub fn new(
-        camera: Camera,
-        ui_camera: Camera,
-        input: &InputState,
-        sprites: SpriteRendererReference,
-        vectors: VectorRendererReference,
-    ) -> Self {
+    pub fn new(camera: Camera, ui_camera: Camera, input: &InputState, assets: FrameAssets) -> Self {
         Self {
             input_state: input.clone(),
             camera,
             ui_camera,
-            assets: FrameAssets { sprites, vectors },
+            assets,
             render_queue: RenderQueue::new(),
             ui_render_queue: RenderQueue::new(),
         }

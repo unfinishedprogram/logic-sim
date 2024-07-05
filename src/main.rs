@@ -8,6 +8,7 @@ mod assets;
 mod game;
 pub mod logic;
 mod render;
+mod ui;
 mod util;
 
 use pollster::FutureExt;

@@ -4,21 +4,13 @@ use glam::Vec2;
 
 use crate::{
     logic::{circuit::Circuit, hit_test::HitTestResult},
-    render::{
-        camera::Camera,
-        msdf::{
-            sprite_renderer::SpriteRendererReference,
-            text::{MsdfFontReference, TextObject},
-        },
-    },
+    render::{camera::Camera, msdf::text::TextObject},
     util::stopwatch::Stopwatch,
 };
 
 pub struct GameState {
     pub text_object: TextObject,
     pub camera: Camera,
-    pub sprites: SpriteRendererReference,
-    pub font: MsdfFontReference,
     circuit: Circuit,
 
     pub input: GameInput,
@@ -33,18 +25,16 @@ pub struct GameInput {
 }
 
 impl GameState {
-    pub fn new(font: MsdfFontReference, sprites: SpriteRendererReference) -> Self {
+    pub fn new() -> Self {
         let text_object = TextObject {
             content: "".to_string(),
             position: Vec2::new(0.0, 0.0),
-            scale: 1.0,
+            scale: 16.0,
         };
 
         Self {
             camera: Camera::new(),
             text_object,
-            font,
-            sprites,
             circuit: Circuit::test_circuit(),
             input: GameInput::default(),
             stopwatch: Stopwatch::default(),

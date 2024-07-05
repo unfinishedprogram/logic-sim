@@ -6,6 +6,11 @@ use winit::event::{ElementState, MouseButton};
 pub struct InputState {
     pub mouse_world_position: Vec2,
     pub mouse_world_position_delta: Vec2,
+
+    // In camera's screen space
+    pub mouse_screen_position: Vec2,
+    pub mouse_screen_position_delta: Vec2,
+
     pub left_mouse: ButtonState,
     pub right_mouse: ButtonState,
     pub scroll_delta: f32,
@@ -24,12 +29,22 @@ impl InputState {
         self.left_mouse.update();
         self.right_mouse.update();
         self.mouse_world_position_delta = Vec2::ZERO;
+        self.mouse_screen_position_delta = Vec2::ZERO;
         self.scroll_delta = 0.0;
     }
 
-    pub fn on_mouse_move(&mut self, new_mouse_world_pos: Vec2, mouse_delta: Vec2) {
+    pub fn on_mouse_move(
+        &mut self,
+        new_mouse_world_pos: Vec2,
+        mouse_delta: Vec2,
+        new_mouse_screen_position: Vec2,
+        screen_delta: Vec2,
+    ) {
         self.mouse_world_position_delta += mouse_delta;
         self.mouse_world_position = new_mouse_world_pos;
+
+        self.mouse_screen_position_delta += screen_delta;
+        self.mouse_screen_position = new_mouse_screen_position;
     }
 
     pub fn on_mouse_button(&mut self, button: MouseButton, state: ElementState) {

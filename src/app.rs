@@ -10,7 +10,11 @@ use winit::{
 
 use crate::{
     game::{input::InputState, GameState},
-    render::{camera::Camera, frame::Frame, RenderState},
+    render::{
+        camera::Camera,
+        frame::{Frame, FrameAssets},
+        RenderState,
+    },
     util::stopwatch::Stopwatch,
 };
 
@@ -29,10 +33,7 @@ impl<'a> App<'a> {
         let render_state = RenderState::create(window).await;
         let input = InputState::default();
 
-        let mut game_state = GameState::new(
-            render_state.msdf_font_ref.clone(),
-            render_state.sprite_renderer.reference(),
-        );
+        let mut game_state = GameState::new();
 
         let window_size = window.inner_size();
         let aspect = window_size.width as f32 / window_size.height as f32;
@@ -60,19 +61,18 @@ impl<'a> App<'a> {
     }
 
     fn update(&mut self) -> Frame {
-        let ui_scale = 64.0;
         let ui_cam = Camera {
-            center: self.screen_size() / ui_scale,
-            size: self.screen_size() / ui_scale,
+            center: self.screen_size() / 2.0,
+            size: self.screen_size() / 2.0,
         };
 
-        let mut frame = Frame::new(
-            self.game_state.camera,
-            ui_cam,
-            &self.input,
-            self.game_state.sprites.clone(),
-            self.render_state.vector_renderer.reference(),
-        );
+        let frame_assets = FrameAssets {
+            sprites: self.render_state.sprite_renderer.reference(),
+            vectors: self.render_state.vector_renderer.reference(),
+            font: self.render_state.msdf_font_ref.clone(),
+        };
+
+        let mut frame = Frame::new(self.game_state.camera, ui_cam, &self.input, frame_assets);
         self.input.update();
         self.game_state.update(&mut frame);
         frame
@@ -133,8 +133,9 @@ impl ApplicationHandler for App<'_> {
                 device_id: _,
                 position,
             } => {
+                let screen_position = Vec2::new(position.x as f32, position.y as f32);
                 let world_position = mouse_world_position(
-                    Vec2::new(position.x as f32, position.y as f32),
+                    screen_position,
                     self.screen_size(),
                     &self.game_state.camera,
                 );
@@ -150,7 +151,12 @@ impl ApplicationHandler for App<'_> {
 
                 self.mouse_position = position;
 
-                self.input.on_mouse_move(world_position, world_delta);
+                self.input.on_mouse_move(
+                    world_position,
+                    world_delta,
+                    screen_position,
+                    screen_delta,
+                );
             }
             WindowEvent::KeyboardInput {
                 device_id: _,

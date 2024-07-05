@@ -13,13 +13,18 @@ impl GameState {
         self.circuit.solver = solver;
 
         self.text_object.content = self.debug_text();
+        let button_pos = frame.input().mouse_screen_position;
+
+        if frame.button("AND", button_pos).clicked {
+            println!("Button clicked!");
+        }
 
         self.draw(frame);
     }
 
     pub fn draw(&self, frame: &mut Frame) {
         self.text_object
-            .draw(&mut frame.ui_render_queue, &self.font);
+            .draw(&mut frame.ui_render_queue, &frame.assets.font);
 
         self.circuit.draw(frame, &self.input);
     }
