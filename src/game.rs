@@ -30,6 +30,7 @@ impl GameState {
             content: "".to_string(),
             position: Vec2::new(0.0, 0.0),
             scale: 16.0,
+            centered: false,
         };
 
         Self {

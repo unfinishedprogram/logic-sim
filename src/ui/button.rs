@@ -34,6 +34,7 @@ impl Frame {
             content: text.to_string(),
             position,
             scale: scale.x,
+            centered: true,
         };
 
         text_object.draw(&mut self.ui_render_queue, &self.assets.font);
