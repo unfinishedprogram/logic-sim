@@ -10,7 +10,6 @@ pub mod vector;
 pub mod vertex;
 use std::any::type_name;
 
-use crate::assets;
 use camera::Camera;
 use frame::{Frame, RenderQueue};
 use msdf::text::MsdfFontReference;

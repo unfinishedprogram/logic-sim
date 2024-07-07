@@ -1,8 +1,7 @@
 use glam::{Vec2, Vec4};
 
-use crate::{
-    assets,
-    render::{frame::Frame, msdf::text::TextObject, vector::lazy_instance::LazyVectorInstance},
+use crate::render::{
+    frame::Frame, msdf::text::TextObject, vector::lazy_instance::LazyVectorInstance,
 };
 
 use util::bounds::Bounds;

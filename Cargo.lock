@@ -194,6 +194,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "assets"
+version = "0.1.0"
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1200,6 +1204,7 @@ checksum = "90ed8c1e510134f979dbc4f070f87d4313098b704861a105fe34231c70a3901c"
 name = "logic-sim"
 version = "0.1.0"
 dependencies = [
+ "assets",
  "bytemuck",
  "env_logger",
  "glam",

@@ -10,7 +10,6 @@ use super::{
     Circuit, CircuitElement,
 };
 use crate::{
-    assets,
     game::GameInput,
     logic::hit_test::HitTestResult,
     render::{
