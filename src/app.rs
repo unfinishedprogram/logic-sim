@@ -15,8 +15,9 @@ use crate::{
         frame::{Frame, FrameAssets},
         RenderState,
     },
-    util::stopwatch::Stopwatch,
 };
+
+use util::stopwatch::Stopwatch;
 
 pub struct App<'a> {
     window: &'a Window,

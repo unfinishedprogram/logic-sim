@@ -5,14 +5,13 @@ use wgpu::{
     RenderPass, RenderPipeline, ShaderModule,
 };
 
-use crate::{
-    render::{
-        bindable::Bindable,
-        camera::{Camera, CameraUniform},
-        helpers, BaseRenderState,
-    },
-    util::{bounds::Bounds, handle::Handle},
+use crate::render::{
+    bindable::Bindable,
+    camera::{Camera, CameraUniform},
+    helpers, BaseRenderState,
 };
+
+use util::{bounds::Bounds, handle::Handle};
 
 use super::{
     draw_call_ordering::{create_render_request, VectorRenderRequest},
@@ -193,7 +192,7 @@ impl VectorRenderer {
     pub fn reference(&self) -> VectorRendererReference {
         let mut hit_boxes = HashMap::new();
         for obj in self.vector_lookup.values() {
-            hit_boxes.insert(*obj, self.vector_objects[obj.index].1.hit_box.into());
+            hit_boxes.insert(*obj, self.vector_objects[obj.index].1.hit_box);
         }
 
         VectorRendererReference {

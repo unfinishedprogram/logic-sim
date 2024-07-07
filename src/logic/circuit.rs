@@ -10,8 +10,10 @@ use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::{
     game::{input::InputState, GameInput},
     render::line::cubic_bezier::CubicBezier,
-    util::bounds::Bounds,
 };
+
+use util::bounds::Bounds;
+
 pub mod connection;
 mod element;
 mod render;

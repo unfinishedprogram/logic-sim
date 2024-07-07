@@ -3,8 +3,9 @@ use glam::{Vec2, Vec4};
 use crate::{
     assets,
     render::{frame::Frame, msdf::text::TextObject, vector::lazy_instance::LazyVectorInstance},
-    util::bounds::Bounds,
 };
+
+use util::bounds::Bounds;
 
 pub struct ButtonResponse {
     pub clicked: bool,

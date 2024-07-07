@@ -1,4 +1,4 @@
-use crate::{render::vertex::VertexUV, util::bounds::Bounds};
+use crate::render::vertex::VertexUV;
 
 use glam::{Vec2, Vec4};
 use lyon::{
@@ -6,6 +6,7 @@ use lyon::{
     path::Path,
     tessellation::{BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, VertexBuffers},
 };
+use util::bounds::Bounds;
 
 pub struct CubicBezier {
     pub start: Vec2,

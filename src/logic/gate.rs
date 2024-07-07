@@ -1,4 +1,4 @@
-use crate::util::bounds::Bounds;
+use util::bounds::Bounds;
 
 use super::circuit::connection::Connectable;
 use glam::Vec2;

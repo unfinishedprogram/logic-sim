@@ -5,7 +5,7 @@ use lyon::tessellation::{
     BuffersBuilder, FillOptions, FillTessellator, StrokeOptions, StrokeTessellator,
     TessellationError, VertexBuffers,
 };
-use usvg::Rect;
+use util::bounds::Bounds;
 
 use super::{
     svg_convert::{convert_fill, convert_path, convert_stroke},
@@ -16,7 +16,7 @@ use super::{
 pub struct SVGGeometry {
     pub source: String,
     pub vertex_buffers: VertexBuffers<SVGVertex, u32>,
-    pub hit_box: Rect,
+    pub hit_box: Bounds,
 }
 
 pub struct TesselationOptions {
@@ -36,7 +36,11 @@ impl SVGGeometry {
 
         let mut vertex_buffers = VertexBuffers::new();
 
-        let hit_box = svg.root().abs_bounding_box();
+        let b_box = svg.root().abs_bounding_box();
+        let hit_box = Bounds::from_points(
+            Vec2::new(b_box.left(), b_box.top()),
+            Vec2::new(b_box.right(), b_box.bottom()),
+        );
 
         Self::tesselate(
             svg.root(),

@@ -9,7 +9,6 @@ mod game;
 pub mod logic;
 mod render;
 mod ui;
-mod util;
 
 use pollster::FutureExt;
 use winit::{event_loop::EventLoop, window::Window};

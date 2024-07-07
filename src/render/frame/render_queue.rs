@@ -1,14 +1,12 @@
 mod handles;
 
 use lyon::tessellation::VertexBuffers;
+use util::handle::Handle;
 
-use crate::{
-    render::{
-        msdf::sprite_renderer::SpriteInstance,
-        vector::{lazy_instance::LazyVectorInstance, VectorInstance},
-        vertex::VertexUV,
-    },
-    util::handle::Handle,
+use crate::render::{
+    msdf::sprite_renderer::SpriteInstance,
+    vector::{lazy_instance::LazyVectorInstance, VectorInstance},
+    vertex::VertexUV,
 };
 
 pub struct RenderQueue {

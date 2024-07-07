@@ -1,13 +1,11 @@
 use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
+use util::handle::Handle;
 
-use crate::{
-    render::{
-        msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
-        vector::{lazy_instance::LazyVectorInstance, VectorInstance},
-        vertex::VertexUV,
-    },
-    util::handle::Handle,
+use crate::render::{
+    msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
+    vector::{lazy_instance::LazyVectorInstance, VectorInstance},
+    vertex::VertexUV,
 };
 
 use super::Frame;

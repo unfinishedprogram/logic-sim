@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use crate::util::handle::Handle;
-
 use super::{
     instance::{RawInstance, ZIndex},
     svg_geometry::SVGGeometry,
     VectorInstance,
 };
+
+use util::handle::Handle;
 
 pub struct DrawCall {
     pub id: Handle<SVGGeometry>,

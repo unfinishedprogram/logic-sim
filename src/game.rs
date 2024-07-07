@@ -5,8 +5,9 @@ use glam::Vec2;
 use crate::{
     logic::{circuit::Circuit, hit_test::HitTestResult},
     render::{camera::Camera, msdf::text::TextObject},
-    util::stopwatch::Stopwatch,
 };
+
+use util::stopwatch::Stopwatch;
 
 pub struct GameState {
     pub text_object: TextObject,

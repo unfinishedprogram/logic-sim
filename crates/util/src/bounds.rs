@@ -1,4 +1,4 @@
-use glam::{vec2, Vec2};
+use glam::Vec2;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Bounds {
@@ -67,14 +67,5 @@ impl Bounds {
             && self.bottom_right.x >= other.top_left.x
             && self.top_left.y <= other.bottom_right.y
             && self.bottom_right.y >= other.top_left.y
-    }
-}
-
-impl From<usvg::Rect> for Bounds {
-    fn from(value: usvg::Rect) -> Self {
-        Self::new(
-            vec2(value.left(), value.top()),
-            vec2(value.right(), value.bottom()),
-        )
     }
 }
