@@ -1,8 +1,4 @@
 use glam::{Vec2, Vec4};
-use lyon::tessellation::VertexBuffers;
-
-#[cfg(feature = "rayon")]
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use super::{
     super::gate::Gate,
@@ -12,10 +8,7 @@ use super::{
 use crate::{
     game::GameInput,
     logic::hit_test::HitTestResult,
-    render::{
-        frame::Frame, line::cubic_bezier::CubicBezier, vector::vertex_buffers::VertexBufferUtils,
-        vertex::VertexUV,
-    },
+    render::{frame::Frame, line::cubic_bezier::CubicBezier},
 };
 
 pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
@@ -58,8 +51,6 @@ impl CircuitElement {
 
 impl Circuit {
     pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
-        let tolerance = f32::max(0.001 * frame.camera().size.x, 0.001);
-
         for (idx, element) in self.elements.iter().enumerate() {
             element.draw(
                 if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
@@ -71,43 +62,21 @@ impl Circuit {
             );
         }
 
-        let filter_map = |conn| {
+        self.connections.iter().for_each(|conn| {
             let line = self.cubic_bezier_from_connection(conn);
             if frame.camera().bounds().overlaps(&line.bounds()) {
-                Some((
+                frame.draw_cubic_bezier(
                     line,
-                    self.solver.output_results[conn.from.0 .0] as u8 as f32,
-                ))
-            } else {
-                None
+                    Vec4::new(
+                        0.0,
+                        self.solver.output_results[conn.from.0 .0] as u8 as f32,
+                        0.0,
+                        1.0,
+                    ),
+                    0.05,
+                )
             }
-        };
-
-        let fold = |mut vb, (line, color): (CubicBezier, f32)| {
-            line.tesselate(&mut vb, 0.05, Vec4::new(0.0, color, 0.0, 1.0), tolerance);
-            vb
-        };
-
-        #[cfg(not(feature = "rayon"))]
-        let buffers = {
-            self.connections
-                .iter()
-                .filter_map(filter_map)
-                .fold(VertexBuffers::<VertexUV, u32>::new(), fold)
-        };
-
-        #[cfg(feature = "rayon")]
-        let buffers = {
-            VertexBufferUtils::join(
-                self.connections
-                    .par_iter()
-                    .filter_map(filter_map)
-                    .fold_with(VertexBuffers::<VertexUV, u32>::new(), fold)
-                    .collect(),
-            )
-        };
-
-        frame.line_geo_buffers().extend(buffers);
+        });
 
         // Draw connection preview while being made
         if let Some(source_point) = match game_input.active {
@@ -123,12 +92,7 @@ impl Circuit {
         } {
             let to = frame.input().mouse_world_position;
             let line = CubicBezier::between_points(source_point, to);
-            line.tesselate(
-                frame.line_geo_buffers(),
-                0.05,
-                Vec4::new(1.0, 1.0, 1.0, 1.0),
-                tolerance,
-            );
+            frame.draw_cubic_bezier(line, Vec4::new(1.0, 1.0, 1.0, 1.0), 0.05);
         }
 
         {

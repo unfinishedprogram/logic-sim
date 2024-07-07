@@ -3,12 +3,13 @@ use lyon::tessellation::VertexBuffers;
 use util::handle::Handle;
 
 use crate::render::{
+    line::cubic_bezier::CubicBezier,
     msdf::sprite_renderer::{SpriteHandle, SpriteInstance},
     vector::{lazy_instance::LazyVectorInstance, VectorInstance},
     vertex::VertexUV,
 };
 
-use super::Frame;
+use super::{render_queue::CubicBezierRenderRequest, Frame};
 
 impl Frame {
     pub fn draw_sprite(
@@ -62,5 +63,17 @@ impl Frame {
 
     pub fn draw_ui_sprite_instance(&mut self, instance: SpriteInstance) -> Handle<SpriteInstance> {
         self.ui_render_queue.enqueue_sprite(instance)
+    }
+
+    pub fn draw_cubic_bezier(&mut self, curve: CubicBezier, color: Vec4, width: f32) {
+        let tolerance = f32::max(0.001 * self.camera().size.x, 0.001);
+        self.render_queue.enqueue_cubic_bezier(
+            CubicBezierRenderRequest {
+                bezier: curve,
+                color,
+                width,
+            },
+            tolerance,
+        );
     }
 }

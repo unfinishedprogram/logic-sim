@@ -1,13 +1,26 @@
 mod handles;
 
+use glam::Vec4;
 use lyon::tessellation::VertexBuffers;
 use util::handle::Handle;
 
+#[cfg(feature = "rayon")]
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 use crate::render::{
+    line::cubic_bezier::CubicBezier,
     msdf::sprite_renderer::SpriteInstance,
-    vector::{lazy_instance::LazyVectorInstance, VectorInstance},
+    vector::{
+        lazy_instance::LazyVectorInstance, vertex_buffers::VertexBufferUtils, VectorInstance,
+    },
     vertex::VertexUV,
 };
+
+pub struct CubicBezierRenderRequest {
+    pub bezier: CubicBezier,
+    pub color: Vec4,
+    pub width: f32,
+}
 
 pub struct RenderQueue {
     pub sprites: Vec<SpriteInstance>,
@@ -45,6 +58,37 @@ impl RenderQueue {
         let index = self.lazy_instances.len();
         self.lazy_instances.push(instance);
         Handle::new(index)
+    }
+
+    pub fn enqueue_cubic_beziers(&mut self, curves: Vec<CubicBezierRenderRequest>, tolerance: f32) {
+        let fold = |mut vb, req: &CubicBezierRenderRequest| {
+            req.bezier
+                .tesselate(&mut vb, req.width, req.color, tolerance);
+            vb
+        };
+
+        #[cfg(not(feature = "rayon"))]
+        let buffers = {
+            curves
+                .iter()
+                .fold(VertexBuffers::<VertexUV, u32>::new(), fold)
+        };
+
+        #[cfg(feature = "rayon")]
+        let buffers = {
+            VertexBufferUtils::join(
+                curves
+                    .par_iter()
+                    .fold_with(VertexBuffers::<VertexUV, u32>::new(), fold)
+                    .collect(),
+            )
+        };
+
+        self.lines.extend(buffers);
+    }
+
+    pub fn enqueue_cubic_bezier(&mut self, curve: CubicBezierRenderRequest, tolerance: f32) {
+        self.enqueue_cubic_beziers(vec![curve], tolerance);
     }
 
     pub fn sprites(&self) -> &[SpriteInstance] {
