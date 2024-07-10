@@ -1,6 +1,5 @@
 mod handles;
 
-use glam::Vec4;
 use lyon::tessellation::VertexBuffers;
 use util::handle::Handle;
 
@@ -8,7 +7,6 @@ use util::handle::Handle;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::render::{
-    line::cubic_bezier::CubicBezier,
     msdf::sprite_renderer::SpriteInstance,
     vector::{
         lazy_instance::LazyVectorInstance, vertex_buffers::VertexBufferUtils, VectorInstance,
@@ -16,29 +14,18 @@ use crate::render::{
     vertex::VertexUV,
 };
 
-pub struct CubicBezierRenderRequest {
-    pub bezier: CubicBezier,
-    pub color: Vec4,
-    pub width: f32,
-}
+use super::draw::CubicBezierInstance;
 
+#[derive(Default)]
 pub struct RenderQueue {
     pub sprites: Vec<SpriteInstance>,
     pub lines: VertexBuffers<VertexUV, u32>,
     pub vector_instances: Vec<VectorInstance>,
+    pub bezier_instances: Vec<CubicBezierInstance>,
     pub lazy_instances: Vec<LazyVectorInstance<'static>>,
 }
 
 impl RenderQueue {
-    pub fn new() -> Self {
-        Self {
-            sprites: Vec::new(),
-            lines: VertexBuffers::new(),
-            vector_instances: Vec::new(),
-            lazy_instances: Vec::new(),
-        }
-    }
-
     pub fn enqueue_sprite(&mut self, sprite: SpriteInstance) -> Handle<SpriteInstance> {
         let index = self.sprites.len();
         self.sprites.push(sprite);
@@ -60,8 +47,17 @@ impl RenderQueue {
         Handle::new(index)
     }
 
-    pub fn enqueue_cubic_beziers(&mut self, curves: Vec<CubicBezierRenderRequest>, tolerance: f32) {
-        let fold = |mut vb, req: &CubicBezierRenderRequest| {
+    pub fn tesselate_geometry(&mut self, tolerance: f32) {
+        // Take the bezier instances out of the queue
+        let mut bezier_instances = Vec::new();
+        std::mem::swap(&mut bezier_instances, &mut self.bezier_instances);
+
+        self.tesselate_cubic_beziers(bezier_instances, tolerance);
+    }
+
+    // Applies tesselation to endued bezier curves
+    fn tesselate_cubic_beziers(&mut self, curves: Vec<CubicBezierInstance>, tolerance: f32) {
+        let fold = |mut vb, req: &CubicBezierInstance| {
             req.bezier
                 .tesselate(&mut vb, req.width, req.color, tolerance);
             vb
@@ -87,8 +83,8 @@ impl RenderQueue {
         self.lines.extend(buffers);
     }
 
-    pub fn enqueue_cubic_bezier(&mut self, curve: CubicBezierRenderRequest, tolerance: f32) {
-        self.enqueue_cubic_beziers(vec![curve], tolerance);
+    pub fn enqueue_cubic_bezier(&mut self, curve: CubicBezierInstance) {
+        self.bezier_instances.push(curve);
     }
 
     pub fn sprites(&self) -> &[SpriteInstance] {
@@ -105,11 +101,5 @@ impl RenderQueue {
 
     pub fn lazy_vector_instances(&self) -> &[LazyVectorInstance] {
         &self.lazy_instances
-    }
-}
-
-impl Default for RenderQueue {
-    fn default() -> Self {
-        Self::new()
     }
 }

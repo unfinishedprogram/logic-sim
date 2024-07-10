@@ -9,7 +9,13 @@ use crate::render::{
     vertex::VertexUV,
 };
 
-use super::{render_queue::CubicBezierRenderRequest, Frame};
+pub struct CubicBezierInstance {
+    pub bezier: CubicBezier,
+    pub color: Vec4,
+    pub width: f32,
+}
+
+use super::Frame;
 
 impl Frame {
     pub fn draw_sprite(
@@ -66,14 +72,10 @@ impl Frame {
     }
 
     pub fn draw_cubic_bezier(&mut self, curve: CubicBezier, color: Vec4, width: f32) {
-        let tolerance = f32::max(0.001 * self.camera().size.x, 0.001);
-        self.render_queue.enqueue_cubic_bezier(
-            CubicBezierRenderRequest {
-                bezier: curve,
-                color,
-                width,
-            },
-            tolerance,
-        );
+        self.render_queue.enqueue_cubic_bezier(CubicBezierInstance {
+            bezier: curve,
+            color,
+            width,
+        });
     }
 }

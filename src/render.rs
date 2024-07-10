@@ -68,7 +68,13 @@ impl<'window> RenderState<'window> {
         }
     }
 
-    pub fn render(&mut self, frame: Frame) {
+    pub fn render(&mut self, mut frame: Frame) {
+        let tolerance = 0.001 * f32::max(frame.camera().size.x, 1.0);
+        frame.render_queue.tesselate_geometry(tolerance);
+
+        let tolerance_ui = 0.001 * f32::max(frame.ui_camera().size.x, 1.0);
+        frame.ui_render_queue.tesselate_geometry(tolerance_ui);
+
         let surface = self
             .base
             .surface

@@ -4,7 +4,7 @@ use wgpu::vertex_attr_array;
 
 // A vertex with UV data
 #[repr(C)]
-#[derive(Copy, Clone, Pod, Zeroable)]
+#[derive(Copy, Clone, Pod, Zeroable, Default)]
 pub struct VertexUV {
     pub position: Vec2,
     pub uv: Vec2,

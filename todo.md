@@ -4,4 +4,4 @@
   - [ ] Group Selection
 - [x] Z-Index for vector rendering
 - [ ] Transparency for SVG rendering
-- [ ] Delay Tesselation of curves in order to parallelize
+- [x] Delay Tesselation of curves in order to parallelize

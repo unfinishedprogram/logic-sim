@@ -17,7 +17,7 @@ pub struct Frame {
     ui_camera: Camera,
     input_state: InputState,
     pub assets: FrameAssets,
-    render_queue: RenderQueue,
+    pub render_queue: RenderQueue,
     pub ui_render_queue: RenderQueue,
 }
 
@@ -34,8 +34,8 @@ impl Frame {
             camera,
             ui_camera,
             assets,
-            render_queue: RenderQueue::new(),
-            ui_render_queue: RenderQueue::new(),
+            render_queue: RenderQueue::default(),
+            ui_render_queue: RenderQueue::default(),
         }
     }
 
