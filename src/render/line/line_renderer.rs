@@ -1,3 +1,4 @@
+use lyon::tessellation::VertexBuffers;
 use wgpu::{
     include_wgsl, BindGroupLayout, Buffer, ColorTargetState, Device, IndexFormat, PipelineLayout,
     RenderPass, RenderPipeline, ShaderModule,
@@ -51,11 +52,19 @@ impl LineRenderer {
     }
 
     // Loads line instances to be rendered
-    pub fn upload_geometry(&mut self, queue: &wgpu::Queue, indices: &[u32], verts: &[VertexUV]) {
-        self.vert_count = verts.len();
-        self.index_count = indices.len();
-        queue.write_buffer(&self.index_buffer, 0, bytemuck::cast_slice(indices));
-        queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(verts));
+    pub fn upload_geometry(&mut self, queue: &wgpu::Queue, buffers: &VertexBuffers<VertexUV, u32>) {
+        self.vert_count = buffers.vertices.len();
+        self.index_count = buffers.indices.len();
+        queue.write_buffer(
+            &self.index_buffer,
+            0,
+            bytemuck::cast_slice(&buffers.indices),
+        );
+        queue.write_buffer(
+            &self.vertex_buffer,
+            0,
+            bytemuck::cast_slice(&buffers.vertices),
+        );
     }
 
     fn pipeline_layout(device: &Device, bind_group_layouts: &[&BindGroupLayout]) -> PipelineLayout {

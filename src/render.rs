@@ -10,6 +10,10 @@ pub mod vector;
 pub mod vertex;
 use std::any::type_name;
 
+use self::{
+    line::LineRenderer,
+    msdf::{sprite_renderer::SpriteRenderer, text::MsdfFont},
+};
 use camera::Camera;
 use frame::{Frame, RenderQueue};
 use msdf::text::MsdfFontReference;
@@ -18,11 +22,6 @@ use wgpu::{
     Device, Queue, ShaderModule, ShaderModuleDescriptor, Surface, SurfaceConfiguration, TextureView,
 };
 use winit::{dpi::PhysicalSize, window::Window};
-
-use self::{
-    line::LineRenderer,
-    msdf::{sprite_renderer::SpriteRenderer, text::MsdfFont},
-};
 
 pub struct RenderState<'window> {
     pub base: BaseRenderState<'window>,
@@ -84,38 +83,22 @@ impl<'window> RenderState<'window> {
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        let msaa_view = self.create_multisampled_frame_buffer(4);
+        let msaa_view = self.base.create_multisampled_frame_buffer(4);
 
         let attachments = Self::color_attachments(&msaa_view, &frame_view);
         let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
 
-        self.render_world(&frame, &render_pass_desc);
-        self.render_ui(&frame, &render_pass_desc);
+        self.upload_resources(frame.camera(), &frame.render_queue);
+        self.render_internal(&render_pass_desc);
+
+        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
+        self.render_internal(&render_pass_desc);
 
         surface.present();
     }
 
-    fn render_world(&mut self, frame: &Frame, render_pass_desc: &wgpu::RenderPassDescriptor) {
-        self.upload_resources(frame.camera(), frame.render_queue());
-
-        let mut encoder = self
-            .base
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-        {
-            let mut rpass = encoder.begin_render_pass(render_pass_desc);
-
-            self.line_renderer.render(&mut rpass);
-            self.vector_renderer.render(&mut rpass);
-            self.sprite_renderer.render(&mut rpass);
-        }
-
-        self.base.queue.submit(Some(encoder.finish()));
-    }
-
-    fn render_ui(&mut self, frame: &Frame, render_pass_desc: &wgpu::RenderPassDescriptor) {
-        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
-
+    // Resources must be uploaded before render_internal is called
+    fn render_internal(&mut self, render_pass_desc: &wgpu::RenderPassDescriptor) {
         let mut encoder = self
             .base
             .device
@@ -135,30 +118,6 @@ impl<'window> RenderState<'window> {
         self.base.resize(window, new_size);
     }
 
-    fn create_multisampled_frame_buffer(&self, sample_count: u32) -> wgpu::TextureView {
-        let extend = wgpu::Extent3d {
-            width: self.base.surface_config.width,
-            height: self.base.surface_config.height,
-            depth_or_array_layers: 1,
-        };
-
-        let descriptor = &wgpu::TextureDescriptor {
-            label: Some("MSAA Frame Buffer"),
-            size: extend,
-            mip_level_count: 1,
-            sample_count,
-            dimension: wgpu::TextureDimension::D2,
-            format: self.base.swapchain_format,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[self.base.swapchain_format],
-        };
-
-        self.base
-            .device
-            .create_texture(descriptor)
-            .create_view(&wgpu::TextureViewDescriptor::default())
-    }
-
     fn upload_resources(&mut self, camera: &Camera, render_queue: &RenderQueue) {
         self.line_renderer.update_camera(&self.base.queue, camera);
         self.sprite_renderer.update_camera(&self.base.queue, camera);
@@ -169,8 +128,7 @@ impl<'window> RenderState<'window> {
         let vector_instances = render_queue.vector_instances();
         let lazy_vector_instances = render_queue.lazy_vector_instances();
 
-        self.line_renderer
-            .upload_geometry(&self.base.queue, &lines.indices, &lines.vertices);
+        self.line_renderer.upload_geometry(&self.base.queue, lines);
 
         self.sprite_renderer
             .upload_sprites(&self.base.queue, sprites);
@@ -277,6 +235,29 @@ impl<'window> BaseRenderState<'window> {
         self.surface_config.height = new_size.height.max(1);
 
         self.surface.configure(&self.device, &self.surface_config);
+    }
+
+    fn create_multisampled_frame_buffer(&self, sample_count: u32) -> wgpu::TextureView {
+        let extend = wgpu::Extent3d {
+            width: self.surface_config.width,
+            height: self.surface_config.height,
+            depth_or_array_layers: 1,
+        };
+
+        let descriptor = &wgpu::TextureDescriptor {
+            label: Some("MSAA Frame Buffer"),
+            size: extend,
+            mip_level_count: 1,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.swapchain_format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[self.swapchain_format],
+        };
+
+        self.device
+            .create_texture(descriptor)
+            .create_view(&wgpu::TextureViewDescriptor::default())
     }
 
     // Helpers

@@ -66,9 +66,8 @@ impl CubicBezier {
     pub fn hit_test(&self, point: Vec2, distance: f32) -> bool {
         // Since we always make our control points, between the start and end points,
         // we can assume that the maximum bounds of the curve lie between the start and end points
-        let bounds = Bounds::from_points(self.start, self.end).pad(distance);
 
-        if !bounds.contains(point) {
+        if !self.bounds().pad(distance).contains(point) {
             return false;
         }
 
