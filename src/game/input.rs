@@ -1,5 +1,10 @@
+use std::collections::HashMap;
+
 use glam::Vec2;
-use winit::event::{ElementState, MouseButton};
+use winit::{
+    event::{ElementState, MouseButton},
+    keyboard::Key,
+};
 
 // State passed to the update function of the game
 #[derive(Default, Clone)]
@@ -14,13 +19,30 @@ pub struct InputState {
     pub left_mouse: ButtonState,
     pub right_mouse: ButtonState,
     pub scroll_delta: f32,
+
+    pub key_states: HashMap<Key, ButtonState>,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct ButtonState {
     pub pressed: bool,
     pub released: bool,
     pub down: bool,
+}
+
+impl ButtonState {
+    pub fn apply(&mut self, state: ElementState) {
+        match state {
+            ElementState::Pressed => {
+                self.pressed = true;
+                self.down = true;
+            }
+            ElementState::Released => {
+                self.released = true;
+                self.down = false;
+            }
+        }
+    }
 }
 
 impl InputState {
@@ -28,6 +50,13 @@ impl InputState {
         // Reset the pressed and released states
         self.left_mouse.update();
         self.right_mouse.update();
+        for (_, state) in self.key_states.iter_mut() {
+            state.update();
+        }
+
+        self.key_states
+            .retain(|_, state| state.down || state.released || state.pressed);
+
         self.mouse_world_position_delta = Vec2::ZERO;
         self.mouse_screen_position_delta = Vec2::ZERO;
         self.scroll_delta = 0.0;
@@ -49,28 +78,15 @@ impl InputState {
 
     pub fn on_mouse_button(&mut self, button: MouseButton, state: ElementState) {
         match button {
-            MouseButton::Left => match state {
-                ElementState::Pressed => {
-                    self.left_mouse.pressed = true;
-                    self.left_mouse.down = true;
-                }
-                ElementState::Released => {
-                    self.left_mouse.released = true;
-                    self.left_mouse.down = false;
-                }
-            },
-            MouseButton::Right => match state {
-                ElementState::Pressed => {
-                    self.right_mouse.pressed = true;
-                    self.right_mouse.down = true;
-                }
-                ElementState::Released => {
-                    self.right_mouse.released = true;
-                    self.right_mouse.down = false;
-                }
-            },
+            MouseButton::Left => self.left_mouse.apply(state),
+            MouseButton::Right => self.right_mouse.apply(state),
             _ => {}
         }
+    }
+
+    pub fn on_keyboard_button(&mut self, key: Key, state: ElementState) {
+        let key_state = self.key_states.entry(key).or_default();
+        key_state.apply(state);
     }
 
     pub fn on_scroll(&mut self, delta: f32) {

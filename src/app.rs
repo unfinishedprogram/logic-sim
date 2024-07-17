@@ -167,6 +167,8 @@ impl ApplicationHandler for App<'_> {
                 if matches!(event.logical_key, keyboard::Key::Named(NamedKey::Escape)) {
                     event_loop.exit()
                 }
+                self.input
+                    .on_keyboard_button(event.logical_key, event.state);
             }
             _ => {}
         };
