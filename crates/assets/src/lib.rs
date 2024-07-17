@@ -38,6 +38,9 @@ pub mod svg {
 
         asset!(XNOR_ACTIVE: "objects/gates/xnor.svg", (stroke = "4"));
         asset!(XNOR_NORMAL: "objects/gates/xnor.svg", (stroke = "0"));
+
+        asset!(BUTTON_ACTIVE: "objects/gates/button.svg", (stroke = "4"));
+        asset!(BUTTON_NORMAL: "objects/gates/button.svg", (stroke = "0"));
     }
 
     pub mod ui {

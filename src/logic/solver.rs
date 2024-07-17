@@ -45,6 +45,7 @@ impl Gate {
     pub fn eval(&self, inputs: &[bool]) -> bool {
         match self {
             Gate::Input(v) => *v,
+            Gate::Button(v) => *v,
             Gate::And => inputs[0] && inputs[1],
             Gate::Or => inputs[0] || inputs[1],
             Gate::Not => !inputs[0],

@@ -39,6 +39,9 @@ pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
 
         (Gate::Buf, true) => Some(&gates::BUF_ACTIVE),
         (Gate::Buf, false) => Some(&gates::BUF_NORMAL),
+
+        (Gate::Button(_), true) => Some(&gates::BUTTON_ACTIVE),
+        (Gate::Button(_), false) => Some(&gates::BUTTON_NORMAL),
     }
 }
 

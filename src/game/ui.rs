@@ -16,6 +16,8 @@ impl GameState {
             ("NOR", Gate::Nor),
             ("XOR", Gate::Xor),
             ("XNOR", Gate::Xnor),
+            ("BUF", Gate::Buf),
+            ("BUTTON", Gate::Button(false)),
         ];
 
         for (index, (name, gate)) in buttons.iter().enumerate() {

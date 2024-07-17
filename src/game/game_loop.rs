@@ -10,9 +10,7 @@ impl GameState {
 
         self.update_ui(frame);
 
-        let solver = self.circuit.solver.clone();
-        let solver = solver.clone().step(&self.circuit);
-        self.circuit.solver = solver;
+        self.circuit.step();
 
         self.text_object.content = self.debug_text();
 

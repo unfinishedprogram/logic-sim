@@ -31,6 +31,19 @@ pub struct Circuit {
 }
 
 impl Circuit {
+    // Progress a single clock cycle
+    pub fn step(&mut self) {
+        let solver = self.solver.clone();
+        let solver = solver.step(self);
+        self.solver = solver;
+
+        for element in self.elements.iter_mut() {
+            if let Gate::Button(state) = &mut element.gate {
+                *state = false;
+            }
+        }
+    }
+
     pub fn test_circuit() -> Self {
         let mut circuit = Circuit::default();
 
@@ -121,6 +134,17 @@ impl Circuit {
 
         // Finally remove the element
         self.elements.remove(index);
+    }
+
+    // Some gates will change state based on click events
+    pub fn click_gate(&mut self, index: usize) {
+        println!("Clicked gate {}", index);
+
+        match &mut self.elements[index].gate {
+            Gate::Button(state) => *state = true,
+            Gate::Input(state) => *state = !*state,
+            _ => {}
+        }
     }
 
     pub fn remove_connections(&mut self, spec: impl Into<IOSpecifier>) {
@@ -258,6 +282,12 @@ impl Circuit {
                 ..
             } if delete_pressed => {
                 self.remove_gate(elm.0);
+            }
+            GameInput {
+                hot: Some(HitTestResult::Element(elm)),
+                ..
+            } if input_state.left_mouse.released => {
+                self.click_gate(elm.0);
             }
             _ => {}
         }

@@ -5,6 +5,7 @@ use glam::Vec2;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Gate {
+    Button(bool),
     Input(bool),
     And,
     Or,
@@ -24,6 +25,7 @@ impl Gate {
     pub const fn input_offsets(&self) -> &'static [Vec2] {
         match self {
             Self::Input(_) => &Self::INPUT_OFFSETS_EMPTY,
+            Self::Button(_) => &Self::INPUT_OFFSETS_EMPTY,
             Self::And | Self::Or | Self::Xor | Self::Nand | Self::Nor | Self::Xnor => {
                 &Self::INPUT_OFFSETS_AND
             }
