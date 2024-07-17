@@ -2,8 +2,8 @@ use glam::Vec2;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Bounds {
-    top_left: Vec2,
-    bottom_right: Vec2,
+    pub top_left: Vec2,
+    pub bottom_right: Vec2,
 }
 
 impl Bounds {
@@ -67,5 +67,14 @@ impl Bounds {
             && self.bottom_right.x >= other.top_left.x
             && self.top_left.y <= other.bottom_right.y
             && self.bottom_right.y >= other.top_left.y
+    }
+
+    pub fn corners(&self) -> [Vec2; 4] {
+        [
+            self.top_left,
+            Vec2::new(self.bottom_right.x, self.top_left.y),
+            self.bottom_right,
+            Vec2::new(self.top_left.x, self.bottom_right.y),
+        ]
     }
 }

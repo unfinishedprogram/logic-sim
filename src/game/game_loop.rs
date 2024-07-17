@@ -8,16 +8,13 @@ impl GameState {
 
         self.stopwatch.tick();
 
+        self.update_ui(frame);
+
         let solver = self.circuit.solver.clone();
         let solver = solver.clone().step(&self.circuit);
         self.circuit.solver = solver;
 
         self.text_object.content = self.debug_text();
-        let button_pos = frame.input().mouse_screen_position;
-
-        if frame.button("AND", button_pos).clicked {
-            println!("Button clicked!");
-        }
 
         self.draw(frame);
     }

@@ -1,5 +1,5 @@
 - [x] Support SVG colors
-- [ ] Connection hit testing
+- [x] Connection hit testing
 - [ ] Multi-Select
   - [ ] Group Selection
 - [x] Z-Index for vector rendering

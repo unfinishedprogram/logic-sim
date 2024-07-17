@@ -42,6 +42,7 @@ pub mod svg {
 
     pub mod ui {
         asset!(BUTTON: "objects/button_outline.svg", ());
+        asset!(BUTTON_HOVER: "objects/button_outline_hover.svg", ());
     }
 }
 

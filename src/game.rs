@@ -1,5 +1,6 @@
 pub mod game_loop;
 pub mod input;
+mod ui;
 use glam::Vec2;
 
 use crate::{

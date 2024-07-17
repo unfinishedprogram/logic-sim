@@ -3,6 +3,18 @@ mod handles;
 use lyon::tessellation::VertexBuffers;
 use util::handle::Handle;
 
+#[cfg(feature = "debug_draw")]
+use glam::Vec4;
+#[cfg(feature = "debug_draw")]
+use lyon::{
+    algorithms::winding,
+    geom::{point, Box2D},
+    path::Path,
+    tessellation::{BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex},
+};
+#[cfg(feature = "debug_draw")]
+use util::bounds::Bounds;
+
 #[cfg(feature = "rayon")]
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
@@ -81,6 +93,36 @@ impl RenderQueue {
         };
 
         self.lines.extend(buffers);
+    }
+
+    #[cfg(feature = "debug_draw")]
+    pub fn debug_render_bounds(&mut self, bounds: Bounds) {
+        let mut path = Path::builder();
+
+        let box_2d = Box2D::from_points([
+            point(bounds.top_left.x, bounds.top_left.y),
+            point(bounds.bottom_right.x, bounds.bottom_right.y),
+        ]);
+
+        path.add_rectangle(&box_2d, lyon::path::Winding::Positive);
+        let path = path.build();
+
+        let mut tessellator = StrokeTessellator::new();
+
+        let options = StrokeOptions::default()
+            .with_line_width(2.0)
+            .with_tolerance(0.0001);
+
+        let red = Vec4::new(1.0, 0.0, 0.0, 1.0);
+        tessellator
+            .tessellate_path(
+                &path,
+                &options,
+                &mut BuffersBuilder::new(&mut self.lines, |vertex: StrokeVertex| {
+                    VertexUV::new(vertex.position().x, vertex.position().y, 0.0, 0.0, red)
+                }),
+            )
+            .unwrap();
     }
 
     pub fn enqueue_cubic_bezier(&mut self, curve: CubicBezierInstance) {

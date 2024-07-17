@@ -14,16 +14,28 @@ pub struct ButtonResponse {
 impl Frame {
     pub fn button(&mut self, text: &str, position: Vec2) -> ButtonResponse {
         let scale = Vec2::splat(32.0);
-        let bounds = Bounds::new(position, position + scale);
+        let aspect = Vec2::new(2.0, 1.0);
+
+        let bounds = Bounds::new(position - scale * aspect, position + scale * aspect);
+        #[cfg(feature = "debug_draw")]
+        {
+            self.ui_render_queue.debug_render_bounds(bounds);
+        }
         let (hovered, clicked) = if bounds.contains(self.input().mouse_screen_position) {
             (true, self.input().left_mouse.pressed)
         } else {
             (false, false)
         };
 
+        let source = if hovered {
+            &assets::svg::ui::BUTTON_HOVER
+        } else {
+            &assets::svg::ui::BUTTON
+        };
+
         self.ui_render_queue
             .enqueue_vector_lazy(LazyVectorInstance {
-                source: &assets::svg::ui::BUTTON,
+                source,
                 transform: position,
                 color: Vec4::ONE,
                 scale: scale * 2.0,
