@@ -217,6 +217,15 @@ impl Circuit {
     }
 
     pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &GameInput) {
+        let delete_pressed = if let Some(input_state) = input_state
+            .key_states
+            .get(&winit::keyboard::Key::Character("x".into()))
+        {
+            input_state.pressed
+        } else {
+            false
+        };
+
         match game_input {
             GameInput {
                 active: Some(HitTestResult::Element(elm)),
@@ -237,13 +246,18 @@ impl Circuit {
             GameInput {
                 hot: Some(HitTestResult::IO(spec)),
                 ..
-            } if input_state.right_mouse.pressed => self.remove_connections(*spec),
+            } if delete_pressed => self.remove_connections(*spec),
             GameInput {
-                hot: Some(HitTestResult::Connection(idx_a)),
-                active: Some(HitTestResult::Connection(idx_b)),
+                hot: Some(HitTestResult::Connection(idx)),
                 ..
-            } if idx_a == idx_b && input_state.left_mouse.released => {
-                self.remove_connection(*idx_a)
+            } if delete_pressed => {
+                self.remove_connection(*idx);
+            }
+            GameInput {
+                hot: Some(HitTestResult::Element(elm)),
+                ..
+            } if delete_pressed => {
+                self.remove_gate(elm.0);
             }
             _ => {}
         }
