@@ -241,14 +241,8 @@ impl Circuit {
     }
 
     pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &GameInput) {
-        let delete_pressed = if let Some(input_state) = input_state
-            .key_states
-            .get(&winit::keyboard::Key::Character("x".into()))
-        {
-            input_state.pressed
-        } else {
-            false
-        };
+        let x_key = winit::keyboard::Key::Character("x".into());
+        let delete_pressed = input_state.keyboard.pressed(x_key);
 
         match game_input {
             GameInput {

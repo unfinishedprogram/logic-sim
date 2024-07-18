@@ -20,7 +20,7 @@ pub struct InputState {
     pub right_mouse: ButtonState,
     pub scroll_delta: f32,
 
-    pub key_states: HashMap<Key, ButtonState>,
+    pub keyboard: KeyboardState,
 }
 
 #[derive(Default, Clone, Debug)]
@@ -31,7 +31,12 @@ pub struct ButtonState {
 }
 
 impl ButtonState {
-    pub fn apply(&mut self, state: ElementState) {
+    fn update(&mut self) {
+        self.pressed = false;
+        self.released = false;
+    }
+
+    fn apply(&mut self, state: ElementState) {
         match state {
             ElementState::Pressed => {
                 self.pressed = true;
@@ -50,12 +55,7 @@ impl InputState {
         // Reset the pressed and released states
         self.left_mouse.update();
         self.right_mouse.update();
-        for (_, state) in self.key_states.iter_mut() {
-            state.update();
-        }
-
-        self.key_states
-            .retain(|_, state| state.down || state.released || state.pressed);
+        self.keyboard.update();
 
         self.mouse_world_position_delta = Vec2::ZERO;
         self.mouse_screen_position_delta = Vec2::ZERO;
@@ -85,8 +85,7 @@ impl InputState {
     }
 
     pub fn on_keyboard_button(&mut self, key: Key, state: ElementState) {
-        let key_state = self.key_states.entry(key).or_default();
-        key_state.apply(state);
+        self.keyboard.on_keyboard_button(key, state);
     }
 
     pub fn on_scroll(&mut self, delta: f32) {
@@ -94,9 +93,39 @@ impl InputState {
     }
 }
 
-impl ButtonState {
-    pub fn update(&mut self) {
-        self.pressed = false;
-        self.released = false;
+#[derive(Default, Clone)]
+pub struct KeyboardState {
+    key_states: HashMap<Key, ButtonState>,
+}
+
+impl KeyboardState {
+    pub fn pressed(&self, key: Key) -> bool {
+        self.key_states
+            .get(&key)
+            .map_or(false, |state| state.pressed)
+    }
+
+    pub fn down(&self, key: Key) -> bool {
+        self.key_states.get(&key).map_or(false, |state| state.down)
+    }
+
+    pub fn released(&self, key: Key) -> bool {
+        self.key_states
+            .get(&key)
+            .map_or(false, |state| state.released)
+    }
+
+    fn update(&mut self) {
+        for (_, state) in self.key_states.iter_mut() {
+            state.update();
+        }
+
+        self.key_states
+            .retain(|_, state| state.down || state.released || state.pressed);
+    }
+
+    fn on_keyboard_button(&mut self, key: Key, state: ElementState) {
+        let key_state = self.key_states.entry(key).or_default();
+        key_state.apply(state);
     }
 }
