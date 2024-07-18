@@ -41,6 +41,12 @@ pub mod svg {
 
         asset!(BUTTON_ACTIVE: "objects/gates/button.svg", (stroke = "4"));
         asset!(BUTTON_NORMAL: "objects/gates/button.svg", (stroke = "0"));
+
+        asset!(ON_ACTIVE: "objects/gates/on.svg", (stroke = "4"));
+        asset!(ON_NORMAL: "objects/gates/on.svg", (stroke = "0"));
+
+        asset!(OFF_ACTIVE: "objects/gates/off.svg", (stroke = "4"));
+        asset!(OFF_NORMAL: "objects/gates/off.svg", (stroke = "0"));
     }
 
     pub mod ui {

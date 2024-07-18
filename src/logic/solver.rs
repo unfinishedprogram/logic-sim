@@ -54,6 +54,8 @@ impl Gate {
             Gate::Nand => !(inputs[0] && inputs[1]),
             Gate::Nor => !(inputs[0] || inputs[1]),
             Gate::Xnor => inputs[0] == inputs[1],
+            Gate::On => true,
+            Gate::Off => false,
         }
     }
 }

@@ -42,6 +42,12 @@ pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
 
         (Gate::Button(_), true) => Some(&gates::BUTTON_ACTIVE),
         (Gate::Button(_), false) => Some(&gates::BUTTON_NORMAL),
+
+        (Gate::On, true) => Some(&gates::ON_ACTIVE),
+        (Gate::On, false) => Some(&gates::ON_NORMAL),
+
+        (Gate::Off, true) => Some(&gates::OFF_ACTIVE),
+        (Gate::Off, false) => Some(&gates::OFF_NORMAL),
     }
 }
 
@@ -68,16 +74,15 @@ impl Circuit {
         self.connections.iter().for_each(|conn| {
             let line = self.cubic_bezier_from_connection(conn);
             if frame.camera().bounds().overlaps(&line.bounds()) {
-                frame.draw_cubic_bezier(
-                    line,
-                    Vec4::new(
-                        0.0,
-                        self.solver.output_results[conn.from.0 .0] as u8 as f32,
-                        0.0,
-                        1.0,
-                    ),
-                    0.05,
-                )
+                let is_active = self
+                    .solver
+                    .output_results
+                    .get(conn.from.0 .0)
+                    .copied()
+                    .unwrap_or_default();
+
+                let color = Vec4::new(0.0, is_active as u8 as f32, 0.0, 1.0);
+                frame.draw_cubic_bezier(line, color, 0.05)
             }
         });
 
