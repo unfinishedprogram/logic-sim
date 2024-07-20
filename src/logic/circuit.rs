@@ -64,7 +64,7 @@ impl Circuit {
         circuit.add_connection(b.to(InputSpecifier(and, InputIdx(1))));
 
         // Benchmarking
-        if false {
+        if true {
             for _ in 0..10000 {
                 circuit.add_random_component()
             }
@@ -270,8 +270,35 @@ impl Circuit {
         if shift_down {
             clear_selection = false;
         }
+        let box_select = input_state.dragging() && game_input.active.is_none();
+
+        if box_select {
+            self.selection.bound_select = Some(Bounds::from_points(
+                input_state.drag_start_position_world.unwrap(),
+                input_state.mouse_world_position,
+            ));
+        } else {
+            self.selection.bound_select = None;
+        }
 
         match game_input {
+            GameInput { .. } if box_select && input_state.left_mouse.released => {
+                if let Some(bounds) = self.selection.bound_select {
+                    self.selection.elements = self
+                        .elements
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(idx, element)| {
+                            if bounds.overlaps(&element.bounds()) {
+                                Some(ElementIdx(idx))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+                    self.selection.bound_select = None;
+                }
+            }
             GameInput {
                 active: Some(HitTestResult::Element(elm)),
                 ..
@@ -290,7 +317,6 @@ impl Circuit {
                     self[*elm].position += input_state.mouse_world_position_delta;
                 }
             }
-
             GameInput {
                 hot: Some(HitTestResult::IO(IOSpecifier::Output(output))),
                 active: Some(HitTestResult::IO(IOSpecifier::Input(input))),

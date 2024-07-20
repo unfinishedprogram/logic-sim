@@ -126,5 +126,10 @@ impl Circuit {
                 frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale, 2);
             }
         }
+
+        // Draw box select outline
+        if let Some(bounds) = self.selection.bound_select {
+            frame.render_queue.draw_bounds(bounds)
+        }
     }
 }

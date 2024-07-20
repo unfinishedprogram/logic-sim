@@ -1,10 +1,13 @@
 use std::collections::HashSet;
 
+use util::bounds::Bounds;
+
 use super::connection::ElementIdx;
 
 #[derive(Default)]
 pub struct ElementSelection {
     pub(super) elements: HashSet<ElementIdx>,
+    pub(super) bound_select: Option<Bounds>,
 }
 
 impl ElementSelection {

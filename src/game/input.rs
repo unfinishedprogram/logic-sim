@@ -18,7 +18,8 @@ pub struct InputState {
     pub mouse_screen_position: Vec2,
     pub mouse_screen_position_delta: Vec2,
 
-    pub drag_start_position: Option<Vec2>,
+    pub drag_start_position_world: Option<Vec2>,
+    pub drag_start_position_screen: Option<Vec2>,
 
     pub left_mouse: ButtonState,
     pub right_mouse: ButtonState,
@@ -57,7 +58,8 @@ impl ButtonState {
 impl InputState {
     pub fn update(&mut self) {
         if !self.left_mouse.down && !self.left_mouse.released {
-            self.drag_start_position = None;
+            self.drag_start_position_screen = None;
+            self.drag_start_position_world = None;
         }
 
         // Reset the pressed and released states
@@ -71,8 +73,9 @@ impl InputState {
     }
 
     pub fn dragging(&self) -> bool {
-        self.drag_start_position.map_or(false, |start| {
-            (self.mouse_screen_position - start).length() > DRAG_THRESHOLD
+        self.drag_start_position_screen.map_or(false, |start| {
+            (self.mouse_screen_position - start).length() > DRAG_THRESHOLD && self.left_mouse.down
+                || self.left_mouse.released
         })
     }
 
@@ -95,7 +98,8 @@ impl InputState {
             MouseButton::Left => {
                 self.left_mouse.apply(state);
                 if self.left_mouse.pressed {
-                    self.drag_start_position = Some(self.mouse_screen_position);
+                    self.drag_start_position_screen = Some(self.mouse_screen_position);
+                    self.drag_start_position_world = Some(self.mouse_world_position);
                 }
             }
             MouseButton::Right => self.right_mouse.apply(state),

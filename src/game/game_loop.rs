@@ -4,9 +4,9 @@ use glam::Vec2;
 
 impl GameState {
     pub fn update(&mut self, frame: &mut Frame) {
-        self.handle_inputs(frame.input());
-
         self.stopwatch.tick();
+
+        self.handle_inputs(frame.input());
 
         self.update_ui(frame);
 

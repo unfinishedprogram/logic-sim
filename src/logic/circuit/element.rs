@@ -1,4 +1,5 @@
 use glam::Vec2;
+use util::bounds::Bounds;
 
 use crate::logic::gate::Gate;
 
@@ -9,9 +10,10 @@ pub struct CircuitElement {
 
 impl CircuitElement {
     pub fn hit_test(&self, position: Vec2) -> bool {
-        self.gate
-            .bounds()
-            .translate(self.position)
-            .contains(position)
+        self.bounds().contains(position)
+    }
+
+    pub fn bounds(&self) -> Bounds {
+        self.gate.bounds().translate(self.position)
     }
 }
