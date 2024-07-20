@@ -6,6 +6,8 @@ use winit::{
     keyboard::Key,
 };
 
+const DRAG_THRESHOLD: f32 = 2.0;
+
 // State passed to the update function of the game
 #[derive(Default, Clone)]
 pub struct InputState {
@@ -15,6 +17,8 @@ pub struct InputState {
     // In camera's screen space
     pub mouse_screen_position: Vec2,
     pub mouse_screen_position_delta: Vec2,
+
+    pub drag_start_position: Option<Vec2>,
 
     pub left_mouse: ButtonState,
     pub right_mouse: ButtonState,
@@ -52,6 +56,10 @@ impl ButtonState {
 
 impl InputState {
     pub fn update(&mut self) {
+        if !self.left_mouse.down && !self.left_mouse.released {
+            self.drag_start_position = None;
+        }
+
         // Reset the pressed and released states
         self.left_mouse.update();
         self.right_mouse.update();
@@ -60,6 +68,12 @@ impl InputState {
         self.mouse_world_position_delta = Vec2::ZERO;
         self.mouse_screen_position_delta = Vec2::ZERO;
         self.scroll_delta = 0.0;
+    }
+
+    pub fn dragging(&self) -> bool {
+        self.drag_start_position.map_or(false, |start| {
+            (self.mouse_screen_position - start).length() > DRAG_THRESHOLD
+        })
     }
 
     pub fn on_mouse_move(
@@ -78,7 +92,12 @@ impl InputState {
 
     pub fn on_mouse_button(&mut self, button: MouseButton, state: ElementState) {
         match button {
-            MouseButton::Left => self.left_mouse.apply(state),
+            MouseButton::Left => {
+                self.left_mouse.apply(state);
+                if self.left_mouse.pressed {
+                    self.drag_start_position = Some(self.mouse_screen_position);
+                }
+            }
             MouseButton::Right => self.right_mouse.apply(state),
             _ => {}
         }

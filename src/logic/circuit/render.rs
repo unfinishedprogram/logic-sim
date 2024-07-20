@@ -52,23 +52,30 @@ pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
 }
 
 impl CircuitElement {
-    pub fn draw(&self, active: bool, frame: &mut Frame) {
-        let sprite = sprite_of(&self.gate, active).unwrap();
-        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, Vec2::ONE, active as u16)
+    pub fn draw(&self, selected: bool, hot: bool, frame: &mut Frame) {
+        let sprite = sprite_of(&self.gate, selected).unwrap();
+        let scale = if hot {
+            Vec2::splat(1.2)
+        } else {
+            Vec2::splat(1.0)
+        };
+
+        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, scale, selected as u16)
     }
 }
 
 impl Circuit {
     pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
         for (idx, element) in self.elements.iter().enumerate() {
-            element.draw(
-                if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
-                    hot_idx == idx
-                } else {
-                    false
-                },
-                frame,
-            );
+            let is_hot = if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
+                hot_idx == idx
+            } else {
+                false
+            };
+
+            let is_selected = self.selection.contains(ElementIdx(idx));
+
+            element.draw(is_selected, is_hot, frame);
         }
 
         self.connections.iter().for_each(|conn| {

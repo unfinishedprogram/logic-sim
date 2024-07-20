@@ -5,7 +5,7 @@ use glam::Vec2;
 
 use crate::{
     logic::{circuit::Circuit, hit_test::HitTestResult},
-    render::{camera::Camera, msdf::text::TextObject},
+    render::{camera::Camera, frame::Frame, msdf::text::TextObject},
 };
 
 use util::stopwatch::Stopwatch;
@@ -44,12 +44,13 @@ impl GameState {
         }
     }
 
-    pub fn debug_text(&self) -> String {
+    pub fn debug_text(&self, frame: &Frame) -> String {
         format!(
-            "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms",
+            "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms\nDragging: {}",
             self.input.hot,
             self.input.active,
-            self.stopwatch.running_average().as_millis_f32()
+            self.stopwatch.running_average().as_millis_f32(),
+            frame.input().dragging()
         )
     }
 }

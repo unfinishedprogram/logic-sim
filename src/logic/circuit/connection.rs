@@ -39,7 +39,7 @@ pub trait Connectable {
     fn outputs(&self) -> usize;
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ElementIdx(pub usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

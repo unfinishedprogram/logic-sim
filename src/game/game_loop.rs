@@ -12,7 +12,7 @@ impl GameState {
 
         self.circuit.step();
 
-        self.text_object.content = self.debug_text();
+        self.text_object.content = self.debug_text(frame);
 
         self.draw(frame);
     }
@@ -33,7 +33,7 @@ impl GameState {
             self.input.active = hovering;
         }
 
-        self.circuit.handle_inputs(input_state, &self.input);
+        self.circuit.handle_inputs(input_state, &mut self.input);
 
         if input_state.left_mouse.released {
             self.input.active = None;

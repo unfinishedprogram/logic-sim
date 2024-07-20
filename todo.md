@@ -1,7 +1,8 @@
 - [x] Support SVG colors
 - [x] Connection hit testing
-- [ ] Multi-Select
-  - [ ] Group Selection
 - [x] Z-Index for vector rendering
 - [ ] Transparency for SVG rendering
 - [x] Delay Tesselation of curves in order to parallelize
+- [ ] Multi-Select
+  - [ ] Drag box select
+  - [x] Hold shift to add to selection / toggle selection

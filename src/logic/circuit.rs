@@ -1,3 +1,8 @@
+pub mod connection;
+mod element;
+mod render;
+pub mod selection;
+
 use std::{
     iter::once,
     ops::{Index, IndexMut},
@@ -5,6 +10,7 @@ use std::{
 
 use element::CircuitElement;
 use glam::{vec2, Vec2};
+use selection::ElementSelection;
 
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::{
@@ -14,9 +20,6 @@ use crate::{
 
 use util::bounds::Bounds;
 
-pub mod connection;
-mod element;
-mod render;
 use connection::{
     Connection, ConnectionIdx, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx,
     OutputSpecifier,
@@ -28,6 +31,7 @@ pub struct Circuit {
     pub(crate) elements: Vec<CircuitElement>,
     pub(crate) connections: Vec<Connection>,
     pub(crate) solver: SolverState,
+    pub(crate) selection: ElementSelection,
 }
 
 impl Circuit {
@@ -131,6 +135,19 @@ impl Circuit {
                 connection.to.0 .0 -= 1;
             }
         }
+
+        // Update element indices in selection
+        let index_modified_elements: Vec<ElementIdx> = self
+            .selection
+            .elements
+            .iter()
+            .copied()
+            .filter(|&elm| elm.0 > index)
+            .map(|ElementIdx(index)| ElementIdx(index - 1))
+            .collect();
+
+        self.selection.elements.retain(|&elm| elm.0 < index);
+        self.selection.elements.extend(index_modified_elements);
 
         // Finally remove the element
         self.elements.remove(index);
@@ -240,20 +257,44 @@ impl Circuit {
         element.position + offset
     }
 
-    pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &GameInput) {
+    pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &mut GameInput) {
         let x_key = winit::keyboard::Key::Character("x".into());
+        let shift_key = winit::keyboard::Key::Named(winit::keyboard::NamedKey::Shift);
+
         let delete_pressed = input_state.keyboard.pressed(x_key);
+        let shift_down = input_state.keyboard.down(shift_key);
+
+        let left_click = input_state.left_mouse.released && !input_state.dragging();
+
+        let mut clear_selection = left_click;
+        if shift_down {
+            clear_selection = false;
+        }
 
         match game_input {
             GameInput {
                 active: Some(HitTestResult::Element(elm)),
                 ..
-            } if input_state.left_mouse.down => {
-                self[*elm].position += input_state.mouse_world_position_delta;
+            } if shift_down && left_click => {
+                self.selection.toggle(*elm);
             }
+            GameInput {
+                active: Some(HitTestResult::Element(elm)),
+                ..
+            } if input_state.dragging() => {
+                if self.selection.contains(*elm) {
+                    for elm in self.selection.elements.iter() {
+                        self.elements[elm.0].position += input_state.mouse_world_position_delta;
+                    }
+                } else {
+                    self[*elm].position += input_state.mouse_world_position_delta;
+                }
+            }
+
             GameInput {
                 hot: Some(HitTestResult::IO(IOSpecifier::Output(output))),
                 active: Some(HitTestResult::IO(IOSpecifier::Input(input))),
+                ..
             }
             | GameInput {
                 hot: Some(HitTestResult::IO(IOSpecifier::Input(input))),
@@ -280,10 +321,14 @@ impl Circuit {
             GameInput {
                 hot: Some(HitTestResult::Element(elm)),
                 ..
-            } if input_state.left_mouse.released => {
+            } if left_click => {
                 self.click_gate(elm.0);
             }
             _ => {}
+        }
+
+        if clear_selection {
+            self.selection.clear()
         }
     }
 
