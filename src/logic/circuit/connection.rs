@@ -25,11 +25,6 @@ impl OutputSpecifier {
     }
 }
 
-pub trait Connectable {
-    fn inputs(&self) -> usize;
-    fn outputs(&self) -> usize;
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ElementIdx(pub usize);
 

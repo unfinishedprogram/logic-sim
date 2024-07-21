@@ -1,4 +1,4 @@
-use std::{collections::HashSet, iter::once};
+use std::collections::HashSet;
 
 use glam::{vec2, Vec2};
 
@@ -61,9 +61,9 @@ impl EditCircuit {
         let mut res = vec![];
 
         for (element_idx, element) in self.circuit.elements.iter().enumerate() {
-            for (input_idx, offset) in element.gate.input_offsets().iter().enumerate() {
+            for (input_idx, offset) in element.gate.input_offsets().into_iter().enumerate() {
                 let element_bounds =
-                    Bounds::from_center_and_size(element.position + *offset, vec2(0.1, 0.1));
+                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
                 if element_bounds.overlaps(&bounds) {
                     res.push(HitTestResult::IO(
@@ -72,7 +72,7 @@ impl EditCircuit {
                 }
             }
 
-            for (output_idx, offset) in once(element.gate.output_offset()).enumerate() {
+            for (output_idx, offset) in element.gate.output_offsets().into_iter().enumerate() {
                 let element_bounds =
                     Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
@@ -105,9 +105,9 @@ impl EditCircuit {
 
     pub fn hit_test(&self, position: Vec2) -> Option<HitTestResult> {
         for (element_idx, element) in self.circuit.elements.iter().enumerate() {
-            for (input_idx, offset) in element.gate.input_offsets().iter().enumerate() {
+            for (input_idx, offset) in element.gate.input_offsets().into_iter().enumerate() {
                 let bounds =
-                    Bounds::from_center_and_size(element.position + *offset, vec2(0.1, 0.1));
+                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
                 if bounds.contains(position) {
                     return Some(HitTestResult::IO(
@@ -116,7 +116,7 @@ impl EditCircuit {
                 }
             }
 
-            for (output_idx, offset) in once(element.gate.output_offset()).enumerate() {
+            for (output_idx, offset) in element.gate.output_offsets().into_iter().enumerate() {
                 let bounds =
                     Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 

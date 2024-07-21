@@ -183,9 +183,9 @@ impl Circuit {
         let mut res = vec![];
 
         for (element_idx, element) in self.elements.iter().enumerate() {
-            for (input_idx, offset) in element.gate.input_offsets().iter().enumerate() {
+            for (input_idx, offset) in element.gate.input_offsets().into_iter().enumerate() {
                 let element_bounds =
-                    Bounds::from_center_and_size(element.position + *offset, vec2(0.1, 0.1));
+                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
                 if element_bounds.overlaps(&bounds) {
                     res.push(HitTestResult::IO(
@@ -194,7 +194,7 @@ impl Circuit {
                 }
             }
 
-            for (output_idx, offset) in once(element.gate.output_offset()).enumerate() {
+            for (output_idx, offset) in element.gate.output_offsets().into_iter().enumerate() {
                 let element_bounds =
                     Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
@@ -226,9 +226,9 @@ impl Circuit {
 
     pub fn hit_test(&self, position: Vec2) -> Option<HitTestResult> {
         for (element_idx, element) in self.elements.iter().enumerate() {
-            for (input_idx, offset) in element.gate.input_offsets().iter().enumerate() {
+            for (input_idx, offset) in element.gate.input_offsets().into_iter().enumerate() {
                 let bounds =
-                    Bounds::from_center_and_size(element.position + *offset, vec2(0.1, 0.1));
+                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
                 if bounds.contains(position) {
                     return Some(HitTestResult::IO(
@@ -237,7 +237,7 @@ impl Circuit {
                 }
             }
 
-            for (output_idx, offset) in once(element.gate.output_offset()).enumerate() {
+            for (output_idx, offset) in element.gate.output_offsets().into_iter().enumerate() {
                 let bounds =
                     Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
 
@@ -276,7 +276,7 @@ impl Circuit {
                 element
                     .gate
                     .input_offsets()
-                    .iter()
+                    .into_iter()
                     .enumerate()
                     .map(move |(input_idx, _)| {
                         IOSpecifier::Input(InputSpecifier(element_idx, InputIdx(input_idx)))
@@ -293,9 +293,11 @@ impl Circuit {
         let element = &self[spec.element()];
         let offset = match spec {
             IOSpecifier::Input(InputSpecifier(_, input_idx)) => {
-                element.gate.input_offsets()[input_idx.0]
+                element.gate.input_offset(input_idx)
             }
-            IOSpecifier::Output(_) => element.gate.output_offset(),
+            IOSpecifier::Output(OutputSpecifier(_, output_idx)) => {
+                element.gate.output_offset(output_idx)
+            }
         };
 
         element.position + offset
@@ -303,10 +305,9 @@ impl Circuit {
 
     pub fn cubic_bezier_from_connection(&self, connection: &Connection) -> CubicBezier {
         let from_elm = &self[connection.from.0];
-        let from = from_elm.gate.output_offset() + from_elm.position;
-
+        let from = from_elm.gate.output_offset(connection.from.1) + from_elm.position;
         let to_elm = &self[connection.to.0];
-        let to = to_elm.gate.input_offsets()[connection.to.1 .0] + to_elm.position;
+        let to = to_elm.gate.input_offset(connection.to.1) + to_elm.position;
 
         CubicBezier::between_points(from, to)
     }

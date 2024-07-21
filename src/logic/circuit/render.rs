@@ -96,11 +96,11 @@ impl EditCircuit {
         if let Some(source_point) = match game_input.active {
             Some(HitTestResult::IO(IOSpecifier::Input(input))) => {
                 let from_elm = &self.circuit[input.0];
-                Some(from_elm.gate.input_offsets()[input.1 .0] + from_elm.position)
+                Some(from_elm.gate.input_offset(input.1) + from_elm.position)
             }
             Some(HitTestResult::IO(IOSpecifier::Output(output))) => {
                 let from_elm = &self.circuit[output.0];
-                Some(from_elm.gate.output_offset() + from_elm.position)
+                Some(from_elm.gate.output_offset(output.1) + from_elm.position)
             }
             _ => None,
         } {
