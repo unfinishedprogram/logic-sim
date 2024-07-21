@@ -1,16 +1,16 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OutputSpecifier(pub ElementIdx, pub OutputIdx);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InputSpecifier(pub ElementIdx, pub InputIdx);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum IOSpecifier {
     Input(InputSpecifier),
     Output(OutputSpecifier),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Connection {
     pub from: OutputSpecifier,
     pub to: InputSpecifier,
@@ -42,13 +42,13 @@ pub trait Connectable {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ElementIdx(pub usize);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct InputIdx(pub usize);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OutputIdx(pub usize);
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ConnectionIdx(pub usize);
 
 impl IOSpecifier {

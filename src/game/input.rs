@@ -74,8 +74,7 @@ impl InputState {
 
     pub fn dragging(&self) -> bool {
         self.drag_start_position_screen.map_or(false, |start| {
-            (self.mouse_screen_position - start).length() > DRAG_THRESHOLD && self.left_mouse.down
-                || self.left_mouse.released
+            (self.mouse_screen_position - start).length() > DRAG_THRESHOLD
         })
     }
 

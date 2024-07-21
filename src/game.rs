@@ -20,10 +20,11 @@ pub struct GameState {
     pub stopwatch: Stopwatch,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct GameInput {
     pub hot: Option<HitTestResult>,
     pub active: Option<HitTestResult>,
+    pub prev: PrevGameInput,
 }
 
 impl GameState {
@@ -52,5 +53,22 @@ impl GameState {
             self.stopwatch.running_average().as_millis_f32(),
             frame.input().dragging()
         )
+    }
+}
+
+// Nearly identical to GameInput
+// Exists to prevent recursive type
+#[derive(Default, Clone)]
+pub struct PrevGameInput {
+    pub hot: Option<HitTestResult>,
+    pub active: Option<HitTestResult>,
+}
+
+impl From<GameInput> for PrevGameInput {
+    fn from(value: GameInput) -> Self {
+        Self {
+            hot: value.hot,
+            active: value.active,
+        }
     }
 }

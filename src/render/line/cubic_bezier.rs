@@ -63,6 +63,32 @@ impl CubicBezier {
             .unwrap();
     }
 
+    pub fn hit_test_bounds(&self, bounds: Bounds, distance: f32) -> bool {
+        if !self.bounds().pad(distance).overlaps(&bounds) {
+            return false;
+        }
+
+        let center = bounds.center();
+
+        let mut t = 0.5;
+        let mut step = 0.25;
+
+        // Binary search for the closest, point on the curve to the center of our bounds
+        for _ in 0..16 {
+            let lower = (self.point_at(t - step) - center).abs().max_element();
+            let higher = (self.point_at(t + step) - center).abs().max_element();
+
+            if lower > higher {
+                t += step;
+            } else {
+                t -= step;
+            }
+            step /= 2.0;
+        }
+
+        bounds.contains(self.point_at(t))
+    }
+
     pub fn hit_test(&self, point: Vec2, distance: f32) -> bool {
         // Since we always make our control points, between the start and end points,
         // we can assume that the maximum bounds of the curve lie between the start and end points

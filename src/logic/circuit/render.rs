@@ -73,7 +73,9 @@ impl Circuit {
                 false
             };
 
-            let is_selected = self.selection.contains(ElementIdx(idx));
+            let is_selected = self
+                .selection
+                .contains(HitTestResult::Element(ElementIdx(idx)));
 
             element.draw(is_selected, is_hot, frame);
         }

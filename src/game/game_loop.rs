@@ -25,20 +25,19 @@ impl GameState {
     }
 
     fn handle_inputs(&mut self, input_state: &InputState) {
+        self.input.prev = self.input.clone().into();
         self.camera_move(input_state);
 
         let hovering = self.circuit.hit_test(input_state.mouse_world_position);
-
+        self.input.hot = hovering;
         if input_state.left_mouse.pressed {
-            self.input.active = hovering;
+            self.input.active = self.input.hot;
         }
-
-        self.circuit.handle_inputs(input_state, &mut self.input);
-
         if input_state.left_mouse.released {
             self.input.active = None;
         }
-        self.input.hot = hovering;
+
+        self.circuit.handle_inputs(input_state, &mut self.input);
     }
 
     fn camera_move(&mut self, input_state: &InputState) {
