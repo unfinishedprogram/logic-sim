@@ -1,5 +1,6 @@
 pub mod connection;
 mod edit_circuit;
+pub mod embedded;
 pub use edit_circuit::EditCircuit;
 mod element;
 mod render;
@@ -71,11 +72,11 @@ impl Circuit {
         let xor = circuit.add_gate(Gate::Xor, vec2(3.0, 0.0));
         let and = circuit.add_gate(Gate::And, vec2(3.0, 1.0));
 
-        circuit.add_connection(a.to(InputSpecifier(xor, InputIdx(0))));
-        circuit.add_connection(a.to(InputSpecifier(and, InputIdx(0))));
+        circuit.add_connection(a.output(0).to(InputSpecifier(xor, InputIdx(0))));
+        circuit.add_connection(a.output(0).to(InputSpecifier(and, InputIdx(0))));
 
-        circuit.add_connection(b.to(InputSpecifier(xor, InputIdx(1))));
-        circuit.add_connection(b.to(InputSpecifier(and, InputIdx(1))));
+        circuit.add_connection(b.output(0).to(InputSpecifier(xor, InputIdx(1))));
+        circuit.add_connection(b.output(0).to(InputSpecifier(and, InputIdx(1))));
 
         circuit
     }
@@ -149,7 +150,7 @@ impl Circuit {
 
         match &mut self.elements[index].gate {
             Gate::Button(state) => *state = true,
-            Gate::Input(state) => *state = !*state,
+            Gate::Const(state) => *state = !*state,
             _ => {}
         }
     }
@@ -313,6 +314,10 @@ impl Circuit {
     pub fn output_value(&self, io: OutputSpecifier) -> bool {
         // TODO: Make this handle multiple outputs
         self.solver.output_results.read_output(io)
+    }
+
+    pub fn right_size_solver(&mut self) {
+        self.solver.set_size(self.elements.len());
     }
 }
 

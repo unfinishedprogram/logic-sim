@@ -14,8 +14,10 @@ use crate::{
 pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
     use assets::svg::gates;
     match (gate, active) {
-        (Gate::Input(_), _) => None,
+        (Gate::Const(_), _) => None,
         (Gate::Embedded(_), _) => None,
+        (Gate::Input(_), _) => Some(&gates::INPUT),
+        (Gate::Output(_), _) => Some(&gates::OUTPUT),
 
         (Gate::And, true) => Some(&gates::AND_ACTIVE),
         (Gate::And, false) => Some(&gates::AND_NORMAL),

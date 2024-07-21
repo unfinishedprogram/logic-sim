@@ -8,7 +8,7 @@ use super::{
 
 #[derive(Default, Clone, Debug)]
 pub struct GateIOValues {
-    inner: Vec<u64>,
+    pub inner: Vec<u64>,
 }
 
 impl GateIOValues {
@@ -18,7 +18,7 @@ impl GateIOValues {
         }
     }
 
-    fn write_input(&mut self, InputSpecifier(elm, bit): InputSpecifier, value: bool) {
+    pub fn write_input(&mut self, InputSpecifier(elm, bit): InputSpecifier, value: bool) {
         if value {
             self.inner[elm.0] |= 1 << bit.0;
         } else {
@@ -33,16 +33,13 @@ impl GateIOValues {
 
 #[derive(Default, Clone, Debug)]
 pub struct SolverState {
-    previous_results: GateIOValues,
+    pub previous_results: GateIOValues,
     pub output_results: GateIOValues,
 }
 
 impl SolverState {
     pub fn step(mut self, circuit: &mut Circuit) -> Self {
-        if circuit.elements.len() != self.output_results.inner.len() {
-            self.output_results = GateIOValues::new(circuit.elements.len());
-            self.previous_results = GateIOValues::new(circuit.elements.len());
-        }
+        self.set_size(circuit.elements.len());
 
         self.previous_results = self.output_results;
         self.output_results = GateIOValues::new(circuit.elements.len());
@@ -66,13 +63,21 @@ impl SolverState {
         let result = circuit[gate].gate.eval(inputs);
         self.output_results.inner[gate.0] = result;
     }
+
+    pub fn set_size(&mut self, size: usize) {
+        if self.output_results.inner.len() == size {
+            return;
+        }
+        self.output_results = GateIOValues::new(size);
+        self.previous_results = GateIOValues::new(size);
+    }
 }
 
 impl Gate {
     pub fn eval(&mut self, inputs: &u64) -> u64 {
         match self {
-            Gate::Embedded(_) => 0,
-            Gate::Input(v) => *v as u64,
+            Gate::Embedded(embed) => embed.eval(*inputs),
+            Gate::Const(v) => *v as u64,
             Gate::Button(v) => {
                 let res = *v as u64;
                 *v = false;
@@ -88,6 +93,8 @@ impl Gate {
             Gate::Xnor => 1 & (!(inputs ^ (inputs >> 1))),
             Gate::On => 1,
             Gate::Off => 0,
+            Gate::Input(_) => *inputs,
+            Gate::Output(_) => 0,
         }
     }
 }

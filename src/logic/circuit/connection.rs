@@ -16,15 +16,6 @@ pub struct Connection {
     pub to: InputSpecifier,
 }
 
-impl ElementIdx {
-    pub fn to(self, other: InputSpecifier) -> Connection {
-        Connection {
-            from: OutputSpecifier(self, OutputIdx(0)),
-            to: other,
-        }
-    }
-}
-
 impl OutputSpecifier {
     pub fn to(self, other: InputSpecifier) -> Connection {
         Connection {

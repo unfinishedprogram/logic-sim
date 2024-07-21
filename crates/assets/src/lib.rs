@@ -47,6 +47,9 @@ pub mod svg {
 
         asset!(OFF_ACTIVE: "objects/gates/off.svg", (stroke = "4"));
         asset!(OFF_NORMAL: "objects/gates/off.svg", (stroke = "0"));
+
+        asset!(INPUT: "objects/gates/input.svg", ());
+        asset!(OUTPUT: "objects/gates/output.svg", ());
     }
 
     pub mod ui {
