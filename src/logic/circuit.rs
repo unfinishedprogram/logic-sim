@@ -44,12 +44,6 @@ impl Circuit {
         let solver = self.solver.clone();
         let solver = solver.step(self);
         self.solver = solver;
-
-        for element in self.elements.iter_mut() {
-            if let Gate::Button(state) = &mut element.gate {
-                *state = false;
-            }
-        }
     }
 
     pub fn step_n(&mut self, n: usize) {

@@ -38,7 +38,7 @@ pub struct SolverState {
 }
 
 impl SolverState {
-    pub fn step(mut self, circuit: &Circuit) -> Self {
+    pub fn step(mut self, circuit: &mut Circuit) -> Self {
         if circuit.elements.len() != self.output_results.inner.len() {
             self.output_results = GateIOValues::new(circuit.elements.len());
             self.previous_results = GateIOValues::new(circuit.elements.len());
@@ -61,7 +61,7 @@ impl SolverState {
         self
     }
 
-    fn eval_gate(&mut self, circuit: &Circuit, gate_inputs: &GateIOValues, gate: ElementIdx) {
+    fn eval_gate(&mut self, circuit: &mut Circuit, gate_inputs: &GateIOValues, gate: ElementIdx) {
         let inputs = &gate_inputs.inner[gate.0];
         let result = circuit[gate].gate.eval(inputs);
         self.output_results.inner[gate.0] = result;
@@ -69,10 +69,14 @@ impl SolverState {
 }
 
 impl Gate {
-    pub fn eval(&self, inputs: &u64) -> u64 {
+    pub fn eval(&mut self, inputs: &u64) -> u64 {
         match self {
             Gate::Input(v) => *v as u64,
-            Gate::Button(v) => *v as u64,
+            Gate::Button(v) => {
+                let res = *v as u64;
+                *v = false;
+                res
+            }
             Gate::And => 1 & (inputs & (inputs >> 1)),
             Gate::Or => 1 & (inputs | (inputs >> 1)),
             Gate::Not => 1 & (!inputs),
