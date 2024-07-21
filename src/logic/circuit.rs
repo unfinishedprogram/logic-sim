@@ -444,7 +444,7 @@ impl Circuit {
 
     pub fn output_value(&self, io: OutputSpecifier) -> bool {
         // TODO: Make this handle multiple outputs
-        self.solver.output_results[io.0 .0]
+        self.solver.output_results.read_output(io)
     }
 }
 

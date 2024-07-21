@@ -1,61 +1,88 @@
 use super::{
-    circuit::{connection::ElementIdx, Circuit},
+    circuit::{
+        connection::{ElementIdx, InputSpecifier, OutputSpecifier},
+        Circuit,
+    },
     gate::Gate,
 };
 
 #[derive(Default, Clone)]
+pub struct GateIOValues {
+    inner: Vec<u64>,
+}
+
+impl GateIOValues {
+    fn new(size: usize) -> Self {
+        Self {
+            inner: vec![0; size],
+        }
+    }
+
+    fn write_input(&mut self, InputSpecifier(elm, bit): InputSpecifier, value: bool) {
+        if value {
+            self.inner[elm.0] |= 1 << bit.0;
+        } else {
+            self.inner[elm.0] &= !(1 << bit.0);
+        }
+    }
+
+    pub fn read_output(&self, OutputSpecifier(elm, bit): OutputSpecifier) -> bool {
+        self.inner[elm.0] >> bit.0 & 1 == 1
+    }
+}
+
+#[derive(Default, Clone)]
 pub struct SolverState {
-    previous_results: Vec<bool>,
-    pub output_results: Vec<bool>,
+    previous_results: GateIOValues,
+    pub output_results: GateIOValues,
 }
 
 impl SolverState {
     pub fn step(mut self, circuit: &Circuit) -> Self {
-        if circuit.elements.len() != self.output_results.len() {
-            self.output_results = vec![false; circuit.elements.len()];
-            self.previous_results = vec![false; circuit.elements.len()];
+        if circuit.elements.len() != self.output_results.inner.len() {
+            self.output_results = GateIOValues::new(circuit.elements.len());
+            self.previous_results = GateIOValues::new(circuit.elements.len());
         }
 
         self.previous_results = self.output_results;
-        self.output_results = vec![false; self.previous_results.len()];
-
-        let mut gate_inputs = vec![[false; 2]; circuit.elements.len()];
+        self.output_results = GateIOValues::new(circuit.elements.len());
+        let mut gate_inputs = GateIOValues::new(circuit.elements.len());
 
         for connection in &circuit.connections {
-            let from = connection.from.0;
-            let to = connection.to.0;
-            gate_inputs[to.0][connection.to.1 .0] |= self.previous_results[from.0];
+            let from = connection.from;
+            let to = connection.to;
+            gate_inputs.write_input(to, self.previous_results.read_output(from));
         }
 
-        for gate in 0..self.output_results.len() {
+        for gate in 0..circuit.elements.len() {
             self.eval_gate(circuit, &gate_inputs, ElementIdx(gate));
         }
 
         self
     }
 
-    fn eval_gate(&mut self, circuit: &Circuit, gate_inputs: &[[bool; 2]], gate: ElementIdx) {
-        let inputs = &gate_inputs[gate.0];
+    fn eval_gate(&mut self, circuit: &Circuit, gate_inputs: &GateIOValues, gate: ElementIdx) {
+        let inputs = &gate_inputs.inner[gate.0];
         let result = circuit[gate].gate.eval(inputs);
-        self.output_results[gate.0] = result;
+        self.output_results.inner[gate.0] = result;
     }
 }
 
 impl Gate {
-    pub fn eval(&self, inputs: &[bool]) -> bool {
+    pub fn eval(&self, inputs: &u64) -> u64 {
         match self {
-            Gate::Input(v) => *v,
-            Gate::Button(v) => *v,
-            Gate::And => inputs[0] && inputs[1],
-            Gate::Or => inputs[0] || inputs[1],
-            Gate::Not => !inputs[0],
-            Gate::Buf => inputs[0],
-            Gate::Xor => inputs[0] != inputs[1],
-            Gate::Nand => !(inputs[0] && inputs[1]),
-            Gate::Nor => !(inputs[0] || inputs[1]),
-            Gate::Xnor => inputs[0] == inputs[1],
-            Gate::On => true,
-            Gate::Off => false,
+            Gate::Input(v) => *v as u64,
+            Gate::Button(v) => *v as u64,
+            Gate::And => 1 & (inputs & (inputs >> 1)),
+            Gate::Or => 1 & (inputs | (inputs >> 1)),
+            Gate::Not => 1 & (!inputs),
+            Gate::Buf => *inputs,
+            Gate::Xor => 1 & (inputs ^ (inputs >> 1)),
+            Gate::Nand => !(1 & (inputs & (inputs >> 1))),
+            Gate::Nor => !(1 & (inputs | (inputs >> 1))),
+            Gate::Xnor => 1 & (!(inputs ^ (inputs >> 1))),
+            Gate::On => 1,
+            Gate::Off => 0,
         }
     }
 }

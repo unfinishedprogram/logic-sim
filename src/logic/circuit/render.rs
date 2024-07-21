@@ -83,13 +83,7 @@ impl Circuit {
         self.connections.iter().for_each(|conn| {
             let line = self.cubic_bezier_from_connection(conn);
             if frame.camera().bounds().overlaps(&line.bounds()) {
-                let is_active = self
-                    .solver
-                    .output_results
-                    .get(conn.from.0 .0)
-                    .copied()
-                    .unwrap_or_default();
-
+                let is_active = self.solver.output_results.read_output(conn.from);
                 let color = Vec4::new(0.0, is_active as u8 as f32, 0.0, 1.0);
                 frame.draw_cubic_bezier(line, color, 0.05)
             }
