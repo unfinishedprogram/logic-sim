@@ -3,7 +3,7 @@ use glam::{Vec2, Vec4};
 use super::{
     super::gate::Gate,
     connection::{ElementIdx, IOSpecifier},
-    Circuit, CircuitElement,
+    CircuitElement, EditCircuit,
 };
 use crate::{
     game::GameInput,
@@ -15,6 +15,7 @@ pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
     use assets::svg::gates;
     match (gate, active) {
         (Gate::Input(_), _) => None,
+        (Gate::Embedded(_), _) => None,
 
         (Gate::And, true) => Some(&gates::AND_ACTIVE),
         (Gate::And, false) => Some(&gates::AND_NORMAL),
@@ -64,9 +65,9 @@ impl CircuitElement {
     }
 }
 
-impl Circuit {
+impl EditCircuit {
     pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
-        for (idx, element) in self.elements.iter().enumerate() {
+        for (idx, element) in self.circuit.elements.iter().enumerate() {
             let is_hot = if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
                 hot_idx == idx
             } else {
@@ -80,10 +81,10 @@ impl Circuit {
             element.draw(is_selected, is_hot, frame);
         }
 
-        self.connections.iter().for_each(|conn| {
-            let line = self.cubic_bezier_from_connection(conn);
+        self.circuit.connections.iter().for_each(|conn| {
+            let line = self.circuit.cubic_bezier_from_connection(conn);
             if frame.camera().bounds().overlaps(&line.bounds()) {
-                let is_active = self.solver.output_results.read_output(conn.from);
+                let is_active = self.circuit.solver.output_results.read_output(conn.from);
                 let color = Vec4::new(0.0, is_active as u8 as f32, 0.0, 1.0);
                 frame.draw_cubic_bezier(line, color, 0.05)
             }
@@ -92,11 +93,11 @@ impl Circuit {
         // Draw connection preview while being made
         if let Some(source_point) = match game_input.active {
             Some(HitTestResult::IO(IOSpecifier::Input(input))) => {
-                let from_elm = &self[input.0];
+                let from_elm = &self.circuit[input.0];
                 Some(from_elm.gate.input_offsets()[input.1 .0] + from_elm.position)
             }
             Some(HitTestResult::IO(IOSpecifier::Output(output))) => {
-                let from_elm = &self[output.0];
+                let from_elm = &self.circuit[output.0];
                 Some(from_elm.gate.output_offset() + from_elm.position)
             }
             _ => None,
@@ -107,8 +108,8 @@ impl Circuit {
         }
 
         {
-            for dot in self.connection_dots() {
-                let position = self.io_position(dot);
+            for dot in self.circuit.connection_dots() {
+                let position = self.circuit.io_position(dot);
                 let dot_source = match dot {
                     IOSpecifier::Input(_) => &assets::svg::DOT_INPUT,
                     IOSpecifier::Output(_) => &assets::svg::DOT_OUTPUT,

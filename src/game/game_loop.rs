@@ -10,7 +10,7 @@ impl GameState {
 
         self.update_ui(frame);
 
-        self.circuit.step();
+        self.circuit.circuit.step();
 
         self.text_object.content = self.debug_text(frame);
 

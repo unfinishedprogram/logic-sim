@@ -1,9 +1,9 @@
 use util::bounds::Bounds;
 
-use super::circuit::connection::Connectable;
+use super::circuit::{connection::Connectable, Circuit};
 use glam::Vec2;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum Gate {
     Button(bool),
     Input(bool),
@@ -17,6 +17,7 @@ pub enum Gate {
     Xnor,
     On,
     Off,
+    Embedded(Box<Circuit>),
 }
 
 impl Gate {
@@ -38,6 +39,7 @@ impl Gate {
             Self::Input(_) | Self::Button(_) | Self::Off | Self::On => 0,
             Self::Not | Self::Buf => 1,
             Self::And | Self::Or | Self::Xor | Self::Nand | Self::Nor | Self::Xnor => 2,
+            Self::Embedded(_) => todo!(),
         }
     }
 

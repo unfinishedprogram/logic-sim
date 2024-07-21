@@ -6,7 +6,7 @@ use super::{
     gate::Gate,
 };
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct GateIOValues {
     inner: Vec<u64>,
 }
@@ -31,7 +31,7 @@ impl GateIOValues {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct SolverState {
     previous_results: GateIOValues,
     pub output_results: GateIOValues,
@@ -71,6 +71,7 @@ impl SolverState {
 impl Gate {
     pub fn eval(&mut self, inputs: &u64) -> u64 {
         match self {
+            Gate::Embedded(_) => 0,
             Gate::Input(v) => *v as u64,
             Gate::Button(v) => {
                 let res = *v as u64;

@@ -3,6 +3,7 @@ use util::bounds::Bounds;
 
 use crate::logic::gate::Gate;
 
+#[derive(Clone, Debug)]
 pub struct CircuitElement {
     pub gate: Gate,
     pub position: Vec2,

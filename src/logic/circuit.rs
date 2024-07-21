@@ -1,7 +1,8 @@
 pub mod connection;
+mod edit_circuit;
+pub use edit_circuit::EditCircuit;
 mod element;
 mod render;
-pub mod selection;
 
 #[cfg(test)]
 mod test;
@@ -14,13 +15,9 @@ use std::{
 
 use element::CircuitElement;
 use glam::{vec2, Vec2};
-use selection::ElementSelection;
 
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
-use crate::{
-    game::{input::InputState, GameInput, PrevGameInput},
-    render::line::cubic_bezier::CubicBezier,
-};
+use crate::render::line::cubic_bezier::CubicBezier;
 
 use util::bounds::Bounds;
 
@@ -29,13 +26,12 @@ use connection::{
     OutputSpecifier,
 };
 
-#[derive(Default)]
+#[derive(Default, Clone, Debug)]
 pub struct Circuit {
     // TODO: Make this generic
     pub(crate) elements: Vec<CircuitElement>,
     pub(crate) connections: Vec<Connection>,
     pub(crate) solver: SolverState,
-    pub(crate) selection: ElementSelection,
 }
 
 impl Circuit {
@@ -95,7 +91,7 @@ impl Circuit {
             Gate::Xnor,
             Gate::Nand,
         ];
-        let gate = gates[rand::random::<usize>() % gates.len()];
+        let gate = gates[rand::random::<usize>() % gates.len()].clone();
 
         self.add_gate(gate, position);
     }
@@ -180,35 +176,6 @@ impl Circuit {
 
     pub fn remove_connection(&mut self, idx: ConnectionIdx) {
         self.connections.remove(idx.0);
-    }
-
-    fn remove_selection(&mut self) {
-        // Selection deletion must be applied as a single batch
-        // Since deleting single circuit elements invalidates connection pointers, the order of deletion matters
-        // 1. Delete individual connections
-        // 2. Delete connections to/from selected input/output nodes
-        // 3. Delete selected circuit elements
-
-        let mut selection = ElementSelection::default();
-        // Replace the existing selection, since after deletion the indices will be invalid
-        std::mem::swap(&mut self.selection, &mut selection);
-
-        // 1. Delete individual connections
-        // Since we delete them all in a single batch, we don't need to worry about invalidating indices
-        self.remove_many_connections(selection.connections().into_iter().collect::<HashSet<_>>());
-
-        // 2. Delete connections to/from selected input/output nodes
-        for node in selection.connection_nodes() {
-            self.remove_connections(node);
-        }
-
-        // 3. Delete selected circuit elements
-        // We must remove the elements in reverse index order to avoid invalidating indices
-        let mut gates: Vec<_> = selection.elements().into_iter().collect();
-        gates.sort_unstable_by_key(|v| v.0);
-        for element in gates.iter().rev() {
-            self.remove_gate(element.0);
-        }
     }
 
     pub fn hit_test_bounds(&self, bounds: Bounds) -> HashSet<HitTestResult> {
@@ -331,99 +298,6 @@ impl Circuit {
         };
 
         element.position + offset
-    }
-
-    pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &mut GameInput) {
-        let x_key = winit::keyboard::Key::Character("x".into());
-        let shift_key = winit::keyboard::Key::Named(winit::keyboard::NamedKey::Shift);
-
-        let delete_pressed = input_state.keyboard.pressed(x_key);
-        let shift_down = input_state.keyboard.down(shift_key);
-
-        let left_click = input_state.left_mouse.released && !input_state.dragging();
-
-        let mut clear_selection = left_click;
-        if shift_down {
-            clear_selection = false;
-        }
-
-        let box_select = input_state.dragging()
-            && game_input.active.is_none()
-            && game_input.prev.active.is_none();
-
-        if box_select {
-            self.selection.bound_select = Some(Bounds::from_points(
-                input_state.drag_start_position_world.unwrap(),
-                input_state.mouse_world_position,
-            ));
-        } else {
-            self.selection.bound_select = None;
-        }
-
-        match game_input {
-            GameInput {
-                hot: Some(HitTestResult::IO(a)),
-                prev:
-                    PrevGameInput {
-                        active: Some(HitTestResult::IO(b)),
-                        ..
-                    },
-                ..
-            } if input_state.left_mouse.released => match (a, b) {
-                (IOSpecifier::Input(input), IOSpecifier::Output(output))
-                | (IOSpecifier::Output(output), IOSpecifier::Input(input)) => {
-                    self.add_connection(output.to(*input));
-                }
-                _ => {}
-            },
-
-            GameInput { .. } if box_select && input_state.left_mouse.released => {
-                if let Some(bounds) = self.selection.bound_select {
-                    self.selection.elements = self.hit_test_bounds(bounds);
-                    self.selection.bound_select = None;
-                }
-            }
-            GameInput { hot: Some(res), .. } if shift_down && left_click => {
-                self.selection.toggle(*res);
-                println!("Toggling Selection");
-            }
-            GameInput {
-                active: Some(elm), ..
-            } if input_state.dragging() => {
-                if self.selection.contains(*elm) {
-                    for item in self.selection.elements.iter() {
-                        match item {
-                            HitTestResult::Element(elm) => {
-                                self.elements[elm.0].position +=
-                                    input_state.mouse_world_position_delta
-                            }
-                            HitTestResult::IO(_) => {}
-                            HitTestResult::Connection(_) => {}
-                        }
-                    }
-                } else if let HitTestResult::Element(elm) = elm {
-                    self[*elm].position += input_state.mouse_world_position_delta;
-                }
-            }
-            GameInput { .. } if delete_pressed => {
-                self.remove_selection();
-            }
-            GameInput {
-                active: Some(res), ..
-            } if left_click => {
-                self.selection.clear();
-                self.selection.toggle(*res);
-            }
-            _ => {}
-        }
-
-        if !input_state.left_mouse.down {
-            self.selection.bound_select = None;
-        }
-
-        if clear_selection {
-            self.selection.clear()
-        }
     }
 
     pub fn cubic_bezier_from_connection(&self, connection: &Connection) -> CubicBezier {

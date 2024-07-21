@@ -24,7 +24,9 @@ impl GameState {
             let button_pos = Vec2::new(index as f32 * button_width, 0.0) + offset;
             let res = frame.button(name, button_pos);
             if res.clicked {
-                self.circuit.add_gate(*gate, frame.camera().center);
+                self.circuit
+                    .circuit
+                    .add_gate(gate.clone(), frame.camera().center);
             }
         }
     }

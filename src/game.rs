@@ -4,7 +4,10 @@ mod ui;
 use glam::Vec2;
 
 use crate::{
-    logic::{circuit::Circuit, hit_test::HitTestResult},
+    logic::{
+        circuit::{Circuit, EditCircuit},
+        hit_test::HitTestResult,
+    },
     render::{camera::Camera, frame::Frame, msdf::text::TextObject},
 };
 
@@ -13,7 +16,7 @@ use util::stopwatch::Stopwatch;
 pub struct GameState {
     pub text_object: TextObject,
     pub camera: Camera,
-    circuit: Circuit,
+    circuit: EditCircuit,
 
     pub input: GameInput,
 
@@ -39,7 +42,7 @@ impl GameState {
         Self {
             camera: Camera::new(),
             text_object,
-            circuit: Circuit::basic_test_circuit(),
+            circuit: Circuit::basic_test_circuit().into(),
             input: GameInput::default(),
             stopwatch: Stopwatch::default(),
         }
