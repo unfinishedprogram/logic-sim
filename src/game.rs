@@ -39,7 +39,7 @@ impl GameState {
         Self {
             camera: Camera::new(),
             text_object,
-            circuit: Circuit::test_circuit(),
+            circuit: Circuit::basic_test_circuit(),
             input: GameInput::default(),
             stopwatch: Stopwatch::default(),
         }
@@ -53,6 +53,12 @@ impl GameState {
             self.stopwatch.running_average().as_millis_f32(),
             frame.input().dragging()
         )
+    }
+}
+
+impl Default for GameState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

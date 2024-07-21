@@ -49,7 +49,21 @@ impl Circuit {
         }
     }
 
-    pub fn test_circuit() -> Self {
+    pub fn extreme_test_circuit() -> Self {
+        let mut circuit = Circuit::default();
+
+        for _ in 0..10000 {
+            circuit.add_random_component()
+        }
+
+        for _ in 0..10000 {
+            circuit.add_random_connection()
+        }
+
+        circuit
+    }
+
+    pub fn basic_test_circuit() -> Self {
         let mut circuit = Circuit::default();
 
         let a = circuit.add_gate(Gate::Buf, vec2(0.0, 0.0));
@@ -63,17 +77,6 @@ impl Circuit {
 
         circuit.add_connection(b.to(InputSpecifier(xor, InputIdx(1))));
         circuit.add_connection(b.to(InputSpecifier(and, InputIdx(1))));
-
-        // Benchmarking
-        if true {
-            for _ in 0..10000 {
-                circuit.add_random_component()
-            }
-
-            for _ in 0..10000 {
-                circuit.add_random_connection()
-            }
-        }
 
         circuit
     }

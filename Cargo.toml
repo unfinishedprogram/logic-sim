@@ -3,6 +3,14 @@ name = "logic-sim"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "logic_sim"
+path = "src/lib.rs"
+
+[[bin]]
+name = "logic_sim"
+path = "src/bin.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 
@@ -12,7 +20,6 @@ members = ["crates/util", "crates/assets"]
 [dependencies]
 util = { path = "crates/util" }
 assets = { path = "crates/assets" }
-
 env_logger = "0.11.3"
 bytemuck = { version = "1.15.0", features = ["derive", "min_const_generics"] }
 glam = { version = "0.27.0", features = ["bytemuck"] }
@@ -27,6 +34,12 @@ lyon = "1.0.1"
 usvg = "0.42.0"
 rayon = { version = "1.10.0", optional = true }
 
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "circuit_evaluation"
+harness = false
 
 [features]
 rayon = ["dep:rayon"]

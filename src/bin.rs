@@ -1,16 +1,7 @@
-#![feature(duration_millis_float)]
-#![feature(mapped_lock_guards)]
-
-mod app;
-mod game;
-pub mod logic;
-mod render;
-mod ui;
-
-use pollster::FutureExt;
 use winit::{event_loop::EventLoop, window::Window};
 
-use crate::app::App;
+use logic_sim::app::App;
+use pollster::FutureExt;
 
 pub fn main() {
     let event_loop: EventLoop<()> = EventLoop::new().unwrap();
