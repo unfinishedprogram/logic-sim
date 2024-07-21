@@ -3,6 +3,9 @@ mod element;
 mod render;
 pub mod selection;
 
+#[cfg(test)]
+mod test;
+
 use std::{
     collections::HashSet,
     iter::once,
@@ -46,6 +49,12 @@ impl Circuit {
             if let Gate::Button(state) = &mut element.gate {
                 *state = false;
             }
+        }
+    }
+
+    pub fn step_n(&mut self, n: usize) {
+        for _ in 0..n {
+            self.step();
         }
     }
 
@@ -431,6 +440,11 @@ impl Circuit {
         let to = to_elm.gate.input_offsets()[connection.to.1 .0] + to_elm.position;
 
         CubicBezier::between_points(from, to)
+    }
+
+    pub fn output_value(&self, io: OutputSpecifier) -> bool {
+        // TODO: Make this handle multiple outputs
+        self.solver.output_results[io.0 .0]
     }
 }
 

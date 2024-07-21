@@ -71,3 +71,13 @@ impl From<InputSpecifier> for IOSpecifier {
         IOSpecifier::Input(input)
     }
 }
+
+impl ElementIdx {
+    pub fn input(self, idx: usize) -> InputSpecifier {
+        InputSpecifier(self, InputIdx(idx))
+    }
+
+    pub fn output(self, idx: usize) -> OutputSpecifier {
+        OutputSpecifier(self, OutputIdx(idx))
+    }
+}
