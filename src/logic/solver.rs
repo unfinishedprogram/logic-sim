@@ -33,7 +33,6 @@ impl GateIOValues {
 
 #[derive(Default, Clone, Debug)]
 pub struct SolverState {
-    pub previous_results: GateIOValues,
     pub output_results: GateIOValues,
 }
 
@@ -41,27 +40,34 @@ impl SolverState {
     pub fn step(mut self, circuit: &mut Circuit) -> Self {
         self.set_size(circuit.elements.len());
 
-        self.previous_results = self.output_results;
-        self.output_results = GateIOValues::new(circuit.elements.len());
+        let mut gate_outputs = self.output_results;
         let mut gate_inputs = GateIOValues::new(circuit.elements.len());
 
         for connection in &circuit.connections {
             let from = connection.from;
             let to = connection.to;
-            gate_inputs.write_input(to, self.previous_results.read_output(from));
+            gate_inputs.write_input(to, gate_outputs.read_output(from));
+        }
+        gate_outputs.inner.fill(0);
+        for gate in 0..circuit.elements.len() {
+            Self::eval_gate(circuit, &mut gate_outputs, &gate_inputs, ElementIdx(gate));
         }
 
-        for gate in 0..circuit.elements.len() {
-            self.eval_gate(circuit, &gate_inputs, ElementIdx(gate));
-        }
+        self.output_results = gate_outputs;
 
         self
     }
 
-    fn eval_gate(&mut self, circuit: &mut Circuit, gate_inputs: &GateIOValues, gate: ElementIdx) {
+    #[inline(always)]
+    fn eval_gate(
+        circuit: &mut Circuit,
+        gate_outputs: &mut GateIOValues,
+        gate_inputs: &GateIOValues,
+        gate: ElementIdx,
+    ) {
         let inputs = &gate_inputs.inner[gate.0];
         let result = circuit[gate].gate.eval(inputs);
-        self.output_results.inner[gate.0] = result;
+        gate_outputs.inner[gate.0] = result;
     }
 
     pub fn set_size(&mut self, size: usize) {
@@ -69,11 +75,11 @@ impl SolverState {
             return;
         }
         self.output_results = GateIOValues::new(size);
-        self.previous_results = GateIOValues::new(size);
     }
 }
 
 impl Gate {
+    #[inline(always)]
     pub fn eval(&mut self, inputs: &u64) -> u64 {
         match self {
             Gate::Embedded(embed) => embed.eval(*inputs),
