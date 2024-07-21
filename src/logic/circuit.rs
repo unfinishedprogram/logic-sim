@@ -123,7 +123,7 @@ impl Circuit {
         self.connections.push(connection);
     }
 
-    pub fn remove_gate(&mut self, index: usize) {
+    pub fn remove_gate(&mut self, ElementIdx(index): ElementIdx) {
         // Remove connections referencing the removed gate
         self.connections
             .retain(|connection| connection.from.0 .0 != index && connection.to.0 .0 != index);
@@ -144,7 +144,7 @@ impl Circuit {
     }
 
     // Some gates will change state based on click events
-    pub fn click_gate(&mut self, index: usize) {
+    pub fn click_gate(&mut self, ElementIdx(index): ElementIdx) {
         println!("Clicked gate {}", index);
 
         match &mut self.elements[index].gate {

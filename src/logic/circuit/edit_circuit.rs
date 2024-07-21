@@ -53,7 +53,7 @@ impl EditCircuit {
         let mut gates: Vec<_> = selection.elements().into_iter().collect();
         gates.sort_unstable_by_key(|v| v.0);
         for element in gates.iter().rev() {
-            self.circuit.remove_gate(element.0);
+            self.circuit.remove_gate(*element);
         }
     }
 
