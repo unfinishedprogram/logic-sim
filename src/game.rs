@@ -42,7 +42,7 @@ impl GameState {
         Self {
             camera: Camera::new(),
             text_object,
-            circuit: Circuit::extreme_test_circuit().into(),
+            circuit: Circuit::basic_test_circuit().into(),
             input: GameInput::default(),
             stopwatch: Stopwatch::default(),
         }

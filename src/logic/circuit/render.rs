@@ -56,7 +56,10 @@ pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
 
 impl CircuitElement {
     pub fn draw(&self, selected: bool, hot: bool, frame: &mut Frame) {
-        let sprite = sprite_of(&self.gate, selected).unwrap();
+        let Some(sprite) = sprite_of(&self.gate, selected) else {
+            return;
+        };
+
         let scale = if hot {
             Vec2::splat(1.2)
         } else {

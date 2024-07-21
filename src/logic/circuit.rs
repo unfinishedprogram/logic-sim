@@ -1,7 +1,9 @@
 pub mod connection;
 mod edit_circuit;
 pub mod embedded;
+mod examples;
 pub use edit_circuit::EditCircuit;
+use embedded::EmbeddedCircuit;
 mod element;
 mod render;
 
@@ -10,7 +12,6 @@ mod test;
 
 use std::{
     collections::HashSet,
-    iter::once,
     ops::{Index, IndexMut},
 };
 
@@ -79,6 +80,10 @@ impl Circuit {
         circuit.add_connection(b.output(0).to(InputSpecifier(and, InputIdx(1))));
 
         circuit
+    }
+
+    pub fn embed(&self) -> EmbeddedCircuit {
+        EmbeddedCircuit::new(self.clone()).unwrap()
     }
 
     fn add_random_component(&mut self) {
@@ -281,10 +286,11 @@ impl Circuit {
                     .map(move |(input_idx, _)| {
                         IOSpecifier::Input(InputSpecifier(element_idx, InputIdx(input_idx)))
                     })
-                    .chain(once(IOSpecifier::Output(OutputSpecifier(
-                        element_idx,
-                        OutputIdx(0),
-                    ))))
+                    .chain(element.gate.output_offsets().into_iter().enumerate().map(
+                        move |(output_idx, _)| {
+                            IOSpecifier::Output(OutputSpecifier(element_idx, OutputIdx(output_idx)))
+                        },
+                    ))
             })
     }
 

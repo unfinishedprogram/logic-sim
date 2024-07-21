@@ -84,3 +84,9 @@ impl Gate {
         Bounds::new(-offset, offset)
     }
 }
+
+impl From<EmbeddedCircuit> for Gate {
+    fn from(embed: EmbeddedCircuit) -> Self {
+        Self::Embedded(embed)
+    }
+}
