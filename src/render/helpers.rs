@@ -14,15 +14,18 @@ pub fn generic_pipeline_descriptor<'a>(
             module: shader,
             entry_point: "vs_main",
             buffers,
+            compilation_options: wgpu::PipelineCompilationOptions::default(),
         },
         fragment: Some(wgpu::FragmentState {
             module: shader,
             entry_point: "fs_main",
             targets,
+            compilation_options: wgpu::PipelineCompilationOptions::default(),
         }),
         primitive: wgpu::PrimitiveState::default(),
         depth_stencil: None,
         multisample,
         multiview: None,
+        cache: None,
     }
 }

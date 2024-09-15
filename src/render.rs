@@ -156,7 +156,7 @@ impl<'window> RenderState<'window> {
 
     fn frame_render_pass_descriptor<'a>(
         color_attachments: &'a [Option<wgpu::RenderPassColorAttachment>],
-    ) -> wgpu::RenderPassDescriptor<'a, 'a> {
+    ) -> wgpu::RenderPassDescriptor<'a> {
         wgpu::RenderPassDescriptor {
             label: None,
             color_attachments,
@@ -195,6 +195,7 @@ impl<'window> BaseRenderState<'window> {
                     required_features: wgpu::Features::empty(),
                     // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
                     required_limits: wgpu::Limits::default().using_resolution(adapter.limits()),
+                    memory_hints: wgpu::MemoryHints::Performance,
                 },
                 None,
             )
