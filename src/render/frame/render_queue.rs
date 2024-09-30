@@ -120,7 +120,7 @@ impl RenderQueue {
             .unwrap();
     }
 
-    pub fn draw_bounds(&mut self, bounds: Bounds) {
+    pub fn draw_bounds(&mut self, bounds: Bounds, width: f32) {
         let mut path = Path::builder();
 
         let box_2d = Box2D::from_points([
@@ -134,7 +134,7 @@ impl RenderQueue {
         let mut tessellator = StrokeTessellator::new();
 
         let options = StrokeOptions::default()
-            .with_line_width(0.1)
+            .with_line_width(width)
             .with_tolerance(0.0001);
 
         let blue = Vec4::new(0.0, 1.0, 1.0, 1.0);

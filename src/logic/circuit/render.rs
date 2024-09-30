@@ -131,7 +131,8 @@ impl EditCircuit {
 
         // Draw box select outline
         if let Some(bounds) = self.selection.bound_select {
-            frame.render_queue.draw_bounds(bounds)
+            let width = frame.world_pixel_size().max_element();
+            frame.render_queue.draw_bounds(bounds, width)
         }
     }
 }

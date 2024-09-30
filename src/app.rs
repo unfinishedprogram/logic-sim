@@ -73,7 +73,13 @@ impl<'a> App<'a> {
             font: self.render_state.msdf_font_ref.clone(),
         };
 
-        let mut frame = Frame::new(self.game_state.camera, ui_cam, &self.input, frame_assets);
+        let mut frame = Frame::new(
+            self.game_state.camera,
+            ui_cam,
+            &self.input,
+            frame_assets,
+            self.screen_size(),
+        );
         self.input.update();
         self.game_state.update(&mut frame);
         frame
