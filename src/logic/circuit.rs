@@ -323,3 +323,17 @@ impl IndexMut<ElementIdx> for Circuit {
         &mut self.elements[index.0]
     }
 }
+
+impl Index<ConnectionIdx> for Circuit {
+    type Output = Connection;
+
+    fn index(&self, index: ConnectionIdx) -> &Self::Output {
+        &self.connections[index.0]
+    }
+}
+
+impl IndexMut<ConnectionIdx> for Circuit {
+    fn index_mut(&mut self, index: ConnectionIdx) -> &mut Self::Output {
+        &mut self.connections[index.0]
+    }
+}

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use glam::{vec2, Vec2};
 
@@ -24,36 +24,90 @@ pub struct ElementSelection {
 pub struct EditCircuit {
     pub(crate) circuit: Circuit,
     pub(crate) selection: ElementSelection,
+    pub(crate) clipboard: Option<Circuit>,
 }
 
 impl EditCircuit {
-    fn remove_selection(&mut self) {
+    fn remove_elements(&mut self, elements: ElementSelection) {
         // Selection deletion must be applied as a single batch
         // Since deleting single circuit elements invalidates connection pointers, the order of deletion matters
         // 1. Delete individual connections
         // 2. Delete connections to/from selected input/output nodes
         // 3. Delete selected circuit elements
 
-        let mut selection = ElementSelection::default();
-        // Replace the existing selection, since after deletion the indices will be invalid
-        std::mem::swap(&mut self.selection, &mut selection);
-
         // 1. Delete individual connections
         // Since we delete them all in a single batch, we don't need to worry about invalidating indices
         self.circuit
-            .remove_many_connections(selection.connections().into_iter().collect::<HashSet<_>>());
+            .remove_many_connections(elements.connections().into_iter().collect::<HashSet<_>>());
 
         // 2. Delete connections to/from selected input/output nodes
-        for node in selection.connection_nodes() {
+        for node in elements.connection_nodes() {
             self.circuit.remove_connections(node);
         }
 
         // 3. Delete selected circuit elements
         // We must remove the elements in reverse index order to avoid invalidating indices
-        let mut gates: Vec<_> = selection.elements().into_iter().collect();
+        let mut gates: Vec<_> = elements.elements().into_iter().collect();
         gates.sort_unstable_by_key(|v| v.0);
         for element in gates.iter().rev() {
             self.circuit.remove_gate(*element);
+        }
+    }
+
+    fn extract_elements_into_circuit(&mut self, elements: ElementSelection) -> Circuit {
+        let mut res = Circuit::default();
+
+        // First create a lookup table of remapped element IDs in the new circuit
+        let mut circuit_indexes = HashMap::<ElementIdx, ElementIdx>::new();
+        for gate_idx in elements.elements() {
+            let element = &self.circuit[gate_idx];
+            circuit_indexes.insert(
+                gate_idx,
+                res.add_gate(element.gate.clone(), element.position),
+            );
+        }
+
+        // Then we use this lookup table to add the remapped connections
+        for connection_idx in elements.connections() {
+            let connection = self.circuit[connection_idx];
+
+            let Some(from) = circuit_indexes
+                .get(&connection.from.0)
+                .map(|new_elm_idx| OutputSpecifier(*new_elm_idx, connection.from.1))
+            else {
+                continue;
+            };
+
+            let Some(to) = circuit_indexes
+                .get(&connection.to.0)
+                .map(|new_elm_idx| InputSpecifier(*new_elm_idx, connection.to.1))
+            else {
+                continue;
+            };
+
+            res.add_connection(from.to(to));
+        }
+
+        res
+    }
+
+    fn paste_circuit(&mut self, mut circuit: Circuit) {
+        let elements_len = self.circuit.elements.len();
+
+        for connection in circuit.connections.iter_mut() {
+            connection.from.0 .0 += elements_len;
+            connection.to.0 .0 += elements_len;
+        }
+
+        self.circuit.elements.extend(circuit.elements);
+        self.circuit.connections.extend(circuit.connections);
+
+        self.selection.clear();
+
+        for idx in elements_len..self.circuit.elements.len() {
+            self.selection
+                .elements
+                .insert(HitTestResult::Element(ElementIdx(idx)));
         }
     }
 
@@ -147,11 +201,24 @@ impl EditCircuit {
         None
     }
 
+    pub fn take_selection(&mut self) -> ElementSelection {
+        let mut selection = ElementSelection::default();
+        // Replace the existing selection, since after deletion the indices will be invalid
+        std::mem::swap(&mut self.selection, &mut selection);
+        selection
+    }
+
     pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &mut GameInput) {
         let x_key = winit::keyboard::Key::Character("x".into());
+        let c_key = winit::keyboard::Key::Character("c".into());
+        let v_key = winit::keyboard::Key::Character("v".into());
+
         let shift_key = winit::keyboard::Key::Named(winit::keyboard::NamedKey::Shift);
 
         let delete_pressed = input_state.keyboard.pressed(x_key);
+        let copy_pressed = input_state.keyboard.pressed(c_key);
+        let paste_pressed = input_state.keyboard.pressed(v_key);
+
         let shift_down = input_state.keyboard.down(shift_key);
 
         let left_click = input_state.left_mouse.released && !input_state.dragging();
@@ -220,7 +287,17 @@ impl EditCircuit {
                 }
             }
             GameInput { .. } if delete_pressed => {
-                self.remove_selection();
+                let selection = self.take_selection();
+                self.remove_elements(selection);
+            }
+            GameInput { .. } if copy_pressed => {
+                let selection = self.take_selection();
+                self.clipboard = Some(self.extract_elements_into_circuit(selection));
+            }
+            GameInput { .. } if paste_pressed => {
+                if let Some(clipboard) = self.clipboard.take() {
+                    self.paste_circuit(clipboard);
+                }
             }
             GameInput {
                 active: Some(res), ..
@@ -246,6 +323,7 @@ impl From<Circuit> for EditCircuit {
         Self {
             circuit: value,
             selection: ElementSelection::default(),
+            clipboard: None,
         }
     }
 }
