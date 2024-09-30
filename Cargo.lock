@@ -1351,11 +1351,10 @@ dependencies = [
  "glam",
  "image",
  "lyon",
+ "miniserde",
  "pollster",
  "rand",
  "rayon",
- "serde",
- "serde_json",
  "usvg",
  "util",
  "wgpu",
@@ -1472,10 +1471,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "mini-internal"
+version = "0.1.40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3cd9f9bbedc1b92683a9847b8db12f3203cf32af6a11db085fa007708dc9555"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.77",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+
+[[package]]
+name = "miniserde"
+version = "0.1.40"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9b650e926368ad21aaabe6055341d1874df696178f47d70b6d9a691f616274e"
+dependencies = [
+ "itoa",
+ "mini-internal",
+ "ryu",
+]
 
 [[package]]
 name = "miniz_oxide"

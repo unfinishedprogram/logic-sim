@@ -69,7 +69,7 @@ impl MsdfFont {
     }
 
     pub fn create(device: &Device, queue: &Queue, manifest: &'static str, image: &[u8]) -> Self {
-        let manifest = serde_json::from_str::<Manifest>(manifest).unwrap();
+        let manifest = miniserde::json::from_str::<Manifest>(manifest).unwrap();
         let sprite_sheet = SpriteSheet::create(device, queue, &manifest.clone().into(), image);
 
         Self {

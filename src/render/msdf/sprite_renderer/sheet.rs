@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bytemuck::{Pod, Zeroable};
 use glam::Vec2;
-use serde::Deserialize;
+use miniserde::Deserialize;
 use wgpu::{util::DeviceExt, BindGroupLayoutDescriptor, Device, Queue};
 
 use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::VertexUV};
@@ -10,7 +10,7 @@ use crate::render::{geometry::TexturedQuad, img_texture::ImageTexture, vertex::V
 use super::SpriteInstance;
 
 pub struct SpriteSheet {
-    pub name: &'static str,
+    pub name: String,
     pub bind_group: wgpu::BindGroup,
     pub sprites: HashMap<String, usize>,
     pub sprites_vec: Vec<Sprite>,
@@ -135,7 +135,7 @@ impl SpriteSheet {
             _texture: texture,
             sprites,
             sprites_vec,
-            name: manifest.name,
+            name: manifest.name.clone(),
         }
     }
 }
@@ -158,7 +158,7 @@ pub struct Bounds {
 
 #[derive(Deserialize, Clone)]
 pub struct Manifest {
-    pub name: &'static str,
+    pub name: String,
     pub atlas: Atlas,
     pub sprites: Vec<SpriteDef>,
 }

@@ -1,5 +1,5 @@
 use glam::Vec2;
-use serde::Deserialize;
+use miniserde::Deserialize;
 
 use crate::render::msdf::sprite_renderer::{self};
 
@@ -7,7 +7,7 @@ use crate::render::msdf::sprite_renderer::sheet as sprite_sheet;
 
 #[derive(Deserialize, Clone)]
 pub struct Manifest {
-    pub name: Option<&'static str>,
+    pub name: Option<String>,
     pub atlas: Atlas,
     pub glyphs: Vec<Glyph>,
 }
@@ -71,7 +71,7 @@ impl From<Manifest> for sprite_sheet::Manifest {
         sprite_sheet::Manifest {
             atlas,
             sprites,
-            name: val.name.unwrap_or("default_font"),
+            name: val.name.unwrap_or("default_font".to_string()),
         }
     }
 }
