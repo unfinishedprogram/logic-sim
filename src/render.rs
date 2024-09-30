@@ -79,20 +79,26 @@ impl<'window> RenderState<'window> {
             .surface
             .get_current_texture()
             .expect("Failed to acquire next swap chain texture");
+
         let frame_view = surface
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
         let msaa_view = self.base.create_multisampled_frame_buffer(4);
 
-        let attachments = Self::color_attachments(&msaa_view, &frame_view);
-        let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
+        {
+            let attachments = Self::color_attachments(&msaa_view, &frame_view, true);
+            let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
+            self.upload_resources(frame.camera(), &frame.render_queue);
+            self.render_internal(&render_pass_desc);
+        }
 
-        self.upload_resources(frame.camera(), &frame.render_queue);
-        self.render_internal(&render_pass_desc);
-
-        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
-        self.render_internal(&render_pass_desc);
+        {
+            let attachments = Self::color_attachments(&msaa_view, &frame_view, false);
+            let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
+            self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
+            self.render_internal(&render_pass_desc);
+        }
 
         surface.present();
     }
@@ -143,12 +149,24 @@ impl<'window> RenderState<'window> {
     fn color_attachments<'a>(
         msaa_view: &'a TextureView,
         frame_view: &'a TextureView,
+        clear: bool,
     ) -> [Option<wgpu::RenderPassColorAttachment<'a>>; 1] {
+        let load = if clear {
+            wgpu::LoadOp::Clear(wgpu::Color {
+                r: 0.5,
+                g: 0.5,
+                b: 0.5,
+                a: 1.0,
+            })
+        } else {
+            wgpu::LoadOp::Load
+        };
+
         [Some(wgpu::RenderPassColorAttachment {
             view: msaa_view,
             resolve_target: Some(frame_view),
             ops: wgpu::Operations {
-                load: wgpu::LoadOp::Load,
+                load,
                 store: wgpu::StoreOp::Store,
             },
         })]
