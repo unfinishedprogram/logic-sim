@@ -64,24 +64,6 @@ impl Circuit {
         circuit
     }
 
-    pub fn basic_test_circuit() -> Self {
-        let mut circuit = Circuit::default();
-
-        let a = circuit.add_gate(Gate::Buf, vec2(0.0, 0.0));
-        let b = circuit.add_gate(Gate::Not, vec2(0.0, 1.0));
-
-        let xor = circuit.add_gate(Gate::Xor, vec2(3.0, 0.0));
-        let and = circuit.add_gate(Gate::And, vec2(3.0, 1.0));
-
-        circuit.add_connection(a.output(0).to(InputSpecifier(xor, InputIdx(0))));
-        circuit.add_connection(a.output(0).to(InputSpecifier(and, InputIdx(0))));
-
-        circuit.add_connection(b.output(0).to(InputSpecifier(xor, InputIdx(1))));
-        circuit.add_connection(b.output(0).to(InputSpecifier(and, InputIdx(1))));
-
-        circuit
-    }
-
     pub fn embed(&self) -> EmbeddedCircuit {
         EmbeddedCircuit::new(self.clone()).unwrap()
     }

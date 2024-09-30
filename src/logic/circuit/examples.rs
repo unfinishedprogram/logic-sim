@@ -48,4 +48,22 @@ impl Circuit {
 
         circuit
     }
+
+    pub fn basic_test_circuit() -> Self {
+        let mut circuit = Circuit::default();
+
+        let a = circuit.add_gate(Gate::Buf, Vec2::new(0.0, 0.0));
+        let b = circuit.add_gate(Gate::Not, Vec2::new(0.0, 1.0));
+
+        let xor = circuit.add_gate(Gate::Xor, Vec2::new(3.0, 0.0));
+        let and = circuit.add_gate(Gate::And, Vec2::new(3.0, 1.0));
+
+        circuit.add_connection(a.output(0).to(xor.input(0)));
+        circuit.add_connection(a.output(0).to(and.input(0)));
+
+        circuit.add_connection(b.output(0).to(xor.input(1)));
+        circuit.add_connection(b.output(0).to(and.input(1)));
+
+        circuit
+    }
 }
