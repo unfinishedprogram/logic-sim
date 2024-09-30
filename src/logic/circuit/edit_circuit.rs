@@ -208,16 +208,25 @@ impl EditCircuit {
         selection
     }
 
+    pub fn embed_selection(&mut self) {
+        let selection = self.take_selection();
+        let new_circuit = self.extract_elements_into_circuit(selection);
+        let position = new_circuit.center();
+        self.circuit.add_gate(new_circuit.embed().into(), position);
+    }
+
     pub fn handle_inputs(&mut self, input_state: &InputState, game_input: &mut GameInput) {
         let x_key = winit::keyboard::Key::Character("x".into());
         let c_key = winit::keyboard::Key::Character("c".into());
         let v_key = winit::keyboard::Key::Character("v".into());
+        let z_key = winit::keyboard::Key::Character("z".into());
 
         let shift_key = winit::keyboard::Key::Named(winit::keyboard::NamedKey::Shift);
 
         let delete_pressed = input_state.keyboard.pressed(x_key);
         let copy_pressed = input_state.keyboard.pressed(c_key);
         let paste_pressed = input_state.keyboard.pressed(v_key);
+        let embed_pressed = input_state.keyboard.pressed(z_key);
 
         let shift_down = input_state.keyboard.down(shift_key);
 
@@ -298,6 +307,9 @@ impl EditCircuit {
                 if let Some(clipboard) = self.clipboard.take() {
                     self.paste_circuit(clipboard);
                 }
+            }
+            GameInput { .. } if embed_pressed => {
+                self.embed_selection();
             }
             GameInput {
                 active: Some(res), ..

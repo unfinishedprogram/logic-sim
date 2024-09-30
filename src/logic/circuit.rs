@@ -308,6 +308,18 @@ impl Circuit {
     pub fn right_size_solver(&mut self) {
         self.solver.set_size(self.elements.len());
     }
+
+    pub fn center(&self) -> Vec2 {
+        let mut min = Vec2::INFINITY;
+        let mut max = Vec2::NEG_INFINITY;
+
+        for element in self.elements.iter() {
+            min = min.min(element.position);
+            max = max.max(element.position);
+        }
+
+        (min + max) / 2.0
+    }
 }
 
 impl Index<ElementIdx> for Circuit {
