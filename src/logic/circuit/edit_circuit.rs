@@ -6,8 +6,12 @@ use crate::game::{input::InputState, GameInput, PrevGameInput};
 
 use util::bounds::Bounds;
 
-use super::connection::{
-    ConnectionIdx, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx, OutputSpecifier,
+use super::{
+    connection::{
+        ConnectionIdx, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx,
+        OutputSpecifier,
+    },
+    element::CircuitElement,
 };
 
 use crate::logic::hit_test::HitTestResult;
@@ -91,15 +95,27 @@ impl EditCircuit {
         res
     }
 
-    fn paste_circuit(&mut self, mut circuit: Circuit) {
+    fn paste_circuit(&mut self, mut circuit: Circuit, position: Vec2) {
         let elements_len = self.circuit.elements.len();
+        let center = circuit.center();
+        let offset = position - center;
 
         for connection in circuit.connections.iter_mut() {
             connection.from.0 .0 += elements_len;
             connection.to.0 .0 += elements_len;
         }
 
-        self.circuit.elements.extend(circuit.elements);
+        self.circuit
+            .elements
+            .extend(
+                circuit
+                    .elements
+                    .into_iter()
+                    .map(|CircuitElement { gate, position }| CircuitElement {
+                        gate,
+                        position: position + offset,
+                    }),
+            );
         self.circuit.connections.extend(circuit.connections);
 
         self.selection.clear();
@@ -304,8 +320,8 @@ impl EditCircuit {
                 self.clipboard = Some(self.extract_elements_into_circuit(selection));
             }
             GameInput { .. } if paste_pressed => {
-                if let Some(clipboard) = self.clipboard.take() {
-                    self.paste_circuit(clipboard);
+                if let Some(clipboard) = self.clipboard.clone() {
+                    self.paste_circuit(clipboard, input_state.mouse_world_position);
                 }
             }
             GameInput { .. } if embed_pressed => {

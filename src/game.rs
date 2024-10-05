@@ -49,8 +49,9 @@ impl GameState {
     }
 
     pub fn debug_text(&self, frame: &Frame) -> String {
+        let controls = "\nX : Delete\nC : Copy\nV : Paste\n";
         format!(
-            "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms\nDragging: {}",
+            "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms\nDragging: {}\n Controls: {controls}",
             self.input.hot,
             self.input.active,
             self.stopwatch.running_average().as_millis_f32(),
