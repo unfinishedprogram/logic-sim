@@ -15,7 +15,7 @@ path = "src/bin.rs"
 
 
 [workspace]
-members = ["crates/util", "crates/assets"]
+members = ["crates/util", "crates/assets", "crates/vector"]
 
 [dependencies]
 util = { path = "crates/util" }

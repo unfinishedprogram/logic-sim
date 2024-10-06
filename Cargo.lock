@@ -2869,6 +2869,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "vector"
+version = "0.1.0"
+
+[[package]]
 name = "version-compare"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
