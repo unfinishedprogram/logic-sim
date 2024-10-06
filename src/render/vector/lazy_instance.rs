@@ -1,10 +1,11 @@
+use assets::SVGSource;
 use glam::{Vec2, Vec4};
 
 use super::{tessellator::GLOBAL_TESSELLATOR, VectorInstance, VectorRenderer};
 
 #[derive(Clone, Copy)]
 pub struct LazyVectorInstance<'a> {
-    pub source: &'a str,
+    pub source: &'a SVGSource,
     pub transform: Vec2,
     pub color: Vec4,
     pub scale: Vec2,

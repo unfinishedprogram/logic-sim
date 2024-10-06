@@ -1,5 +1,6 @@
 use std::fs;
 
+use assets::SVGSource;
 use glam::{Vec2, Vec4};
 use lyon::tessellation::{
     BuffersBuilder, FillOptions, FillTessellator, StrokeOptions, StrokeTessellator,
@@ -14,7 +15,7 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct SVGGeometry {
-    pub source: String,
+    pub source: SVGSource,
     pub vertex_buffers: VertexBuffers<SVGVertex, u32>,
     pub hit_box: Bounds,
 }
@@ -26,10 +27,10 @@ pub struct TesselationOptions {
 
 impl SVGGeometry {
     pub fn load_svg_from_str(
-        source: &str,
+        source: &SVGSource,
         options: TesselationOptions,
     ) -> Result<SVGGeometry, Error> {
-        let svg = usvg::Tree::from_str(source, &usvg::Options::default())?;
+        let svg = usvg::Tree::from_str(&source.0, &usvg::Options::default())?;
 
         let center_offset = -Vec2::new(svg.size().width(), svg.size().height()) / 2.0;
         let scale = Vec2::new(1.0, 1.0) / 32.0;
@@ -53,7 +54,7 @@ impl SVGGeometry {
         Ok(SVGGeometry {
             vertex_buffers,
             hit_box,
-            source: source.to_string(),
+            source: source.clone(),
         })
     }
 
@@ -62,7 +63,7 @@ impl SVGGeometry {
         options: TesselationOptions,
     ) -> Result<SVGGeometry, Error> {
         let svg_text = fs::read_to_string(path)?;
-        Self::load_svg_from_str(&svg_text, options)
+        Self::load_svg_from_str(&SVGSource(svg_text), options)
     }
 
     fn tesselate(

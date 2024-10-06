@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use assets::SVGSource;
 use wgpu::{
     include_wgsl, BindGroupLayout, Buffer, ColorTargetState, Device, IndexFormat, PipelineLayout,
     RenderPass, RenderPipeline, ShaderModule,
@@ -35,7 +36,7 @@ pub struct VectorRenderer {
     camera_binding: CameraUniform,
 
     vector_objects: Vec<(VectorInstanceBufferRanges, SVGGeometry)>,
-    vector_lookup: HashMap<String, Handle<SVGGeometry>>,
+    vector_lookup: HashMap<SVGSource, Handle<SVGGeometry>>,
 
     render_request: VectorRenderRequest,
 }
@@ -201,19 +202,19 @@ impl VectorRenderer {
         }
     }
 
-    pub fn get_vector(&self, name: &str) -> Option<Handle<SVGGeometry>> {
-        self.vector_lookup.get(name).copied()
+    pub fn get_vector(&self, source: &SVGSource) -> Option<Handle<SVGGeometry>> {
+        self.vector_lookup.get(source).copied()
     }
 }
 
 #[derive(Clone)]
 pub struct VectorRendererReference {
-    pub vectors: HashMap<String, Handle<SVGGeometry>>,
+    pub vectors: HashMap<SVGSource, Handle<SVGGeometry>>,
     pub hit_boxes: HashMap<Handle<SVGGeometry>, Bounds>,
 }
 
 impl VectorRendererReference {
-    pub fn get_vector(&self, name: &str) -> Option<Handle<SVGGeometry>> {
-        self.vectors.get(name).copied()
+    pub fn get_vector(&self, source: &SVGSource) -> Option<Handle<SVGGeometry>> {
+        self.vectors.get(source).copied()
     }
 }

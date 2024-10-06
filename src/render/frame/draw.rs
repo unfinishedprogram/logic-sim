@@ -1,3 +1,4 @@
+use assets::SVGSource;
 use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
 use util::handle::Handle;
@@ -46,7 +47,7 @@ impl Frame {
 
     pub fn draw_vector_lazy(
         &mut self,
-        source: &'static str,
+        source: &'static SVGSource,
         transform: Vec2,
         color: Vec4,
         scale: Vec2,

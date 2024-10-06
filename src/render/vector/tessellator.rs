@@ -1,3 +1,5 @@
+use assets::SVGSource;
+
 use super::svg_geometry::{self, SVGGeometry, TesselationOptions};
 use std::{
     collections::HashMap,
@@ -17,7 +19,7 @@ pub struct Tessellator(Arc<Mutex<TessellatorInner>>);
 #[derive(Default)]
 struct TessellatorInner {
     settings: TessellationSettings,
-    vectors: HashMap<String, SVGGeometry>,
+    vectors: HashMap<SVGSource, SVGGeometry>,
 }
 
 impl Default for TessellationSettings {
@@ -36,25 +38,25 @@ impl From<TessellationSettings> for TesselationOptions {
 }
 
 impl Tessellator {
-    fn tesselate(source: &str, settings: TessellationSettings) -> SVGGeometry {
+    fn tesselate(source: &SVGSource, settings: TessellationSettings) -> SVGGeometry {
         svg_geometry::SVGGeometry::load_svg_from_str(source, settings.into()).unwrap()
     }
 
     // Internal API to facilitate extracting individual fields without copy of entire SVGGeometry
-    fn lazy_tesselate(&self, source: &str) -> MappedMutexGuard<SVGGeometry> {
+    fn lazy_tesselate(&self, source: &SVGSource) -> MappedMutexGuard<SVGGeometry> {
         let mut inner = self.0.lock().unwrap();
 
         {
             if !inner.vectors.contains_key(source) {
                 let geometry = Self::tesselate(source, inner.settings);
-                inner.vectors.insert(source.to_string(), geometry);
+                inner.vectors.insert(source.clone(), geometry);
             }
         }
 
         return MutexGuard::map(inner, |it| it.vectors.get_mut(source).unwrap());
     }
 
-    pub fn get_geometry(&self, source: &str) -> SVGGeometry {
+    pub fn get_geometry(&self, source: &SVGSource) -> SVGGeometry {
         self.lazy_tesselate(source).clone()
     }
 

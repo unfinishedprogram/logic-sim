@@ -1,10 +1,13 @@
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct SVGSource(pub String);
+
 macro_rules! asset {
     ($name:ident: $path:literal, ( $($args:tt)* )) => {
-        pub static $name: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
-            format!(
+        pub static $name: std::sync::LazyLock<crate::SVGSource> = std::sync::LazyLock::new(|| {
+            crate::SVGSource(format!(
                 include_str!($path),
                 $($args)*
-            )
+            ))
         });
     };
 }

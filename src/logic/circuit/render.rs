@@ -1,3 +1,4 @@
+use assets::SVGSource;
 use glam::{Vec2, Vec4};
 
 use super::{
@@ -11,7 +12,7 @@ use crate::{
     render::{frame::Frame, line::cubic_bezier::CubicBezier},
 };
 
-pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static str> {
+pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static SVGSource> {
     use assets::svg::gates;
     match (gate, active) {
         (Gate::Const(_), _) => None,
