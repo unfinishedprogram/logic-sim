@@ -7,7 +7,7 @@ use wgpu::{vertex_attr_array, VertexAttribute};
 pub struct SVGVertex {
     pub color: Vec4,
     pub position: Vec2,
-    pub padding: Vec2,
+    _padding: Vec2,
 }
 
 impl SVGVertex {
@@ -20,7 +20,7 @@ impl SVGVertex {
         Self {
             position,
             color,
-            padding: Vec2::ZERO,
+            _padding: Vec2::ZERO,
         }
     }
 

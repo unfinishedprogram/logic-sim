@@ -1,12 +1,12 @@
 use std::fs;
 
 use assets::SVGSource;
+use common::bounds::Bounds;
 use glam::{Vec2, Vec4};
 use lyon::tessellation::{
     BuffersBuilder, FillOptions, FillTessellator, StrokeOptions, StrokeTessellator,
     TessellationError, VertexBuffers,
 };
-use common::bounds::Bounds;
 
 use super::{
     svg_convert::{convert_fill, convert_path, convert_stroke},
