@@ -12,7 +12,7 @@ use crate::render::{
     helpers, BaseRenderState,
 };
 
-use util::{bounds::Bounds, handle::Handle};
+use common::{bounds::Bounds, handle::Handle};
 
 use super::{
     draw_call_ordering::{create_render_request, VectorRenderRequest},

@@ -4,7 +4,7 @@ use glam::{vec2, Vec2};
 
 use crate::game::{input::InputState, GameInput, PrevGameInput};
 
-use util::bounds::Bounds;
+use common::bounds::Bounds;
 
 use super::{
     connection::{

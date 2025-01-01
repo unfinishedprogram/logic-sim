@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 use crate::render::{msdf::sprite_renderer::SpriteInstance, vector::VectorInstance};
-use util::handle::Handle;
+use common::handle::Handle;
 
 use super::RenderQueue;
 

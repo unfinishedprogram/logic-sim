@@ -6,7 +6,7 @@ use lyon::{
     path::Path,
     tessellation::{BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, VertexBuffers},
 };
-use util::bounds::Bounds;
+use common::bounds::Bounds;
 
 pub struct CubicBezier {
     pub start: Vec2,

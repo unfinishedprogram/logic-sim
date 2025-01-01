@@ -11,7 +11,7 @@ use crate::{
     render::{camera::Camera, frame::Frame, msdf::text::TextObject},
 };
 
-use util::stopwatch::Stopwatch;
+use common::stopwatch::Stopwatch;
 
 pub struct GameState {
     pub text_object: TextObject,

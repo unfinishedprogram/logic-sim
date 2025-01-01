@@ -6,7 +6,7 @@ use super::{
     VectorInstance,
 };
 
-use util::handle::Handle;
+use common::handle::Handle;
 
 pub struct DrawCall {
     pub id: Handle<SVGGeometry>,

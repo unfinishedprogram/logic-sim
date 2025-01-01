@@ -4,7 +4,7 @@ use crate::render::{
     frame::Frame, msdf::text::TextObject, vector::lazy_instance::LazyVectorInstance,
 };
 
-use util::bounds::Bounds;
+use common::bounds::Bounds;
 
 pub struct ButtonResponse {
     pub clicked: bool,

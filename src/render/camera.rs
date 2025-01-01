@@ -5,7 +5,7 @@ use wgpu::{
     BindGroup, BindGroupLayout, Buffer, BufferUsages, Device, Queue,
 };
 
-use util::bounds::Bounds;
+use common::bounds::Bounds;
 
 use super::bindable::Bindable;
 

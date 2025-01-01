@@ -1,7 +1,7 @@
 mod handles;
 
+use common::{bounds::Bounds, handle::Handle};
 use lyon::tessellation::VertexBuffers;
-use util::{bounds::Bounds, handle::Handle};
 
 use glam::Vec4;
 use lyon::{

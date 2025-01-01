@@ -21,7 +21,7 @@ use glam::{vec2, Vec2};
 use super::{gate::Gate, hit_test::HitTestResult, solver::SolverState};
 use crate::render::line::cubic_bezier::CubicBezier;
 
-use util::bounds::Bounds;
+use common::bounds::Bounds;
 
 use connection::{
     Connection, ConnectionIdx, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx,

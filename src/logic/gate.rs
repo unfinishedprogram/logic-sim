@@ -1,4 +1,4 @@
-use util::bounds::Bounds;
+use common::bounds::Bounds;
 
 use super::circuit::{
     connection::{InputIdx, OutputIdx},

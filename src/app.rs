@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-use util::stopwatch::Stopwatch;
+use common::stopwatch::Stopwatch;
 
 pub struct App<'a> {
     window: &'a Window,

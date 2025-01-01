@@ -1,7 +1,7 @@
 use assets::SVGSource;
+use common::handle::Handle;
 use glam::{Vec2, Vec4};
 use lyon::tessellation::VertexBuffers;
-use util::handle::Handle;
 
 use crate::render::{
     line::cubic_bezier::CubicBezier,

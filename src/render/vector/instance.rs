@@ -3,7 +3,7 @@ use glam::{Vec2, Vec4};
 use wgpu::vertex_attr_array;
 
 use super::svg_geometry::SVGGeometry;
-use util::handle::Handle;
+use common::handle::Handle;
 
 pub type ZIndex = u16;
 
