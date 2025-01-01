@@ -2,16 +2,14 @@ use std::fs;
 
 use assets::SVGSource;
 use common::bounds::Bounds;
-use glam::{Vec2, Vec4};
+use glam::Vec2;
 use lyon::tessellation::{
     BuffersBuilder, FillOptions, FillTessellator, StrokeOptions, StrokeTessellator,
     TessellationError, VertexBuffers,
 };
 
-use super::{
-    svg_convert::{convert_fill, convert_path, convert_stroke},
-    vertex::SVGVertex,
-};
+use super::vertex::SVGVertex;
+use vector::convert::{convert_color, convert_fill, convert_path, convert_stroke};
 
 #[derive(Clone, Debug)]
 pub struct SVGGeometry {
@@ -90,17 +88,6 @@ impl SVGGeometry {
         Ok(())
     }
 
-    fn convert_color(c: usvg::Color) -> Vec4 {
-        Vec4::new(
-            c.red as f32 / 255.0,
-            c.green as f32 / 255.0,
-            c.blue as f32 / 255.0,
-            1.0,
-        )
-        // Convert color spaces
-        .powf(2.2)
-    }
-
     fn tesselate_path_stroke(
         p: &usvg::Path,
         buffers: &mut VertexBuffers<SVGVertex, u32>,
@@ -113,7 +100,7 @@ impl SVGGeometry {
         };
 
         let mut color = match stroke.paint() {
-            usvg::Paint::Color(c) => Self::convert_color(*c),
+            usvg::Paint::Color(c) => convert_color(*c),
             _ => return Ok(()),
         };
         color *= stroke.opacity().get();
@@ -145,7 +132,7 @@ impl SVGGeometry {
         };
 
         let mut color = match fill.paint() {
-            usvg::Paint::Color(c) => Self::convert_color(*c),
+            usvg::Paint::Color(c) => convert_color(*c),
             _ => return Ok(()),
         };
         color *= fill.opacity().get();

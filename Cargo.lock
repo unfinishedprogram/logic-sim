@@ -1364,6 +1364,7 @@ dependencies = [
  "rand",
  "rayon",
  "usvg",
+ "vector",
  "wgpu",
  "winit",
 ]
@@ -2872,6 +2873,10 @@ dependencies = [
 name = "vector"
 version = "0.1.0"
 dependencies = [
+ "assets",
+ "common",
+ "glam",
+ "lyon",
  "usvg",
 ]
 

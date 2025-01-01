@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+common = { path = "../common" }
+assets = { path = "../assets" }
+glam = "0.29.0"
+usvg = "0.44.0"
+lyon = "1.0.1"

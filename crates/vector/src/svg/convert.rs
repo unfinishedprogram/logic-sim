@@ -1,3 +1,6 @@
+mod error;
+
+use glam::Vec4;
 use lyon::math::Point;
 use lyon::path::PathEvent;
 use lyon::tessellation::StrokeOptions;
@@ -156,4 +159,15 @@ pub fn convert_fill(f: &usvg::Fill, base_options: FillOptions) -> (usvg::Color, 
     });
 
     (color, opt)
+}
+
+pub fn convert_color(c: usvg::Color) -> Vec4 {
+    Vec4::new(
+        c.red as f32 / 255.0,
+        c.green as f32 / 255.0,
+        c.blue as f32 / 255.0,
+        1.0,
+    )
+    // Convert color spaces
+    .powf(2.2)
 }
