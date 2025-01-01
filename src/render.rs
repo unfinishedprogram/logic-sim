@@ -120,8 +120,8 @@ impl<'window> RenderState<'window> {
         self.base.queue.submit(Some(encoder.finish()));
     }
 
-    pub fn resize(&mut self, window: &Window, new_size: PhysicalSize<u32>) {
-        self.base.resize(window, new_size);
+    pub fn resize(&mut self, new_size: PhysicalSize<u32>) {
+        self.base.resize(new_size);
     }
 
     fn upload_resources(&mut self, camera: &Camera, render_queue: &RenderQueue) {
@@ -192,7 +192,6 @@ impl<'window> BaseRenderState<'window> {
         size.height = size.height.max(1);
 
         let instance = wgpu::Instance::default();
-
         let surface = instance.create_surface(window).unwrap();
 
         let adapter = instance
@@ -224,7 +223,7 @@ impl<'window> BaseRenderState<'window> {
             .get_default_config(&adapter, size.width, size.height)
             .unwrap();
 
-        // surface_config.present_mode = wgpu::PresentMode::AutoVsync;
+        surface_config.present_mode = wgpu::PresentMode::AutoVsync;
         surface_config.alpha_mode = wgpu::CompositeAlphaMode::PreMultiplied;
 
         surface.configure(&device, &surface_config);
@@ -248,7 +247,7 @@ impl<'window> BaseRenderState<'window> {
         }
     }
 
-    fn resize(&mut self, _window: &Window, new_size: PhysicalSize<u32>) {
+    fn resize(&mut self, new_size: PhysicalSize<u32>) {
         // Reconfigure the surface with the new size
         self.surface_config.width = new_size.width.max(1);
         self.surface_config.height = new_size.height.max(1);

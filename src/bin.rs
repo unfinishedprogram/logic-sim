@@ -29,10 +29,8 @@ pub fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     {
         env_logger::init();
-
         let mut app = App::create(&window).block_on();
-
-        app.run(event_loop).block_on()
+        app.run(event_loop)
     }
     #[cfg(target_arch = "wasm32")]
     {

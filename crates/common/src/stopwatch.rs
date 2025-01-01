@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, time::Duration};
 
 pub struct Stopwatch {
     last: std::time::Instant,
@@ -15,7 +15,20 @@ impl Stopwatch {
         }
     }
 
-    pub fn tick(&mut self) {
+    pub fn running_average(&self) -> std::time::Duration {
+        let sum: std::time::Duration = self.samples.iter().sum();
+        if self.samples.is_empty() {
+            Duration::ZERO
+        } else {
+            sum / self.samples.len() as u32
+        }
+    }
+
+    pub fn start(&mut self) {
+        self.last = std::time::Instant::now();
+    }
+
+    pub fn end(&mut self) {
         let now = std::time::Instant::now();
         let elapsed = now - self.last;
         self.last = now;
@@ -23,11 +36,6 @@ impl Stopwatch {
         if self.samples.len() > self.max_samples {
             self.samples.pop_back();
         }
-    }
-
-    pub fn running_average(&self) -> std::time::Duration {
-        let sum: std::time::Duration = self.samples.iter().sum();
-        sum / self.samples.len() as u32
     }
 }
 

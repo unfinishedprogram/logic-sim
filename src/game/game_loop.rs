@@ -4,7 +4,7 @@ use glam::Vec2;
 
 impl GameState {
     pub fn update(&mut self, frame: &mut Frame) {
-        self.stopwatch.tick();
+        self.stopwatch.start();
 
         self.handle_inputs(frame.input());
 
@@ -15,6 +15,7 @@ impl GameState {
         self.text_object.content = self.debug_text(frame);
 
         self.draw(frame);
+        self.stopwatch.end();
     }
 
     pub fn draw(&self, frame: &mut Frame) {

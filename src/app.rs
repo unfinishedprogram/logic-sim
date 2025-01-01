@@ -56,7 +56,7 @@ impl<'a> App<'a> {
         )
     }
 
-    pub async fn run(&mut self, event_loop: EventLoop<()>) {
+    pub fn run(&mut self, event_loop: EventLoop<()>) {
         event_loop.run_app(self).expect("Failure in event loop");
     }
 
@@ -89,7 +89,7 @@ impl<'a> App<'a> {
             .camera
             .set_aspect_ratio(Vec2::new(new_size.width as f32, new_size.height as f32));
 
-        self.render_state.resize(self.window, new_size);
+        self.render_state.resize(new_size);
     }
 }
 
@@ -107,7 +107,7 @@ impl ApplicationHandler for App<'_> {
         match event {
             WindowEvent::Resized(new_size) => self.resize(new_size),
             WindowEvent::RedrawRequested => {
-                self.frame_time.tick();
+                self.frame_time.start();
 
                 let frame = self.update();
 
@@ -119,6 +119,7 @@ impl ApplicationHandler for App<'_> {
                 self.render_state.render(frame);
 
                 self.window.request_redraw();
+                self.frame_time.end();
             }
             WindowEvent::MouseInput {
                 device_id: _,
