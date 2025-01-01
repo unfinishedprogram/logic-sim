@@ -53,7 +53,7 @@ impl Tessellator {
             }
         }
 
-        return MutexGuard::map(inner, |it| it.vectors.get_mut(source).unwrap());
+        MutexGuard::map(inner, |it| it.vectors.get_mut(source).unwrap())
     }
 
     pub fn get_geometry(&self, source: &SVGSource) -> SVGGeometry {

@@ -27,7 +27,7 @@ impl GateIOValues {
     }
 
     pub fn read_output(&self, OutputSpecifier(elm, bit): OutputSpecifier) -> bool {
-        self.inner[elm.0] >> bit.0 & 1 == 1
+        (self.inner[elm.0] >> bit.0) & 1 == 1
     }
 }
 

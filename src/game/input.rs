@@ -73,9 +73,8 @@ impl InputState {
     }
 
     pub fn dragging(&self) -> bool {
-        self.drag_start_position_screen.map_or(false, |start| {
-            (self.mouse_screen_position - start).length() > DRAG_THRESHOLD
-        })
+        self.drag_start_position_screen
+            .is_some_and(|start| (self.mouse_screen_position - start).length() > DRAG_THRESHOLD)
     }
 
     pub fn on_mouse_move(
@@ -122,19 +121,17 @@ pub struct KeyboardState {
 
 impl KeyboardState {
     pub fn pressed(&self, key: Key) -> bool {
-        self.key_states
-            .get(&key)
-            .map_or(false, |state| state.pressed)
+        self.key_states.get(&key).is_some_and(|state| state.pressed)
     }
 
     pub fn down(&self, key: Key) -> bool {
-        self.key_states.get(&key).map_or(false, |state| state.down)
+        self.key_states.get(&key).is_some_and(|state| state.down)
     }
 
     pub fn released(&self, key: Key) -> bool {
         self.key_states
             .get(&key)
-            .map_or(false, |state| state.released)
+            .is_some_and(|state| state.released)
     }
 
     fn update(&mut self) {
