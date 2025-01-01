@@ -11,7 +11,7 @@ const FALLBACK_COLOR: usvg::Color = usvg::Color {
 };
 
 /// Some glue between usvg's iterators and lyon's.
-pub struct PathConvIter<'a> {
+pub struct PathConvertIter<'a> {
     iter: tiny_skia_path::PathSegmentsIter<'a>,
     prev: Point,
     first: Point,
@@ -19,7 +19,7 @@ pub struct PathConvIter<'a> {
     deferred: Option<PathEvent>,
 }
 
-impl<'l> Iterator for PathConvIter<'l> {
+impl Iterator for PathConvertIter<'_> {
     type Item = PathEvent;
     fn next(&mut self) -> Option<PathEvent> {
         if self.deferred.is_some() {
@@ -104,8 +104,8 @@ impl<'l> Iterator for PathConvIter<'l> {
     }
 }
 
-pub fn convert_path(p: &usvg::Path) -> PathConvIter {
-    PathConvIter {
+pub fn convert_path(p: &usvg::Path) -> PathConvertIter {
+    PathConvertIter {
         iter: p.data().segments(),
         first: Point::new(0.0, 0.0),
         prev: Point::new(0.0, 0.0),
