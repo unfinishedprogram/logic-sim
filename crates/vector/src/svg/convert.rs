@@ -1,10 +1,10 @@
-mod error;
-
 use glam::Vec4;
-use lyon::math::Point;
-use lyon::path::PathEvent;
-use lyon::tessellation::StrokeOptions;
-use lyon::tessellation::{self, FillOptions};
+use lyon::{
+    math::Point,
+    path::PathEvent,
+    tessellation::{self, FillOptions, StrokeOptions},
+};
+
 use usvg::tiny_skia_path;
 
 const FALLBACK_COLOR: usvg::Color = usvg::Color {
