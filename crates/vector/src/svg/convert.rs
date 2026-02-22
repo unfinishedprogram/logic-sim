@@ -107,7 +107,7 @@ impl Iterator for PathConvertIter<'_> {
     }
 }
 
-pub fn convert_path(p: &usvg::Path) -> PathConvertIter {
+pub fn convert_path(p: &'_ usvg::Path) -> PathConvertIter<'_> {
     PathConvertIter {
         iter: p.data().segments(),
         first: Point::new(0.0, 0.0),
