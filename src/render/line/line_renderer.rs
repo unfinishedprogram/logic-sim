@@ -53,13 +53,14 @@ impl LineRenderer {
 
     // Loads line instances to be rendered
     pub fn upload_geometry(&mut self, queue: &wgpu::Queue, buffers: &VertexBuffers<VertexUV, u32>) {
-        self.vert_count = buffers.vertices.len();
         self.index_count = buffers.indices.len();
         queue.write_buffer(
             &self.index_buffer,
             0,
             bytemuck::cast_slice(&buffers.indices),
         );
+
+        self.vert_count = buffers.vertices.len();
         queue.write_buffer(
             &self.vertex_buffer,
             0,

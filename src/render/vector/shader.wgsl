@@ -24,23 +24,16 @@ struct VertexInput {
 }
 
 @vertex
-fn vs_main(
-    in: VertexInput,
-) -> VertexOutput {
+fn vs_main(in: VertexInput) -> VertexOutput {
     var out: VertexOutput;
     let pos_2d = ((in.vert_pos_2d * in.scale) - camera.center + in.position) / camera.size;
 
-    out.clip_pos = vec4f(pos_2d, 0.0, 1.0) * vec4f(1.0, -1.0, 1.0, 1.0);
+    out.clip_pos = vec4f(pos_2d, 0.0, 1.0) * vec4f(1.0, - 1.0, 1.0, 1.0);
     out.color = in.color;
     return out;
 }
 
-
-
 @fragment
-fn fs_main(
-    in: VertexOutput
-) -> @location(0) vec4f {
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     return in.color;
 }
-

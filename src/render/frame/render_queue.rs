@@ -54,6 +54,10 @@ impl RenderQueue {
         Handle::new(index)
     }
 
+    pub fn enqueue_cubic_bezier(&mut self, curve: CubicBezierInstance) {
+        self.bezier_instances.push(curve);
+    }
+
     pub fn tesselate_geometry(&mut self, tolerance: f32) {
         // Take the bezier instances out of the queue
         let mut bezier_instances = Vec::new();
@@ -64,10 +68,10 @@ impl RenderQueue {
 
     // Applies tesselation to endued bezier curves
     fn tesselate_cubic_beziers(&mut self, curves: Vec<CubicBezierInstance>, tolerance: f32) {
-        let fold = |mut vb, req: &CubicBezierInstance| {
+        let fold = |mut vertex_buffer, req: &CubicBezierInstance| {
             req.bezier
-                .tesselate(&mut vb, req.width, req.color, tolerance);
-            vb
+                .tesselate(&mut vertex_buffer, req.width, req.color, tolerance);
+            vertex_buffer
         };
 
         #[cfg(not(feature = "rayon"))]
@@ -147,25 +151,5 @@ impl RenderQueue {
                 }),
             )
             .unwrap();
-    }
-
-    pub fn enqueue_cubic_bezier(&mut self, curve: CubicBezierInstance) {
-        self.bezier_instances.push(curve);
-    }
-
-    pub fn sprites(&self) -> &[SpriteInstance] {
-        &self.sprites
-    }
-
-    pub fn lines(&self) -> &VertexBuffers<VertexUV, u32> {
-        &self.lines
-    }
-
-    pub fn vector_instances(&self) -> &[VectorInstance] {
-        &self.vector_instances
-    }
-
-    pub fn lazy_vector_instances(&self) -> &[LazyVectorInstance<'_>] {
-        &self.lazy_instances
     }
 }

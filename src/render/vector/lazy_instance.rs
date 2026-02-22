@@ -7,8 +7,8 @@ use super::{tessellator::GLOBAL_TESSELLATOR, VectorInstance, VectorRenderer};
 pub struct LazyVectorInstance<'a> {
     pub source: &'a SVGSource,
     pub transform: Vec2,
-    pub color: Vec4,
     pub scale: Vec2,
+    pub color: Vec4,
     pub z_index: u16,
 }
 

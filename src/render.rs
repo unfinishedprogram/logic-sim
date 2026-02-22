@@ -129,10 +129,10 @@ impl<'window> RenderState<'window> {
         self.sprite_renderer.update_camera(&self.base.queue, camera);
         self.vector_renderer.update_camera(&self.base.queue, camera);
 
-        let lines = render_queue.lines();
-        let sprites = render_queue.sprites();
-        let vector_instances = render_queue.vector_instances();
-        let lazy_vector_instances = render_queue.lazy_vector_instances();
+        let lines = &render_queue.lines;
+        let sprites = &render_queue.sprites;
+        let vector_instances = &render_queue.vector_instances;
+        let lazy_vector_instances = &render_queue.lazy_instances;
 
         self.line_renderer.upload_geometry(&self.base.queue, lines);
 
