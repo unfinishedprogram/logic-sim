@@ -224,7 +224,7 @@ impl<'window> BaseRenderState<'window> {
             .unwrap();
 
         surface_config.present_mode = wgpu::PresentMode::AutoVsync;
-        surface_config.alpha_mode = wgpu::CompositeAlphaMode::PreMultiplied;
+        surface_config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
 
         surface.configure(&device, &surface_config);
 
