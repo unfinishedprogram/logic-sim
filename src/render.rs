@@ -164,6 +164,7 @@ impl<'window> RenderState<'window> {
 
         [Some(wgpu::RenderPassColorAttachment {
             view: msaa_view,
+            depth_slice: None,
             resolve_target: Some(frame_view),
             ops: wgpu::Operations {
                 load,
@@ -181,6 +182,7 @@ impl<'window> RenderState<'window> {
             depth_stencil_attachment: None,
             timestamp_writes: None,
             occlusion_query_set: None,
+            multiview_mask: None,
         }
     }
 }
@@ -206,16 +208,13 @@ impl<'window> BaseRenderState<'window> {
 
         // Create the logical device and command queue
         let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    required_features: wgpu::Features::empty(),
-                    // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-                    required_limits: wgpu::Limits::default().using_resolution(adapter.limits()),
-                    memory_hints: wgpu::MemoryHints::Performance,
-                },
-                None,
-            )
+            .request_device(&wgpu::DeviceDescriptor {
+                required_features: wgpu::Features::empty(),
+                // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
+                required_limits: wgpu::Limits::default().using_resolution(adapter.limits()),
+                memory_hints: wgpu::MemoryHints::Performance,
+                ..Default::default()
+            })
             .await
             .expect("Failed to create device");
 

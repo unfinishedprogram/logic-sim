@@ -43,7 +43,7 @@ impl Tessellator {
     }
 
     // Internal API to facilitate extracting individual fields without copy of entire SVGGeometry
-    fn lazy_tesselate(&self, source: &SVGSource) -> MappedMutexGuard<SVGGeometry> {
+    fn lazy_tesselate(&self, source: &SVGSource) -> MappedMutexGuard<'_, SVGGeometry> {
         let mut inner = self.0.lock().unwrap();
 
         {

@@ -28,7 +28,7 @@ impl ImageTexture {
             address_mode_w: wgpu::AddressMode::ClampToEdge,
             mag_filter: wgpu::FilterMode::Linear,
             min_filter: wgpu::FilterMode::Linear,
-            mipmap_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::MipmapFilterMode::Linear,
             ..Default::default()
         })
     }
@@ -111,7 +111,7 @@ impl ImageTexture {
 
         queue.write_texture(
             // Tells wgpu where to copy the pixel data
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
@@ -120,7 +120,7 @@ impl ImageTexture {
             // The actual pixel data
             &diffuse_bytes,
             // The layout of the texture
-            wgpu::ImageDataLayout {
+            wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(4 * texture_size.width),
                 rows_per_image: Some(texture_size.height),

@@ -121,7 +121,7 @@ impl VectorRenderer {
         device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Vector Renderer Pipeline Layout"),
             bind_group_layouts,
-            push_constant_ranges: &[],
+            immediate_size: 0,
         })
     }
 

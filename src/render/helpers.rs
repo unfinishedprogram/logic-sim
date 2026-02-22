@@ -25,7 +25,7 @@ pub fn generic_pipeline_descriptor<'a>(
         primitive: wgpu::PrimitiveState::default(),
         depth_stencil: None,
         multisample,
-        multiview: None,
+        multiview_mask: None,
         cache: None,
     }
 }

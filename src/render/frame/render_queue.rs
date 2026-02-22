@@ -46,9 +46,9 @@ impl RenderQueue {
     }
 
     pub fn enqueue_vector_lazy(
-        &mut self,
+        &'_ mut self,
         instance: LazyVectorInstance<'static>,
-    ) -> Handle<LazyVectorInstance> {
+    ) -> Handle<LazyVectorInstance<'_>> {
         let index = self.lazy_instances.len();
         self.lazy_instances.push(instance);
         Handle::new(index)
@@ -165,7 +165,7 @@ impl RenderQueue {
         &self.vector_instances
     }
 
-    pub fn lazy_vector_instances(&self) -> &[LazyVectorInstance] {
+    pub fn lazy_vector_instances(&self) -> &[LazyVectorInstance<'_>] {
         &self.lazy_instances
     }
 }
