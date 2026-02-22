@@ -153,9 +153,9 @@ impl<'window> RenderState<'window> {
     ) -> [Option<wgpu::RenderPassColorAttachment<'a>>; 1] {
         let load = if clear {
             wgpu::LoadOp::Clear(wgpu::Color {
-                r: 0.5,
-                g: 0.5,
-                b: 0.5,
+                r: 0.25,
+                g: 0.25,
+                b: 0.25,
                 a: 1.0,
             })
         } else {
@@ -222,13 +222,16 @@ impl<'window> BaseRenderState<'window> {
             .get_default_config(&adapter, size.width, size.height)
             .unwrap();
 
+        let swapchain_format = wgpu::TextureFormat::Rgba8Unorm;
+
         surface_config.present_mode = wgpu::PresentMode::AutoVsync;
         surface_config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
-
+        surface_config.format = swapchain_format;
         surface.configure(&device, &surface_config);
 
         let swapchain_capabilities = surface.get_capabilities(&adapter);
-        let swapchain_format = swapchain_capabilities.formats[0];
+
+        println!("Selected swapchain format: {:?}", swapchain_capabilities);
 
         let msaa_config = wgpu::MultisampleState {
             count: 4,
