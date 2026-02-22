@@ -12,6 +12,12 @@ use crate::{
     render::{frame::Frame, line::cubic_bezier::CubicBezier},
 };
 
+const COLOR_ACTIVE: Vec4 = Vec4::new(0.0, 1.0, 0.0, 1.0);
+const COLOR_INACTIVE: Vec4 = Vec4::new(1.0, 0.0, 0.0, 1.0);
+const COLOR_DRAWING: Vec4 = Vec4::new(1.0, 1.0, 1.0, 1.0);
+
+const BASE_LINE_WIDTH: f32 = 0.05;
+
 pub fn sprite_of(gate: &Gate, active: bool) -> Option<&'static SVGSource> {
     use assets::svg::gates;
     match (gate, active) {
@@ -91,8 +97,13 @@ impl EditCircuit {
             let line = self.circuit.cubic_bezier_from_connection(conn);
             if frame.camera().bounds().overlaps(&line.bounds()) {
                 let is_active = self.circuit.solver.output_results.read_output(conn.from);
-                let color = Vec4::new(0.0, is_active as u8 as f32, 0.0, 1.0);
-                frame.draw_cubic_bezier(line, color, 0.05)
+                let color = if is_active {
+                    COLOR_ACTIVE
+                } else {
+                    COLOR_INACTIVE
+                };
+
+                frame.draw_cubic_bezier(line, color, BASE_LINE_WIDTH)
             }
         });
 
@@ -110,7 +121,7 @@ impl EditCircuit {
         } {
             let to = frame.input().mouse_world_position;
             let line = CubicBezier::between_points(source_point, to);
-            frame.draw_cubic_bezier(line, Vec4::new(1.0, 1.0, 1.0, 1.0), 0.05);
+            frame.draw_cubic_bezier(line, COLOR_DRAWING, BASE_LINE_WIDTH);
         }
 
         {
@@ -132,7 +143,7 @@ impl EditCircuit {
 
         // Draw box select outline
         if let Some(bounds) = self.selection.bound_select {
-            let width = frame.world_pixel_size().max_element();
+            let width = frame.world_pixel_size().max_element() * 2.0;
             frame.render_queue.draw_bounds(bounds, width)
         }
     }
