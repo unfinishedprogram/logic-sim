@@ -79,19 +79,19 @@ impl Circuit {
             Gate::Xnor,
             Gate::Nand,
         ];
-        let gate = gates[rand::random::<usize>() % gates.len()].clone();
+        let gate = gates[rand::random::<u64>() as usize % gates.len()].clone();
 
         self.add_gate(gate, position);
     }
 
     fn add_random_connection(&mut self) {
         let from = OutputSpecifier(
-            ElementIdx(rand::random::<usize>() % self.elements.len()),
+            ElementIdx(rand::random::<u64>() as usize % self.elements.len()),
             OutputIdx(0),
         );
 
         let to = InputSpecifier(
-            ElementIdx(rand::random::<usize>() % self.elements.len()),
+            ElementIdx(rand::random::<u64>() as usize % self.elements.len()),
             InputIdx(0),
         );
 
