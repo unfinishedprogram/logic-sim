@@ -95,7 +95,7 @@ impl CameraUniform {
                 binding: 0,
                 resource: buffer.as_entire_binding(),
             }],
-            label: Some("camera_bind_group"),
+            label: Some("Camera Bind Group"),
         });
 
         Self {
