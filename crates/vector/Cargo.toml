@@ -7,5 +7,5 @@ edition = "2021"
 common = { path = "../common" }
 assets = { path = "../assets" }
 glam = "0.29.0"
-usvg = "0.44.0"
+usvg = "0.47.0"
 lyon = "1.0.1"
