@@ -35,7 +35,7 @@ impl GameState {
         let text_object = TextObject {
             content: "".to_string(),
             position: Vec2::new(0.0, 0.0),
-            scale: 16.0,
+            scale: 32.0,
             centered: false,
         };
 
