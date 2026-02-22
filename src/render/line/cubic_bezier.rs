@@ -1,12 +1,15 @@
 use crate::render::vertex::VertexUV;
 
+use common::bounds::Bounds;
 use glam::{Vec2, Vec4};
 use lyon::{
     math::point,
     path::Path,
     tessellation::{BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex, VertexBuffers},
 };
-use common::bounds::Bounds;
+
+pub const HIT_TEST_ITERATIONS: usize = 32;
+pub const HIT_TEST_INITIAL_POINTS: usize = 16;
 
 pub struct CubicBezier {
     pub start: Vec2,
@@ -63,48 +66,36 @@ impl CubicBezier {
             .unwrap();
     }
 
-    pub fn hit_test_bounds(&self, bounds: Bounds, distance: f32) -> bool {
-        if !self.bounds().pad(distance).overlaps(&bounds) {
+    pub fn hit_test_bounds(&self, bounds: Bounds, line_width: f32) -> bool {
+        if !self.bounds().pad(line_width).overlaps(&bounds) {
             return false;
         }
 
         let center = bounds.center();
-
-        let mut t = 0.5;
-        let mut step = 0.25;
-
-        // Binary search for the closest, point on the curve to the center of our bounds
-        for _ in 0..16 {
-            let lower = (self.point_at(t - step) - center).abs().max_element();
-            let higher = (self.point_at(t + step) - center).abs().max_element();
-
-            if lower > higher {
-                t += step;
-            } else {
-                t -= step;
-            }
-            step /= 2.0;
-        }
-
-        bounds.contains(self.point_at(t))
+        let closest_point = self.minimum_satisfying_point(|p| (p - center).abs().max_element());
+        bounds.contains(closest_point)
     }
 
-    pub fn hit_test(&self, point: Vec2, distance: f32) -> bool {
+    pub fn hit_test(&self, point: Vec2, line_width: f32) -> bool {
         // Since we always make our control points, between the start and end points,
         // we can assume that the maximum bounds of the curve lie between the start and end points
-
-        if !self.bounds().pad(distance).contains(point) {
+        if !self.bounds().pad(line_width).contains(point) {
             return false;
         }
 
-        // Binary search to find the closest point on the curve
+        self.minimum_satisfying_point(|p| p.distance(point))
+            .distance(point)
+            <= line_width
+    }
 
+    pub fn minimum_satisfying_point(&self, cost: impl Fn(Vec2) -> f32) -> Vec2 {
+        // Binary search to find the closest point on the curve
         let mut t = 0.5;
         let mut step = 0.25;
 
-        for _ in 0..16 {
-            let lower = self.point_at(t - step).distance(point);
-            let higher = self.point_at(t + step).distance(point);
+        for _ in 0..HIT_TEST_ITERATIONS {
+            let lower = cost(self.point_at(t - step));
+            let higher = cost(self.point_at(t + step));
 
             if lower > higher {
                 t += step;
@@ -114,7 +105,7 @@ impl CubicBezier {
             step /= 2.0;
         }
 
-        self.point_at(t).distance(point) <= distance
+        self.point_at(t)
     }
 
     fn point_at(&self, t: f32) -> Vec2 {
