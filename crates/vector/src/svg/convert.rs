@@ -168,6 +168,4 @@ pub fn convert_color(c: usvg::Color) -> Vec4 {
         c.blue as f32 / 255.0,
         1.0,
     )
-    // Convert color spaces
-    .powf(2.2)
 }
