@@ -68,7 +68,6 @@ impl<'a> App<'a> {
 
         let frame_assets = FrameAssets {
             sprites: self.render_state.sprite_renderer.reference(),
-            vectors: self.render_state.vector_renderer.reference(),
             font: self.render_state.msdf_font_ref.clone(),
         };
 

@@ -9,7 +9,6 @@ use crate::game::input::InputState;
 use super::{
     camera::Camera,
     msdf::{sprite_renderer::SpriteRendererReference, text::MsdfFontReference},
-    vector::VectorRendererReference,
 };
 
 // Immediate mode context for a frame
@@ -25,7 +24,6 @@ pub struct Frame {
 
 pub struct FrameAssets {
     pub sprites: SpriteRendererReference,
-    pub vectors: VectorRendererReference,
     pub font: MsdfFontReference,
 }
 

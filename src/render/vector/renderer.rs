@@ -12,7 +12,7 @@ use crate::render::{
     helpers, BaseRenderState,
 };
 
-use common::{bounds::Bounds, handle::Handle};
+use common::handle::Handle;
 
 use super::{
     draw_call_ordering::{create_render_request, VectorRenderRequest},
@@ -190,31 +190,7 @@ impl VectorRenderer {
         handle
     }
 
-    pub fn reference(&self) -> VectorRendererReference {
-        let mut hit_boxes = HashMap::new();
-        for obj in self.vector_lookup.values() {
-            hit_boxes.insert(*obj, self.vector_objects[obj.index].1.hit_box);
-        }
-
-        VectorRendererReference {
-            vectors: self.vector_lookup.clone(),
-            hit_boxes,
-        }
-    }
-
     pub fn get_vector(&self, source: &SVGSource) -> Option<Handle<SVGGeometry>> {
         self.vector_lookup.get(source).copied()
-    }
-}
-
-#[derive(Clone)]
-pub struct VectorRendererReference {
-    pub vectors: HashMap<SVGSource, Handle<SVGGeometry>>,
-    pub hit_boxes: HashMap<Handle<SVGGeometry>, Bounds>,
-}
-
-impl VectorRendererReference {
-    pub fn get_vector(&self, source: &SVGSource) -> Option<Handle<SVGGeometry>> {
-        self.vectors.get(source).copied()
     }
 }

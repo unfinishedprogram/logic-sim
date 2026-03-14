@@ -7,4 +7,4 @@ pub mod tessellator;
 mod vertex;
 pub mod vertex_buffers;
 pub use instance::VectorInstance;
-pub use renderer::{VectorRenderer, VectorRendererReference};
+pub use renderer::VectorRenderer;
