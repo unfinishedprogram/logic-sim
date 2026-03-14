@@ -7,14 +7,16 @@ use super::{
     CircuitElement, EditCircuit,
 };
 use crate::{
+    color,
     game::GameInput,
-    logic::hit_test::HitTestResult,
+    logic::{circuit::connection::ConnectionIdx, hit_test::HitTestResult},
     render::{frame::Frame, line::cubic_bezier::CubicBezier},
 };
 
-const COLOR_ACTIVE: Vec4 = Vec4::new(0.0, 1.0, 0.0, 1.0);
-const COLOR_INACTIVE: Vec4 = Vec4::new(1.0, 0.0, 0.0, 1.0);
-const COLOR_DRAWING: Vec4 = Vec4::new(1.0, 1.0, 1.0, 1.0);
+const COLOR_SIGNAL_HIGH: Vec4 = color::RED;
+const COLOR_SIGNAL_LOW: Vec4 = color::WHITE;
+const COLOR_DRAWING: Vec4 = color::YELLOW;
+const COLOR_SELECTED: Vec4 = color::BLUE;
 
 const BASE_LINE_WIDTH: f32 = 0.05;
 
@@ -93,19 +95,35 @@ impl EditCircuit {
             element.draw(is_selected, is_hot, frame);
         }
 
-        self.circuit.connections.iter().for_each(|conn| {
-            let line = self.circuit.cubic_bezier_from_connection(conn);
-            if frame.camera().bounds().overlaps(&line.bounds()) {
-                let is_active = self.circuit.solver.output_results.read_output(conn.from);
-                let color = if is_active {
-                    COLOR_ACTIVE
-                } else {
-                    COLOR_INACTIVE
-                };
+        self.circuit
+            .connections
+            .iter()
+            .enumerate()
+            .for_each(|(idx, conn)| {
+                let line = self.circuit.cubic_bezier_from_connection(conn);
+                if frame.camera().bounds().overlaps(&line.bounds()) {
+                    let is_active = self.circuit.solver.output_results.read_output(conn.from);
+                    let color = if is_active {
+                        COLOR_SIGNAL_HIGH
+                    } else {
+                        COLOR_SIGNAL_LOW
+                    };
 
-                frame.draw_cubic_bezier(line, color, BASE_LINE_WIDTH)
-            }
-        });
+                    let is_selected = self
+                        .selection
+                        .contains(HitTestResult::Connection(ConnectionIdx(idx)));
+                    // Draw an outline if selected
+                    if is_selected {
+                        frame.draw_cubic_bezier(
+                            line.clone(),
+                            COLOR_SELECTED,
+                            BASE_LINE_WIDTH * 1.5,
+                        );
+                    }
+
+                    frame.draw_cubic_bezier(line, color, BASE_LINE_WIDTH)
+                }
+            });
 
         // Draw connection preview while being made
         if let Some(source_point) = match game_input.active {
@@ -124,22 +142,20 @@ impl EditCircuit {
             frame.draw_cubic_bezier(line, COLOR_DRAWING, BASE_LINE_WIDTH);
         }
 
-        {
-            for dot in self.circuit.connection_dots() {
-                let position = self.circuit.io_position(dot);
-                let dot_source = match dot {
-                    IOSpecifier::Input(_) => &assets::svg::DOT_INPUT,
-                    IOSpecifier::Output(_) => &assets::svg::DOT_OUTPUT,
-                };
+        self.circuit.connection_dots().for_each(|dot| {
+            let position = self.circuit.io_position(dot);
+            let dot_source = match dot {
+                IOSpecifier::Input(_) => &assets::svg::DOT_INPUT,
+                IOSpecifier::Output(_) => &assets::svg::DOT_OUTPUT,
+            };
 
-                let scale = match game_input.hot {
-                    Some(HitTestResult::IO(hot_dot)) if hot_dot == dot => Vec2::splat(1.2),
-                    _ => Vec2::splat(1.0),
-                };
+            let scale = match game_input.hot {
+                Some(HitTestResult::IO(hot_dot)) if hot_dot == dot => Vec2::splat(1.2),
+                _ => Vec2::splat(1.0),
+            };
 
-                frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale, 2);
-            }
-        }
+            frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale, 2);
+        });
 
         // Draw box select outline
         if let Some(bounds) = self.selection.bound_select {
