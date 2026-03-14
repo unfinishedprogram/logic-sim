@@ -1,5 +1,5 @@
-use glam::Vec2;
 use common::bounds::Bounds;
+use glam::Vec2;
 
 use crate::logic::gate::Gate;
 
