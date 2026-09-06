@@ -11,7 +11,7 @@ use crate::{
     render::{camera::Camera, frame::Frame, msdf::text::TextObject},
 };
 
-use common::stopwatch::Stopwatch;
+use common::profiler::Profiler;
 
 pub struct GameState {
     pub text_object: TextObject,
@@ -19,8 +19,6 @@ pub struct GameState {
     circuit: EditCircuit,
 
     pub input: GameInput,
-
-    pub stopwatch: Stopwatch,
 }
 
 #[derive(Default, Clone)]
@@ -44,18 +42,17 @@ impl GameState {
             text_object,
             circuit: Circuit::extreme_test_circuit().into(),
             input: GameInput::default(),
-            stopwatch: Stopwatch::default(),
         }
     }
 
-    pub fn debug_text(&self, frame: &Frame) -> String {
-        let controls = "\nX : Delete\nC : Copy\nV : Paste\n";
+    pub fn debug_text(&self, frame: &Frame, profiler: &Profiler) -> String {
+        let controls = "X : Delete\nC : Copy\nV : Paste";
         format!(
-            "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms\nDragging: {}\n Controls: {controls}",
+            "Hot: {:?}\nActive: {:?}\nDragging: {}\n\n{}\nControls:\n{controls}",
             self.input.hot,
             self.input.active,
-            self.stopwatch.running_average().as_secs_f64() * 1000.0,
-            frame.input().dragging()
+            frame.input().dragging(),
+            profiler.report(),
         )
     }
 }

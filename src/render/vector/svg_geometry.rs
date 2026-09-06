@@ -13,7 +13,6 @@ use vector::convert::{convert_color, convert_fill, convert_path, convert_stroke}
 
 #[derive(Clone, Debug)]
 pub struct SVGGeometry {
-    pub source: SVGSource,
     pub vertex_buffers: VertexBuffers<SVGVertex, u32>,
     pub hit_box: Bounds,
 }
@@ -52,7 +51,6 @@ impl SVGGeometry {
         Ok(SVGGeometry {
             vertex_buffers,
             hit_box,
-            source: source.clone(),
         })
     }
 

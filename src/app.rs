@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-use common::stopwatch::Stopwatch;
+use common::profiler::Profiler;
 
 pub struct App<'a> {
     window: &'a Window,
@@ -25,7 +25,7 @@ pub struct App<'a> {
     mouse_position: PhysicalPosition<f64>,
     input: InputState,
     game_state: GameState,
-    frame_time: Stopwatch,
+    profiler: Profiler,
 }
 
 impl<'a> App<'a> {
@@ -45,7 +45,7 @@ impl<'a> App<'a> {
             input,
             game_state,
             mouse_position: PhysicalPosition::new(0.0, 0.0),
-            frame_time: Stopwatch::default(),
+            profiler: Profiler::default(),
         }
     }
 
@@ -79,7 +79,11 @@ impl<'a> App<'a> {
             self.screen_size(),
         );
         self.input.update();
-        self.game_state.update(&mut frame);
+
+        self.profiler.begin("update");
+        self.game_state.update(&mut frame, &mut self.profiler);
+        self.profiler.end("update");
+
         frame
     }
 
@@ -106,19 +110,13 @@ impl ApplicationHandler for App<'_> {
         match event {
             WindowEvent::Resized(new_size) => self.resize(new_size),
             WindowEvent::RedrawRequested => {
-                self.frame_time.start();
+                self.profiler.begin("frame");
 
                 let frame = self.update();
-
-                self.game_state.text_object.content = format!(
-                    "Frame_MS: {:}",
-                    self.frame_time.running_average().as_secs_f64() * 1000.0
-                );
-
-                self.render_state.render(frame);
+                self.render_state.render(frame, &mut self.profiler);
 
                 self.window.request_redraw();
-                self.frame_time.end();
+                self.profiler.end("frame");
             }
             WindowEvent::MouseInput {
                 device_id: _,

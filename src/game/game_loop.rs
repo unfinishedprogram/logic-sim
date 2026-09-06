@@ -1,21 +1,27 @@
 use super::{input::InputState, GameState};
 use crate::render::frame::Frame;
+use common::profiler::Profiler;
 use glam::Vec2;
 
 impl GameState {
-    pub fn update(&mut self, frame: &mut Frame) {
-        self.stopwatch.start();
+    pub fn update(&mut self, frame: &mut Frame, profiler: &mut Profiler) {
+        self.handle_inputs(frame.input(), profiler);
 
-        self.handle_inputs(frame.input());
-
+        profiler.begin("ui");
         self.update_ui(frame);
+        profiler.end("ui");
 
+        profiler.begin("solve");
         self.circuit.circuit.step();
+        profiler.end("solve");
 
-        self.text_object.content = self.debug_text(frame);
+        // Built before drawing, so every span closed after this point - `draw`
+        // and the whole render phase - shows the previous frame's timing.
+        self.text_object.content = self.debug_text(frame, profiler);
 
+        profiler.begin("draw");
         self.draw(frame);
-        self.stopwatch.end();
+        profiler.end("draw");
     }
 
     pub fn draw(&self, frame: &mut Frame) {
@@ -25,11 +31,14 @@ impl GameState {
         self.circuit.draw(frame, &self.input);
     }
 
-    fn handle_inputs(&mut self, input_state: &InputState) {
+    fn handle_inputs(&mut self, input_state: &InputState, profiler: &mut Profiler) {
         self.input.prev = self.input.clone().into();
         self.camera_move(input_state);
 
+        profiler.begin("hit test");
         let hovering = self.circuit.hit_test(input_state.mouse_world_position);
+        profiler.end("hit test");
+
         self.input.hot = hovering;
         if input_state.left_mouse.pressed {
             self.input.active = self.input.hot;
@@ -38,7 +47,9 @@ impl GameState {
             self.input.active = None;
         }
 
+        profiler.begin("edit");
         self.circuit.handle_inputs(input_state, &mut self.input);
+        profiler.end("edit");
     }
 
     fn camera_move(&mut self, input_state: &InputState) {

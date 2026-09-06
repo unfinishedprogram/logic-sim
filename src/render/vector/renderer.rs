@@ -2,22 +2,22 @@ use std::collections::HashMap;
 
 use assets::SVGSource;
 use wgpu::{
-    include_wgsl, BindGroupLayout, Buffer, ColorTargetState, Device, IndexFormat, PipelineLayout,
-    RenderPass, RenderPipeline, ShaderModule,
+    BindGroupLayout, Buffer, ColorTargetState, Device, IndexFormat, PipelineLayout, RenderPass,
+    RenderPipeline, ShaderModule, include_wgsl,
 };
 
 use crate::render::{
+    BaseRenderState,
     bindable::Bindable,
     camera::{Camera, CameraUniform},
     helpers,
     vector::tessellator::Tessellator,
-    BaseRenderState,
 };
 
 use common::handle::Handle;
 
 use super::{
-    draw_call_ordering::{create_render_request, VectorRenderRequest},
+    draw_call_ordering::{VectorRenderRequest, create_render_request},
     instance::{RawInstance, VectorInstance},
     lazy_instance::LazyVectorInstance,
     svg_geometry::SVGGeometry,
@@ -40,9 +40,18 @@ pub struct VectorRenderer {
     camera_binding: CameraUniform,
 
     vector_objects: Vec<(VectorInstanceBufferRanges, SVGGeometry)>,
-    vector_lookup: HashMap<SVGSource, Handle<SVGGeometry>>,
+    vector_lookup: HashMap<SVGSourceId, Handle<SVGGeometry>>,
 
     render_request: VectorRenderRequest,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct SVGSourceId(usize);
+
+impl SVGSourceId {
+    pub fn of(source: &'static SVGSource) -> Self {
+        Self(std::ptr::from_ref(source) as usize)
+    }
 }
 
 impl VectorRenderer {
@@ -107,7 +116,7 @@ impl VectorRenderer {
         &mut self,
         queue: &wgpu::Queue,
         instances: &[VectorInstance],
-        lazy_instances: &[LazyVectorInstance],
+        lazy_instances: &[LazyVectorInstance<'static>],
     ) {
         let mut converted = self.convert_lazy_instances(lazy_instances);
         converted.extend(instances);
@@ -184,11 +193,14 @@ impl VectorRenderer {
         }
     }
 
-    pub fn add_vector_object(&mut self, vector_object: SVGGeometry) -> Handle<SVGGeometry> {
+    pub fn add_vector_object(
+        &mut self,
+        id: SVGSourceId,
+        vector_object: SVGGeometry,
+    ) -> Handle<SVGGeometry> {
         let handle = Handle::new(self.vector_objects.len());
 
-        self.vector_lookup
-            .insert(vector_object.source.clone(), handle);
+        self.vector_lookup.insert(id, handle);
 
         self.vector_objects
             .push((self.next_vector_object_meta(&vector_object), vector_object));
@@ -196,7 +208,7 @@ impl VectorRenderer {
         handle
     }
 
-    pub fn get_vector(&self, source: &SVGSource) -> Option<Handle<SVGGeometry>> {
-        self.vector_lookup.get(source).copied()
+    pub fn get_vector(&self, id: SVGSourceId) -> Option<Handle<SVGGeometry>> {
+        self.vector_lookup.get(&id).copied()
     }
 }

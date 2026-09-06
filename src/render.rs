@@ -23,6 +23,8 @@ use wgpu::{
 };
 use winit::{dpi::PhysicalSize, window::Window};
 
+use common::profiler::Profiler;
+
 pub struct RenderState<'window> {
     pub base: BaseRenderState<'window>,
     pub msdf_font_ref: MsdfFontReference,
@@ -39,6 +41,8 @@ pub struct BaseRenderState<'window> {
     pub queue: Queue,
     swapchain_format: wgpu::TextureFormat,
     msaa_config: wgpu::MultisampleState,
+    // Recreated only on resize, not per frame
+    msaa_view: TextureView,
 }
 
 impl<'window> RenderState<'window> {
@@ -67,13 +71,19 @@ impl<'window> RenderState<'window> {
         }
     }
 
-    pub fn render(&mut self, mut frame: Frame) {
+    pub fn render(&mut self, mut frame: Frame, profiler: &mut Profiler) {
+        profiler.begin("render");
+
+        profiler.begin("tessellate");
         let tolerance = 0.001 * f32::max(frame.camera().size.x, 1.0);
         frame.render_queue.tessellate_geometry(tolerance);
 
         let tolerance_ui = 0.001 * f32::max(frame.ui_camera().size.x, 1.0);
         frame.ui_render_queue.tessellate_geometry(tolerance_ui);
+        profiler.end("tessellate");
 
+        // Under vsync this is where the frame waits for the next presentation
+        profiler.begin("acquire");
         let surface = self
             .base
             .surface
@@ -83,34 +93,42 @@ impl<'window> RenderState<'window> {
         let frame_view = surface
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
+        profiler.end("acquire");
 
-        let msaa_view = self.base.create_multisampled_frame_buffer(4);
+        profiler.begin("upload world");
+        self.upload_resources(frame.camera(), &frame.render_queue);
+        profiler.end("upload world");
 
-        {
-            let attachments = Self::color_attachments(&msaa_view, &frame_view, true);
-            let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
-            self.upload_resources(frame.camera(), &frame.render_queue);
-            self.render_internal(&render_pass_desc);
-        }
+        profiler.begin("pass world");
+        self.render_internal(&frame_view, true);
+        profiler.end("pass world");
 
-        {
-            let attachments = Self::color_attachments(&msaa_view, &frame_view, false);
-            let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
-            self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
-            self.render_internal(&render_pass_desc);
-        }
+        profiler.begin("upload ui");
+        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
+        profiler.end("upload ui");
 
+        profiler.begin("pass ui");
+        self.render_internal(&frame_view, false);
+        profiler.end("pass ui");
+
+        profiler.begin("present");
         surface.present();
+        profiler.end("present");
+
+        profiler.end("render");
     }
 
     // Resources must be uploaded before render_internal is called
-    fn render_internal(&mut self, render_pass_desc: &wgpu::RenderPassDescriptor) {
+    fn render_internal(&self, frame_view: &TextureView, clear: bool) {
+        let attachments = Self::color_attachments(&self.base.msaa_view, frame_view, clear);
+        let render_pass_desc = Self::frame_render_pass_descriptor(&attachments);
+
         let mut encoder = self
             .base
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
         {
-            let mut rpass = encoder.begin_render_pass(render_pass_desc);
+            let mut rpass = encoder.begin_render_pass(&render_pass_desc);
 
             self.line_renderer.render(&mut rpass);
             self.vector_renderer.render(&mut rpass);
@@ -239,6 +257,13 @@ impl<'window> BaseRenderState<'window> {
             alpha_to_coverage_enabled: false,
         };
 
+        let msaa_view = Self::create_multisampled_frame_buffer(
+            &device,
+            &surface_config,
+            swapchain_format,
+            msaa_config.count,
+        );
+
         Self {
             surface,
             surface_config,
@@ -246,6 +271,7 @@ impl<'window> BaseRenderState<'window> {
             queue,
             swapchain_format,
             msaa_config,
+            msaa_view,
         }
     }
 
@@ -255,12 +281,25 @@ impl<'window> BaseRenderState<'window> {
         self.surface_config.height = new_size.height.max(1);
 
         self.surface.configure(&self.device, &self.surface_config);
+
+        // The MSAA buffer is sized to the surface, so it has to follow it
+        self.msaa_view = Self::create_multisampled_frame_buffer(
+            &self.device,
+            &self.surface_config,
+            self.swapchain_format,
+            self.msaa_config.count,
+        );
     }
 
-    fn create_multisampled_frame_buffer(&self, sample_count: u32) -> wgpu::TextureView {
+    fn create_multisampled_frame_buffer(
+        device: &Device,
+        surface_config: &SurfaceConfiguration,
+        format: wgpu::TextureFormat,
+        sample_count: u32,
+    ) -> TextureView {
         let extend = wgpu::Extent3d {
-            width: self.surface_config.width,
-            height: self.surface_config.height,
+            width: surface_config.width,
+            height: surface_config.height,
             depth_or_array_layers: 1,
         };
 
@@ -270,12 +309,12 @@ impl<'window> BaseRenderState<'window> {
             mip_level_count: 1,
             sample_count,
             dimension: wgpu::TextureDimension::D2,
-            format: self.swapchain_format,
+            format,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[self.swapchain_format],
+            view_formats: &[format],
         };
 
-        self.device
+        device
             .create_texture(descriptor)
             .create_view(&wgpu::TextureViewDescriptor::default())
     }

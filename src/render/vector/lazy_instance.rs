@@ -1,7 +1,7 @@
 use assets::SVGSource;
 use glam::{Vec2, Vec4};
 
-use super::{VectorInstance, VectorRenderer};
+use super::{renderer::SVGSourceId, VectorInstance, VectorRenderer};
 
 #[derive(Clone, Copy)]
 pub struct LazyVectorInstance<'a> {
@@ -15,16 +15,17 @@ pub struct LazyVectorInstance<'a> {
 impl VectorRenderer {
     pub fn convert_lazy_instances(
         &mut self,
-        instances: &[LazyVectorInstance],
+        instances: &[LazyVectorInstance<'static>],
     ) -> Vec<VectorInstance> {
         let mut res = Vec::with_capacity(instances.len());
 
         for instance in instances.iter() {
-            let handle = self.get_vector(instance.source);
+            let id = SVGSourceId::of(instance.source);
+            let handle = self.get_vector(id);
 
             let handle = handle.unwrap_or_else(|| {
                 let geometry = self.tessellator.tesselate(instance.source);
-                self.add_vector_object(geometry)
+                self.add_vector_object(id, geometry)
             });
 
             res.push(VectorInstance {
