@@ -96,7 +96,7 @@ impl<'window> RenderState<'window> {
         profiler.end("acquire");
 
         profiler.begin("upload world");
-        self.upload_resources(frame.camera(), &frame.render_queue);
+        self.upload_resources(frame.camera(), &frame.render_queue, profiler);
         profiler.end("upload world");
 
         profiler.begin("pass world");
@@ -104,7 +104,7 @@ impl<'window> RenderState<'window> {
         profiler.end("pass world");
 
         profiler.begin("upload ui");
-        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue);
+        self.upload_resources(frame.ui_camera(), &frame.ui_render_queue, profiler);
         profiler.end("upload ui");
 
         profiler.begin("pass ui");
@@ -142,7 +142,12 @@ impl<'window> RenderState<'window> {
         self.base.resize(new_size);
     }
 
-    fn upload_resources(&mut self, camera: &Camera, render_queue: &RenderQueue) {
+    fn upload_resources(
+        &mut self,
+        camera: &Camera,
+        render_queue: &RenderQueue,
+        profiler: &mut Profiler,
+    ) {
         self.line_renderer.update_camera(&self.base.queue, camera);
         self.sprite_renderer.update_camera(&self.base.queue, camera);
         self.vector_renderer.update_camera(&self.base.queue, camera);
@@ -152,16 +157,22 @@ impl<'window> RenderState<'window> {
         let vector_instances = &render_queue.vector_instances;
         let lazy_vector_instances = &render_queue.lazy_instances;
 
+        profiler.begin("lines");
         self.line_renderer.upload_geometry(&self.base.queue, lines);
+        profiler.end("lines");
 
+        profiler.begin("sprites");
         self.sprite_renderer
             .upload_sprites(&self.base.queue, sprites);
+        profiler.end("sprites");
 
+        profiler.begin("vectors");
         self.vector_renderer.upload_instances(
             &self.base.queue,
             vector_instances,
             lazy_vector_instances,
         );
+        profiler.end("vectors");
     }
 
     fn color_attachments<'a>(
