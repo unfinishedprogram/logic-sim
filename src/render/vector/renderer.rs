@@ -9,7 +9,9 @@ use wgpu::{
 use crate::render::{
     bindable::Bindable,
     camera::{Camera, CameraUniform},
-    helpers, BaseRenderState,
+    helpers,
+    vector::tessellator::Tessellator,
+    BaseRenderState,
 };
 
 use common::handle::Handle;
@@ -29,6 +31,8 @@ struct VectorInstanceBufferRanges {
 }
 
 pub struct VectorRenderer {
+    pub tessellator: Tessellator,
+
     render_pipeline: RenderPipeline,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
@@ -62,6 +66,7 @@ impl VectorRenderer {
             vector_lookup: HashMap::new(),
             vector_objects: vec![],
             render_request: Default::default(),
+            tessellator: Tessellator::default(),
         }
     }
 
@@ -89,8 +94,8 @@ impl VectorRenderer {
         let mut index_data: Vec<u32> = vec![];
 
         for (_, instance) in self.vector_objects.iter() {
-            vertex_data.extend(instance.vertex_buffers.vertices.iter());
-            index_data.extend(instance.vertex_buffers.indices.iter());
+            vertex_data.extend_from_slice(&instance.vertex_buffers.vertices);
+            index_data.extend_from_slice(&instance.vertex_buffers.indices);
         }
 
         queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertex_data));

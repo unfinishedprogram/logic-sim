@@ -1,7 +1,7 @@
 use assets::SVGSource;
 use glam::{Vec2, Vec4};
 
-use super::{tessellator::GLOBAL_TESSELLATOR, VectorInstance, VectorRenderer};
+use super::{VectorInstance, VectorRenderer};
 
 #[derive(Clone, Copy)]
 pub struct LazyVectorInstance<'a> {
@@ -23,7 +23,7 @@ impl VectorRenderer {
             let handle = self.get_vector(instance.source);
 
             let handle = handle.unwrap_or_else(|| {
-                let geometry = GLOBAL_TESSELLATOR.get_geometry(instance.source);
+                let geometry = self.tessellator.tesselate(instance.source);
                 self.add_vector_object(geometry)
             });
 
