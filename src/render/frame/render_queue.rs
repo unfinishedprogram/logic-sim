@@ -5,7 +5,7 @@ use lyon::tessellation::VertexBuffers;
 
 use glam::Vec4;
 use lyon::{
-    geom::{point, Box2D},
+    geom::{Box2D, point},
     path::Path,
     tessellation::{BuffersBuilder, StrokeOptions, StrokeTessellator, StrokeVertex},
 };
@@ -16,7 +16,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use crate::render::{
     msdf::sprite_renderer::SpriteInstance,
     vector::{
-        lazy_instance::LazyVectorInstance, vertex_buffers::VertexBufferUtils, VectorInstance,
+        VectorInstance, lazy_instance::LazyVectorInstance, vertex_buffers::VertexBufferUtils,
     },
     vertex::VertexUV,
 };
@@ -58,16 +58,16 @@ impl RenderQueue {
         self.bezier_instances.push(curve);
     }
 
-    pub fn tesselate_geometry(&mut self, tolerance: f32) {
+    pub fn tessellate_geometry(&mut self, tolerance: f32) {
         // Take the bezier instances out of the queue
         let mut bezier_instances = Vec::new();
         std::mem::swap(&mut bezier_instances, &mut self.bezier_instances);
 
-        self.tesselate_cubic_beziers(bezier_instances, tolerance);
+        self.tessellate_cubic_beziers(bezier_instances, tolerance);
     }
 
     // Applies tesselation to endued bezier curves
-    fn tesselate_cubic_beziers(&mut self, curves: Vec<CubicBezierInstance>, tolerance: f32) {
+    fn tessellate_cubic_beziers(&mut self, curves: Vec<CubicBezierInstance>, tolerance: f32) {
         let fold = |mut vertex_buffer, req: &CubicBezierInstance| {
             req.bezier
                 .tesselate(&mut vertex_buffer, req.width, req.color, tolerance);

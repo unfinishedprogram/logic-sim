@@ -9,7 +9,6 @@ use lyon::{
 };
 
 pub const HIT_TEST_ITERATIONS: usize = 32;
-pub const HIT_TEST_INITIAL_POINTS: usize = 16;
 
 #[derive(Clone)]
 pub struct CubicBezier {
