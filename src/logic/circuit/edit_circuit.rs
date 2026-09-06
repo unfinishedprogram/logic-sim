@@ -1,16 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
-use glam::{vec2, Vec2};
+use glam::Vec2;
 
 use crate::game::{input::InputState, GameInput, PrevGameInput};
 
 use common::bounds::Bounds;
 
 use super::{
-    connection::{
-        ConnectionIdx, ElementIdx, IOSpecifier, InputIdx, InputSpecifier, OutputIdx,
-        OutputSpecifier,
-    },
+    connection::{ConnectionIdx, ElementIdx, IOSpecifier, InputSpecifier, OutputSpecifier},
     element::CircuitElement,
 };
 
@@ -128,93 +125,11 @@ impl EditCircuit {
     }
 
     pub fn hit_test_bounds(&self, bounds: Bounds) -> HashSet<HitTestResult> {
-        let mut res = vec![];
-
-        for (element_idx, element) in self.circuit.elements.iter().enumerate() {
-            for (input_idx, offset) in element.gate.input_offsets().into_iter().enumerate() {
-                let element_bounds =
-                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
-
-                if element_bounds.overlaps(&bounds) {
-                    res.push(HitTestResult::IO(
-                        InputSpecifier(ElementIdx(element_idx), InputIdx(input_idx)).into(),
-                    ))
-                }
-            }
-
-            for (output_idx, offset) in element.gate.output_offsets().into_iter().enumerate() {
-                let element_bounds =
-                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
-
-                if element_bounds.overlaps(&bounds) {
-                    res.push(HitTestResult::IO(
-                        OutputSpecifier(ElementIdx(element_idx), OutputIdx(output_idx)).into(),
-                    ));
-                }
-            }
-        }
-
-        for (element_idx, element) in self.circuit.elements.iter().enumerate() {
-            if element.bounds().overlaps(&bounds) {
-                res.push(HitTestResult::Element(ElementIdx(element_idx)))
-            }
-        }
-
-        for (connection_idx, connection) in self.circuit.connections.iter().enumerate() {
-            if self
-                .circuit
-                .cubic_bezier_from_connection(connection)
-                .hit_test_bounds(bounds, 0.05)
-            {
-                res.push(HitTestResult::Connection(ConnectionIdx(connection_idx)))
-            }
-        }
-
-        HashSet::from_iter(res)
+        self.circuit.hit_test_bounds(bounds)
     }
 
     pub fn hit_test(&self, position: Vec2) -> Option<HitTestResult> {
-        for (element_idx, element) in self.circuit.elements.iter().enumerate() {
-            for (input_idx, offset) in element.gate.input_offsets().into_iter().enumerate() {
-                let bounds =
-                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
-
-                if bounds.contains(position) {
-                    return Some(HitTestResult::IO(
-                        InputSpecifier(ElementIdx(element_idx), InputIdx(input_idx)).into(),
-                    ));
-                }
-            }
-
-            for (output_idx, offset) in element.gate.output_offsets().into_iter().enumerate() {
-                let bounds =
-                    Bounds::from_center_and_size(element.position + offset, vec2(0.1, 0.1));
-
-                if bounds.contains(position) {
-                    return Some(HitTestResult::IO(
-                        OutputSpecifier(ElementIdx(element_idx), OutputIdx(output_idx)).into(),
-                    ));
-                }
-            }
-        }
-
-        for (element_idx, element) in self.circuit.elements.iter().enumerate() {
-            if element.hit_test(position) {
-                return Some(HitTestResult::Element(ElementIdx(element_idx)));
-            }
-        }
-
-        for (connection_idx, connection) in self.circuit.connections.iter().enumerate() {
-            if self
-                .circuit
-                .cubic_bezier_from_connection(connection)
-                .hit_test(position, 0.05)
-            {
-                return Some(HitTestResult::Connection(ConnectionIdx(connection_idx)));
-            }
-        }
-
-        None
+        self.circuit.hit_test(position)
     }
 
     pub fn take_selection(&mut self) -> ElementSelection {
