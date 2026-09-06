@@ -134,7 +134,7 @@ impl SpriteRenderer {
                     let quad = self[instance.sprite_handle].as_textured_quad(&instance);
 
                     let start = verts.len() as u32;
-                    verts.extend(quad.vertices.into_iter());
+                    verts.extend(quad.vertices);
                     indices.extend(quad.indices.iter().map(|i| i + start));
                 }
 

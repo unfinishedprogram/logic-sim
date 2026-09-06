@@ -1,6 +1,3 @@
-#![feature(duration_millis_float)]
-#![feature(mapped_lock_guards)]
-
 pub mod app;
 pub mod color;
 pub mod game;

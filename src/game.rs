@@ -54,7 +54,7 @@ impl GameState {
             "Hot: {:?}\nActive: {:?}\nFrame time: {:.2}ms\nDragging: {}\n Controls: {controls}",
             self.input.hot,
             self.input.active,
-            self.stopwatch.running_average().as_millis_f32(),
+            self.stopwatch.running_average().as_secs_f64() * 1000.0,
             frame.input().dragging()
         )
     }

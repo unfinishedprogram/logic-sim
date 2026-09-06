@@ -112,7 +112,7 @@ impl ApplicationHandler for App<'_> {
 
                 self.game_state.text_object.content = format!(
                     "Frame_MS: {:}",
-                    self.frame_time.running_average().as_millis_f64()
+                    self.frame_time.running_average().as_secs_f64() * 1000.0
                 );
 
                 self.render_state.render(frame);
