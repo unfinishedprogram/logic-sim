@@ -1,10 +1,11 @@
 use assets::SVGSource;
+use common::profiler::Profiler;
 use glam::{Vec2, Vec4};
 
 use super::{
     super::gate::Gate,
-    connection::{ElementIdx, IOSpecifier},
     CircuitElement, EditCircuit,
+    connection::{ElementIdx, IOSpecifier},
 };
 use crate::{
     color,
@@ -80,7 +81,8 @@ impl CircuitElement {
 }
 
 impl EditCircuit {
-    pub fn draw(&self, frame: &mut Frame, game_input: &GameInput) {
+    pub fn draw(&self, frame: &mut Frame, game_input: &GameInput, profiler: &mut Profiler) {
+        profiler.begin("elements");
         for (idx, element) in self.circuit.elements.iter().enumerate() {
             let is_hot = if let Some(HitTestResult::Element(ElementIdx(hot_idx))) = game_input.hot {
                 hot_idx == idx
@@ -94,6 +96,9 @@ impl EditCircuit {
 
             element.draw(is_selected, is_hot, frame);
         }
+        profiler.end("elements");
+
+        profiler.begin("connections");
 
         self.circuit
             .connections
@@ -142,6 +147,10 @@ impl EditCircuit {
             frame.draw_cubic_bezier(line, COLOR_DRAWING, BASE_LINE_WIDTH);
         }
 
+        profiler.end("connections");
+
+        profiler.begin("dots");
+
         self.circuit.connection_dots().for_each(|dot| {
             let position = self.circuit.io_position(dot);
             let dot_source = match dot {
@@ -157,10 +166,14 @@ impl EditCircuit {
             frame.draw_vector_lazy(dot_source, position, Vec4::ONE, scale, 2);
         });
 
+        profiler.end("dots");
+
+        profiler.begin("selection");
         // Draw box select outline
         if let Some(bounds) = self.selection.bound_select {
             let width = frame.world_pixel_size().max_element() * 2.0;
             frame.render_queue.draw_bounds(bounds, width)
         }
+        profiler.end("selection");
     }
 }

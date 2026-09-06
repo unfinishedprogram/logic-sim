@@ -1,4 +1,4 @@
-use super::{input::InputState, GameState};
+use super::{GameState, input::InputState};
 use crate::render::frame::Frame;
 use common::profiler::Profiler;
 use glam::Vec2;
@@ -20,15 +20,19 @@ impl GameState {
         self.text_object.content = self.debug_text(frame, profiler);
 
         profiler.begin("draw");
-        self.draw(frame);
+        self.draw(frame, profiler);
         profiler.end("draw");
     }
 
-    pub fn draw(&self, frame: &mut Frame) {
+    pub fn draw(&self, frame: &mut Frame, profiler: &mut Profiler) {
+        profiler.begin("text");
         self.text_object
             .draw(&mut frame.ui_render_queue, &frame.assets.font);
+        profiler.end("text");
 
-        self.circuit.draw(frame, &self.input);
+        profiler.begin("circuit");
+        self.circuit.draw(frame, &self.input, profiler);
+        profiler.end("circuit");
     }
 
     fn handle_inputs(&mut self, input_state: &InputState, profiler: &mut Profiler) {
