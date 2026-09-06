@@ -175,11 +175,12 @@ impl VectorRenderer {
         let vertex_offset = obj.vertex_buffers.vertices.len() as u32;
         let index_offset = obj.vertex_buffers.indices.len() as u32;
 
+        let vertex_start = previous_meta.vertex_range.end;
+        let index_start = previous_meta.index_range.end;
+
         VectorInstanceBufferRanges {
-            vertex_range: (previous_meta.vertex_range.end
-                ..previous_meta.vertex_range.end + vertex_offset),
-            index_range: (previous_meta.index_range.end
-                ..previous_meta.index_range.end + index_offset),
+            vertex_range: (vertex_start..vertex_start + vertex_offset),
+            index_range: (index_start..index_start + index_offset),
         }
     }
 
