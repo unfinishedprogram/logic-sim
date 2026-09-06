@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use super::{
+    VectorInstance,
     instance::{RawInstance, ZIndex},
     svg_geometry::SVGGeometry,
-    VectorInstance,
 };
 
-use common::handle::Handle;
+use common::{handle::Handle, profiler};
 
 pub struct DrawCall {
     pub id: Handle<SVGGeometry>,
@@ -51,9 +51,15 @@ fn group_by_z_index(instances: Vec<VectorInstance>) -> Vec<Vec<VectorInstance>> 
 }
 
 // Orders draw calls to support z-indexing
-pub fn create_render_request(instances: Vec<VectorInstance>) -> VectorRenderRequest {
+pub fn create_render_request(
+    instances: Vec<VectorInstance>,
+    profiler: &mut profiler::Profiler,
+) -> VectorRenderRequest {
+    profiler.begin("group by z-index");
     let z_index_groups = group_by_z_index(instances);
+    profiler.end("group by z-index");
 
+    profiler.begin("create draw calls");
     let mut draw_calls: Vec<DrawCall> = Vec::new();
     let mut instances_buf: Vec<RawInstance> = Vec::new();
 
@@ -74,6 +80,8 @@ pub fn create_render_request(instances: Vec<VectorInstance>) -> VectorRenderRequ
             start = end
         }
     }
+
+    profiler.end("create draw calls");
 
     VectorRenderRequest {
         instances_buf,

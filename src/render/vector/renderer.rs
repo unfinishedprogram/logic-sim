@@ -14,7 +14,7 @@ use crate::render::{
     vector::tessellator::Tessellator,
 };
 
-use common::handle::Handle;
+use common::{handle::Handle, profiler};
 
 use super::{
     draw_call_ordering::{VectorRenderRequest, create_render_request},
@@ -117,18 +117,25 @@ impl VectorRenderer {
         queue: &wgpu::Queue,
         instances: &[VectorInstance],
         lazy_instances: &[LazyVectorInstance<'static>],
+        profiler: &mut profiler::Profiler,
     ) {
+        profiler.begin("convert");
         let mut converted = self.convert_lazy_instances(lazy_instances);
         converted.extend(instances);
+        profiler.end("convert");
 
+        profiler.begin("update geometry");
         self.update_geometry(queue);
-        self.render_request = create_render_request(converted);
+        self.render_request = create_render_request(converted, profiler);
+        profiler.end("update geometry");
 
+        profiler.begin("upload buffers");
         queue.write_buffer(
             &self.instance_buffer,
             0,
             bytemuck::cast_slice(&self.render_request.instances_buf),
         );
+        profiler.end("upload buffers");
     }
 
     fn pipeline_layout(device: &Device, bind_group_layouts: &[&BindGroupLayout]) -> PipelineLayout {

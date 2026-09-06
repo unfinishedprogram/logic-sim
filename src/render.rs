@@ -171,6 +171,7 @@ impl<'window> RenderState<'window> {
             &self.base.queue,
             vector_instances,
             lazy_vector_instances,
+            profiler,
         );
         profiler.end("vectors");
     }
