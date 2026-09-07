@@ -11,15 +11,14 @@ use crate::render::{
     bindable::Bindable,
     camera::{Camera, CameraUniform},
     helpers,
-    vector::tessellator::Tessellator,
+    vector::{lazy_instance::LazyVectorInstance, tessellator::Tessellator},
 };
 
 use common::{handle::Handle, profiler};
 
 use super::{
     draw_call_ordering::{VectorRenderRequest, create_render_request},
-    instance::{RawInstance, VectorInstance},
-    lazy_instance::LazyVectorInstance,
+    instance::RawInstance,
     svg_geometry::SVGGeometry,
     vertex::SVGVertex,
 };
@@ -115,13 +114,11 @@ impl VectorRenderer {
     pub fn upload_instances(
         &mut self,
         queue: &wgpu::Queue,
-        instances: &[VectorInstance],
         lazy_instances: &[LazyVectorInstance<'static>],
         profiler: &mut profiler::Profiler,
     ) {
         profiler.begin("convert");
-        let mut converted = self.convert_lazy_instances(lazy_instances);
-        converted.extend(instances);
+        let converted = self.convert_lazy_instances(lazy_instances);
         profiler.end("convert");
 
         profiler.begin("update geometry");

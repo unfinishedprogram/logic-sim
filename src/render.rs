@@ -154,7 +154,6 @@ impl<'window> RenderState<'window> {
 
         let lines = &render_queue.lines;
         let sprites = &render_queue.sprites;
-        let vector_instances = &render_queue.vector_instances;
         let lazy_vector_instances = &render_queue.lazy_instances;
 
         profiler.begin("lines");
@@ -167,12 +166,8 @@ impl<'window> RenderState<'window> {
         profiler.end("sprites");
 
         profiler.begin("vectors");
-        self.vector_renderer.upload_instances(
-            &self.base.queue,
-            vector_instances,
-            lazy_vector_instances,
-            profiler,
-        );
+        self.vector_renderer
+            .upload_instances(&self.base.queue, lazy_vector_instances, profiler);
         profiler.end("vectors");
     }
 

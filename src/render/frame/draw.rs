@@ -37,7 +37,7 @@ impl Frame {
         transform: Vec2,
         color: Vec4,
         scale: Vec2,
-        z_index: u16,
+        z_index: u8,
     ) {
         let instance = LazyVectorInstance {
             source,

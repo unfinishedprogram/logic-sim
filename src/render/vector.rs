@@ -1,7 +1,7 @@
 mod draw_call_ordering;
 mod instance;
 pub mod lazy_instance;
-mod renderer;
+pub mod renderer;
 mod svg_geometry;
 pub mod tessellator;
 mod vertex;

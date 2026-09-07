@@ -15,9 +15,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::render::{
     msdf::sprite_renderer::SpriteInstance,
-    vector::{
-        VectorInstance, lazy_instance::LazyVectorInstance, vertex_buffers::VertexBufferUtils,
-    },
+    vector::{lazy_instance::LazyVectorInstance, vertex_buffers::VertexBufferUtils},
     vertex::VertexUV,
 };
 
@@ -27,7 +25,6 @@ use super::draw::CubicBezierInstance;
 pub struct RenderQueue {
     pub sprites: Vec<SpriteInstance>,
     pub lines: VertexBuffers<VertexUV, u32>,
-    pub vector_instances: Vec<VectorInstance>,
     pub bezier_instances: Vec<CubicBezierInstance>,
     pub lazy_instances: Vec<LazyVectorInstance<'static>>,
 }
@@ -36,12 +33,6 @@ impl RenderQueue {
     pub fn enqueue_sprite(&mut self, sprite: SpriteInstance) -> Handle<SpriteInstance> {
         let index = self.sprites.len();
         self.sprites.push(sprite);
-        Handle::new(index)
-    }
-
-    pub fn enqueue_vector(&mut self, instance: VectorInstance) -> Handle<VectorInstance> {
-        let index = self.vector_instances.len();
-        self.vector_instances.push(instance);
         Handle::new(index)
     }
 

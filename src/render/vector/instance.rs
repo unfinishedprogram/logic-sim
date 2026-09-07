@@ -5,7 +5,7 @@ use wgpu::vertex_attr_array;
 use super::svg_geometry::SVGGeometry;
 use common::handle::Handle;
 
-pub type ZIndex = u16;
+pub type ZIndex = u8;
 
 #[derive(Clone, Copy)]
 pub struct VectorInstance {

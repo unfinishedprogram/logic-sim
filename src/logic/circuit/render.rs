@@ -76,7 +76,7 @@ impl CircuitElement {
             Vec2::splat(1.0)
         };
 
-        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, scale, selected as u16)
+        frame.draw_vector_lazy(sprite, self.position, Vec4::ONE, scale, selected as u8)
     }
 }
 

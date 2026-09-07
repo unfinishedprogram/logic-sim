@@ -1,5 +1,5 @@
 pub mod draw;
-mod render_queue;
+pub mod render_queue;
 
 use glam::Vec2;
 pub use render_queue::RenderQueue;

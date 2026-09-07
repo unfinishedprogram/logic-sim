@@ -9,11 +9,11 @@ use winit::{
 };
 
 use crate::{
-    game::{input::InputState, GameState},
+    game::{GameState, input::InputState},
     render::{
+        RenderState,
         camera::Camera,
         frame::{Frame, FrameAssets},
-        RenderState,
     },
 };
 

@@ -19,72 +19,144 @@ pub struct VectorRenderRequest {
     pub draw_calls: Vec<DrawCall>,
 }
 
-// Returns a sorted vector of instances, grouped by z-index
-// Each group is then sorted by instanceID
-fn group_by_z_index(instances: Vec<VectorInstance>) -> Vec<Vec<VectorInstance>> {
-    let mut unique_z_indexes: HashMap<ZIndex, Vec<VectorInstance>> = HashMap::new();
-
-    // First priority is the z-index
-    for instance in instances {
-        if let Some(z_group) = unique_z_indexes.get_mut(&instance.z_index) {
-            z_group.push(instance);
-        } else {
-            unique_z_indexes.insert(instance.z_index, vec![instance]);
-        }
-    }
-
-    let mut z_indexes: Vec<(u16, Vec<VectorInstance>)> = unique_z_indexes.into_iter().collect();
-
-    z_indexes.sort_by_key(|(z_index, _)| *z_index);
-    let mut z_indexes = z_indexes
-        .into_iter()
-        .map(|(_, instances)| instances)
-        .collect::<Vec<_>>();
-
-    // Second priority is the instance ID
-    // This is mostly just so we can render as many instances as possible within the same draw call
-    for z_index_group in z_indexes.iter_mut() {
-        z_index_group.sort_by_key(|instance| instance.id.index);
-    }
-
-    z_indexes
-}
+// Instances bucketed by z-index, then by the geometry they draw
+pub type GroupedInstances = HashMap<ZIndex, HashMap<Handle<SVGGeometry>, Vec<VectorInstance>>>;
 
 // Orders draw calls to support z-indexing
+//
+// Instances arrive already grouped by geometry, so each inner entry is exactly
+// one draw call. Both levels are sorted before emitting: z-index ascending so
+// lower layers draw first, and geometry handle so that ordering within a layer
+// is stable between frames - `HashMap` iteration order is not.
 pub fn create_render_request(
-    instances: Vec<VectorInstance>,
+    instances: GroupedInstances,
     profiler: &mut profiler::Profiler,
 ) -> VectorRenderRequest {
     profiler.begin("group by z-index");
-    let z_index_groups = group_by_z_index(instances);
+    let mut z_index_groups: Vec<_> = instances.into_iter().collect();
+    z_index_groups.sort_unstable_by_key(|(z_index, _)| *z_index);
     profiler.end("group by z-index");
 
     profiler.begin("create draw calls");
     let mut draw_calls: Vec<DrawCall> = Vec::new();
     let mut instances_buf: Vec<RawInstance> = Vec::new();
 
-    for group in z_index_groups {
-        let mut start = 0;
-        let mut current_id;
+    for (_, by_geometry) in z_index_groups {
+        let mut by_geometry: Vec<_> = by_geometry.into_iter().collect();
+        by_geometry.sort_unstable_by_key(|(id, _)| id.index);
 
-        while start < group.len() {
-            current_id = group[start].id;
-            let end = group.partition_point(|it| it.id.index <= current_id.index);
-            let instances = &group[start..end];
-            instances_buf.extend(instances.iter().map(|it| RawInstance::from(*it)));
+        for (id, instances) in by_geometry {
+            let start = instances_buf.len() as u32;
+            instances_buf.extend(instances.into_iter().map(RawInstance::from));
 
             draw_calls.push(DrawCall {
-                id: current_id,
-                range: (instances_buf.len() - instances.len()) as u32..instances_buf.len() as u32,
+                id,
+                range: start..instances_buf.len() as u32,
             });
-            start = end
         }
     }
-
     profiler.end("create draw calls");
 
     VectorRenderRequest {
         instances_buf,
         draw_calls,
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use glam::Vec2;
+
+    // `transform.x` is used as a tag so instances can be identified in the
+    // flattened output buffer.
+    fn instance(id: Handle<SVGGeometry>, z_index: ZIndex, tag: f32) -> VectorInstance {
+        let mut instance = VectorInstance::new(id).with_transform(Vec2::splat(tag));
+        instance.z_index = z_index;
+        instance
+    }
+
+    fn request_of(map: GroupedInstances) -> VectorRenderRequest {
+        create_render_request(map, &mut profiler::Profiler::default())
+    }
+
+    #[test]
+    fn every_geometry_in_a_layer_gets_a_draw_call() {
+        let mut map = GroupedInstances::new();
+        let layer = map.entry(0).or_default();
+        for index in 0..32 {
+            let id = Handle::new(index);
+            layer.insert(id, vec![instance(id, 0, index as f32)]);
+        }
+
+        let request = request_of(map);
+
+        assert_eq!(request.draw_calls.len(), 32);
+        assert_eq!(request.instances_buf.len(), 32);
+        assert_eq!(
+            request
+                .draw_calls
+                .iter()
+                .map(|call| call.id.index)
+                .collect::<Vec<_>>(),
+            (0..32).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn draw_calls_are_ordered_by_z_index_then_geometry() {
+        let mut map = GroupedInstances::new();
+        for (z_index, handle) in [(2, 5), (0, 9), (0, 4), (1, 8)] {
+            let id = Handle::new(handle);
+            map.entry(z_index)
+                .or_default()
+                .insert(id, vec![instance(id, z_index, 0.0)]);
+        }
+
+        let ids: Vec<usize> = request_of(map)
+            .draw_calls
+            .iter()
+            .map(|call| call.id.index)
+            .collect();
+
+        // z 0 first (handles ascending), then z 1, then z 2
+        assert_eq!(ids, [4, 9, 8, 5]);
+    }
+
+    #[test]
+    fn ranges_tile_the_buffer_and_keep_every_instance() {
+        let mut map = GroupedInstances::new();
+        for (z_index, handle, tags) in [
+            (1u8, 7usize, vec![1.0f32, 2.0]),
+            (0, 3, vec![3.0]),
+            (0, 9, vec![4.0, 5.0, 6.0]),
+        ] {
+            let id = Handle::new(handle);
+            let instances = tags
+                .iter()
+                .map(|tag| instance(id, z_index, *tag))
+                .collect::<Vec<_>>();
+            map.entry(z_index).or_default().insert(id, instances);
+        }
+
+        let request = request_of(map);
+
+        let mut next = 0;
+        for call in request.draw_calls.iter() {
+            assert_eq!(
+                call.range.start, next,
+                "draw call ranges must be contiguous"
+            );
+            next = call.range.end;
+        }
+        assert_eq!(next as usize, request.instances_buf.len());
+
+        let mut tags: Vec<f32> = request
+            .instances_buf
+            .iter()
+            .map(|raw| raw.transform.x)
+            .collect();
+        tags.sort_by(f32::total_cmp);
+        assert_eq!(tags, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
     }
 }
